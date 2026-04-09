@@ -2798,8 +2798,12 @@ function toggleSub(id,el){
   const sub=document.getElementById(id);
   if(!sub)return;
   const isOpen=sub.classList.contains('open');
-  sub.classList.toggle('open');
-  el.classList.toggle('open');
+  // Accordion: close all other open submenus
+  document.querySelectorAll('.nav-item.open').forEach(n=>{if(n!==el)n.classList.remove('open');});
+  document.querySelectorAll('[id].open').forEach(s=>{if(s.id!==id)s.classList.remove('open');});
+  // Toggle clicked one
+  sub.classList.toggle('open',!isOpen);
+  el.classList.toggle('open',!isOpen);
 }
 
 // ── CLOCK ──────────────────────────────────────────────
