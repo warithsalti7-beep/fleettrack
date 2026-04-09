@@ -119,7 +119,7 @@ body { background:var(--bg); min-height:100vh; }
       <div class="driver-avatar" id="d-avatar">OM</div>
       <div class="driver-name"  id="d-name">Driver</div>
     </div>
-    <button class="logout-btn" onclick="FleetAuth.logout('../login.html?portal=driver')" title="Sign out" aria-label="Sign out">⏻</button>
+    <button class="logout-btn" onclick="FleetAuth.logout('./login.html?portal=driver')" title="Sign out" aria-label="Sign out">⏻</button>
   </div>
 
   <!-- Content -->
@@ -265,7 +265,7 @@ body { background:var(--bg); min-height:100vh; }
         <div style="font-size:13px;color:var(--t2);display:flex;justify-content:space-between;padding:var(--s2) 0;border-bottom:1px solid var(--b1)"><span>Email</span><span class="text-mono" id="profile-email" style="color:var(--t1)">—</span></div>
         <div style="font-size:13px;color:var(--t2);display:flex;justify-content:space-between;padding:var(--s2) 0"><span>Role</span><span class="badge b-green">Driver</span></div>
       </div>
-      <button class="btn btn-full" style="margin-top:var(--s3);border-color:var(--redborder);color:var(--red)" onclick="FleetAuth.logout('../login.html?portal=driver')">Sign Out</button>
+      <button class="btn btn-full" style="margin-top:var(--s3);border-color:var(--redborder);color:var(--red)" onclick="FleetAuth.logout('./login.html?portal=driver')">Sign Out</button>
       <div style="text-align:center;margin-top:var(--s5);font-size:12px;color:var(--t3)">FleetTrack Driver Portal v1.0<br>© 2025 FleetTrack</div>
     </div>
 
@@ -286,7 +286,7 @@ body { background:var(--bg); min-height:100vh; }
 <script src="./auth.js"></script>
 <script>
 // ── Auth guard ───────────────────────────────────────────────────────
-const session = FleetAuth.requireAuth(['driver'], '../login.html?portal=driver');
+const session = FleetAuth.requireAuth(['driver'], './login.html?portal=driver');
 if (!session) throw new Error('Unauthorized');
 
 // ── Populate session info ────────────────────────────────────────────

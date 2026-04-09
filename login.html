@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FleetTrack — Sign In</title>
-<link rel="stylesheet" href="shared/css/design-system.css">
+<link rel="stylesheet" href="./design-system.css">
 <style>
 body { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:var(--s4); background:var(--bg); }
 body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse 80% 60% at 50% -10%, rgba(59,127,245,0.12) 0%, transparent 70%); pointer-events:none; }
@@ -134,7 +134,7 @@ body::before { content:''; position:fixed; inset:0; background:radial-gradient(e
 
 </div>
 
-<script src="shared/js/auth.js"></script>
+<script src="./auth.js"></script>
 <script>
 let currentPortal = 'admin';
 
@@ -145,7 +145,7 @@ const portalConfig = {
     title:    'Welcome back',
     sub:      'Sign in to access the admin dashboard and fleet management tools.',
     btnText:  'Sign in to Admin Portal',
-    dest:     'admin/dashboard.html',
+    dest:     'dashboard.html',
     hint:     '<strong>Demo:</strong> stefan@oslofleet.no / Admin2024!',
   },
   employee: {
@@ -154,7 +154,7 @@ const portalConfig = {
     title:    'Employee sign in',
     sub:      'Access your fleet operations tools. Contact your admin if you need access.',
     btnText:  'Sign in to Employee Portal',
-    dest:     'employee/index.html',
+    dest:     'access-management.html',
     hint:     '<strong>Demo:</strong> dispatch@fleettrack.no / Dispatch2024!',
   },
   driver: {
@@ -163,7 +163,7 @@ const portalConfig = {
     title:    'Driver sign in',
     sub:      'View your shifts, trips, earnings and performance stats.',
     btnText:  'Sign in to Driver Portal',
-    dest:     'driver/index.html',
+    dest:     'index.html',
     hint:     '<strong>Demo:</strong> olsztynski@fleettrack.no / Driver2024!',
   },
 };
