@@ -4,12 +4,25 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatDate, formatCurrency, getStatusColor } from "@/lib/utils";
+import { formatDate, getStatusColor } from "@/lib/utils";
+import { getCurrency } from "@/lib/currency-server";
+import { formatAmount } from "@/lib/currency";
+import { ExportButton } from "@/components/ui/export-button";
+import { SortBar } from "@/components/ui/sort-bar";
 import { AlertTriangle, CheckCircle2, Clock, Wrench } from "lucide-react";
 
-async function getMaintenanceData() {
+type MaintSortField = "scheduledAt" | "priority" | "status" | "cost";
+
+const SORT_OPTIONS = [
+  { value: "scheduledAt", label: "Scheduled Date" },
+  { value: "priority", label: "Priority" },
+  { value: "status", label: "Status" },
+  { value: "cost", label: "Cost" },
+];
+
+async function getMaintenanceData(sort: MaintSortField, dir: "asc" | "desc") {
   return prisma.maintenance.findMany({
-    orderBy: [{ priority: "desc" }, { scheduledAt: "asc" }],
+    orderBy: { [sort]: dir },
     include: {
       vehicle: { select: { plateNumber: true, make: true, model: true } },
     },
@@ -32,8 +45,16 @@ const typeLabels: Record<string, string> = {
   REPAIR: "Repair",
 };
 
-export default async function MaintenancePage() {
-  const records = await getMaintenanceData();
+export default async function MaintenancePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string; dir?: string }>;
+}) {
+  const params = await searchParams;
+  const sort = (SORT_OPTIONS.some((o) => o.value === params.sort) ? params.sort : "scheduledAt") as MaintSortField;
+  const dir = params.dir === "desc" ? "desc" : "asc";
+
+  const [records, currency] = await Promise.all([getMaintenanceData(sort, dir), getCurrency()]);
 
   const stats = {
     scheduled: records.filter((r) => r.status === "SCHEDULED").length,
@@ -45,7 +66,7 @@ export default async function MaintenancePage() {
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
-      <Topbar title="Maintenance" subtitle="Schedule and track vehicle maintenance" />
+      <Topbar title="Maintenance" subtitle="Schedule and track vehicle maintenance" actions={<ExportButton href="/api/export/maintenance" label="Export Records" />} />
       <main className="flex-1 p-6 space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-5 gap-4">
@@ -78,10 +99,13 @@ export default async function MaintenancePage() {
             <div className="text-sm font-medium text-red-700 mt-0.5">Urgent</div>
           </div>
           <div className="rounded-lg bg-yellow-50 p-4">
-            <div className="text-2xl font-bold text-yellow-700">{formatCurrency(stats.totalCost)}</div>
+            <div className="text-2xl font-bold text-yellow-700">{formatAmount(stats.totalCost, currency)}</div>
             <div className="text-sm font-medium text-yellow-700 mt-0.5">Total Cost</div>
           </div>
         </div>
+
+        {/* Sort Bar */}
+        <SortBar options={SORT_OPTIONS} currentSort={sort} currentDir={dir} />
 
         {/* Table */}
         <Card className="bg-white">
@@ -146,7 +170,7 @@ export default async function MaintenancePage() {
                     </TableCell>
                     <TableCell>
                       <span className="font-medium text-gray-900">
-                        {record.cost ? formatCurrency(record.cost) : "—"}
+                        {record.cost ? formatAmount(record.cost, currency) : "—"}
                       </span>
                     </TableCell>
                     <TableCell>

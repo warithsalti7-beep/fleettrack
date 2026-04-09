@@ -4,12 +4,25 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency, formatDateTime } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
+import { getCurrency } from "@/lib/currency-server";
+import { formatAmount, formatAmountDetailed } from "@/lib/currency";
+import { ExportButton } from "@/components/ui/export-button";
+import { SortBar } from "@/components/ui/sort-bar";
 import { Fuel, DollarSign, Droplets, TrendingDown } from "lucide-react";
 
-async function getFuelData() {
+type FuelSortField = "filledAt" | "liters" | "totalCost" | "pricePerLiter";
+
+const SORT_OPTIONS = [
+  { value: "filledAt", label: "Date" },
+  { value: "liters", label: "Liters" },
+  { value: "totalCost", label: "Total Cost" },
+  { value: "pricePerLiter", label: "Price/Liter" },
+];
+
+async function getFuelData(sort: FuelSortField, dir: "asc" | "desc") {
   const logs = await prisma.fuelLog.findMany({
-    orderBy: { filledAt: "desc" },
+    orderBy: { [sort]: dir },
     take: 100,
     include: {
       vehicle: { select: { plateNumber: true, make: true, model: true, fuelType: true } },
@@ -33,12 +46,20 @@ async function getFuelData() {
   return { logs, stats, byVehicle };
 }
 
-export default async function FuelPage() {
-  const { logs, stats } = await getFuelData();
+export default async function FuelPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string; dir?: string }>;
+}) {
+  const params = await searchParams;
+  const sort = (SORT_OPTIONS.some((o) => o.value === params.sort) ? params.sort : "filledAt") as FuelSortField;
+  const dir = params.dir === "asc" ? "asc" : "desc";
+
+  const [{ logs, stats }, currency] = await Promise.all([getFuelData(sort, dir), getCurrency()]);
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
-      <Topbar title="Fuel Management" subtitle="Track fuel consumption and costs" />
+      <Topbar title="Fuel Management" subtitle="Track fuel consumption and costs" actions={<ExportButton href="/api/export/fuel" label="Export Fuel Logs" />} />
       <main className="flex-1 p-6 space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-4 gap-4">
@@ -47,7 +68,7 @@ export default async function FuelPage() {
               <div>
                 <div className="text-sm text-gray-500">Total Fuel Cost</div>
                 <div className="text-2xl font-bold text-gray-900 mt-1">
-                  {formatCurrency(stats._sum.totalCost ?? 0)}
+                  {formatAmount(stats._sum.totalCost ?? 0, currency)}
                 </div>
               </div>
               <div className="rounded-full bg-yellow-50 p-3">
@@ -73,7 +94,7 @@ export default async function FuelPage() {
               <div>
                 <div className="text-sm text-gray-500">Avg. Price per Liter</div>
                 <div className="text-2xl font-bold text-gray-900 mt-1">
-                  ${(stats._avg.pricePerLiter ?? 0).toFixed(2)}
+                  {formatAmountDetailed(stats._avg.pricePerLiter ?? 0, currency)}
                 </div>
               </div>
               <div className="rounded-full bg-green-50 p-3">
@@ -93,6 +114,9 @@ export default async function FuelPage() {
             </div>
           </div>
         </div>
+
+        {/* Sort Bar */}
+        <SortBar options={SORT_OPTIONS} currentSort={sort} currentDir={dir} />
 
         {/* Fuel Logs Table */}
         <Card className="bg-white">
@@ -146,10 +170,10 @@ export default async function FuelPage() {
                       <span className="font-medium text-gray-900">{log.liters.toFixed(1)} L</span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-gray-600">${log.pricePerLiter.toFixed(2)}</span>
+                      <span className="text-gray-600">{formatAmountDetailed(log.pricePerLiter, currency)}</span>
                     </TableCell>
                     <TableCell>
-                      <span className="font-semibold text-gray-900">{formatCurrency(log.totalCost)}</span>
+                      <span className="font-semibold text-gray-900">{formatAmount(log.totalCost, currency)}</span>
                     </TableCell>
                     <TableCell>
                       <span className="text-gray-600">{log.mileageAtFill.toLocaleString()} km</span>

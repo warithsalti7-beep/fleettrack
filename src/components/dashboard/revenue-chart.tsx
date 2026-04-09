@@ -10,6 +10,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatAmount } from "@/lib/currency";
+import type { Currency } from "@/lib/currency";
 
 interface RevenueDataPoint {
   date: string;
@@ -19,9 +21,10 @@ interface RevenueDataPoint {
 
 interface RevenueChartProps {
   data: RevenueDataPoint[];
+  currency?: Currency;
 }
 
-export function RevenueChart({ data }: RevenueChartProps) {
+export function RevenueChart({ data, currency = "NOK" }: RevenueChartProps) {
   return (
     <Card className="bg-white col-span-2">
       <CardHeader>
@@ -41,7 +44,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
             <YAxis tick={{ fontSize: 12 }} />
             <Tooltip
               formatter={(value, name) => [
-                name === "revenue" ? `$${Number(value ?? 0).toFixed(2)}` : value,
+                name === "revenue" ? formatAmount(Number(value ?? 0), currency) : value,
                 name === "revenue" ? "Revenue" : "Trips",
               ]}
             />

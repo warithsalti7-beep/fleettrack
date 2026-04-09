@@ -4,12 +4,18 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatCurrency, formatDateTime, getStatusColor } from "@/lib/utils";
+import { formatDateTime, getStatusColor } from "@/lib/utils";
+import { getCurrency } from "@/lib/currency-server";
+import { formatAmount } from "@/lib/currency";
+import { ExportButton } from "@/components/ui/export-button";
+import { SortBar } from "@/components/ui/sort-bar";
 import { MapPin, Clock, Star } from "lucide-react";
 
-async function getTrips() {
+type SortField = "createdAt" | "fare" | "distance" | "duration" | "rating";
+
+async function getTrips(sort: SortField, dir: "asc" | "desc") {
   return prisma.trip.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: { [sort]: dir },
     take: 100,
     include: {
       driver: { select: { name: true } },
@@ -18,8 +24,24 @@ async function getTrips() {
   });
 }
 
-export default async function TripsPage() {
-  const trips = await getTrips();
+const SORT_OPTIONS = [
+  { value: "createdAt", label: "Date" },
+  { value: "fare", label: "Fare" },
+  { value: "distance", label: "Distance" },
+  { value: "duration", label: "Duration" },
+  { value: "rating", label: "Rating" },
+];
+
+export default async function TripsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string; dir?: string }>;
+}) {
+  const params = await searchParams;
+  const sort = (SORT_OPTIONS.some((o) => o.value === params.sort) ? params.sort : "createdAt") as SortField;
+  const dir = params.dir === "desc" ? "desc" : "asc";
+
+  const [trips, currency] = await Promise.all([getTrips(sort, dir), getCurrency()]);
 
   const stats = {
     total: trips.length,
@@ -31,7 +53,7 @@ export default async function TripsPage() {
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
-      <Topbar title="Trips" subtitle="Track all taxi trips in your fleet" />
+      <Topbar title="Trips" subtitle="Track all taxi trips in your fleet" actions={<ExportButton href="/api/export/trips" label="Export Trips" />} />
       <main className="flex-1 p-6 space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-5 gap-4">
@@ -40,7 +62,7 @@ export default async function TripsPage() {
             { label: "Completed", value: stats.completed, color: "bg-green-50 text-green-700" },
             { label: "In Progress", value: stats.inProgress, color: "bg-purple-50 text-purple-700" },
             { label: "Cancelled", value: stats.cancelled, color: "bg-red-50 text-red-700" },
-            { label: "Revenue", value: formatCurrency(stats.totalRevenue), color: "bg-yellow-50 text-yellow-700" },
+            { label: "Revenue", value: formatAmount(stats.totalRevenue, currency), color: "bg-yellow-50 text-yellow-700" },
           ].map((s) => (
             <div key={s.label} className={`rounded-lg p-4 ${s.color}`}>
               <div className="text-xl font-bold">{s.value}</div>
@@ -48,6 +70,9 @@ export default async function TripsPage() {
             </div>
           ))}
         </div>
+
+        {/* Sort Bar */}
+        <SortBar options={SORT_OPTIONS} currentSort={sort} currentDir={dir} />
 
         {/* Table */}
         <Card className="bg-white">
@@ -117,7 +142,7 @@ export default async function TripsPage() {
                     </TableCell>
                     <TableCell>
                       <span className="font-semibold text-gray-900">
-                        {trip.fare ? formatCurrency(trip.fare) : "—"}
+                        {trip.fare ? formatAmount(trip.fare, currency) : "—"}
                       </span>
                     </TableCell>
                     <TableCell>

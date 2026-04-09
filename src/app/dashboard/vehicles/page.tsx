@@ -10,11 +10,23 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate, getStatusColor } from "@/lib/utils";
+import { ExportButton } from "@/components/ui/export-button";
+import { SortBar } from "@/components/ui/sort-bar";
 import { Car, Gauge, Fuel } from "lucide-react";
 
-async function getVehicles() {
+type VehicleSortField = "plateNumber" | "make" | "year" | "mileage" | "fuelLevel" | "createdAt";
+
+const SORT_OPTIONS = [
+  { value: "plateNumber", label: "Plate" },
+  { value: "make", label: "Make" },
+  { value: "year", label: "Year" },
+  { value: "mileage", label: "Mileage" },
+  { value: "fuelLevel", label: "Fuel Level" },
+];
+
+async function getVehicles(sort: VehicleSortField, dir: "asc" | "desc") {
   return prisma.vehicle.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: { [sort]: dir },
     include: {
       trips: { where: { status: "COMPLETED" }, select: { id: true } },
       drivers: { include: { driver: { select: { name: true } } }, take: 1 },
@@ -22,8 +34,16 @@ async function getVehicles() {
   });
 }
 
-export default async function VehiclesPage() {
-  const vehicles = await getVehicles();
+export default async function VehiclesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string; dir?: string }>;
+}) {
+  const params = await searchParams;
+  const sort = (SORT_OPTIONS.some((o) => o.value === params.sort) ? params.sort : "createdAt") as VehicleSortField;
+  const dir = params.dir === "asc" ? "asc" : "desc";
+
+  const vehicles = await getVehicles(sort, dir);
 
   const stats = {
     total: vehicles.length,
@@ -34,7 +54,7 @@ export default async function VehiclesPage() {
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
-      <Topbar title="Vehicles" subtitle={`${stats.total} vehicles in fleet`} />
+      <Topbar title="Vehicles" subtitle={`${stats.total} vehicles in fleet`} actions={<ExportButton href="/api/export/vehicles" label="Export Vehicles" />} />
       <main className="flex-1 p-6 space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-4 gap-4">
@@ -50,6 +70,9 @@ export default async function VehiclesPage() {
             </div>
           ))}
         </div>
+
+        {/* Sort Bar */}
+        <SortBar options={SORT_OPTIONS} currentSort={sort} currentDir={dir} />
 
         {/* Table */}
         <Card className="bg-white">

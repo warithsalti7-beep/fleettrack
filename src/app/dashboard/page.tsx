@@ -4,8 +4,10 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { FleetStatusChart } from "@/components/dashboard/fleet-status-chart";
 import { RevenueChart } from "@/components/dashboard/revenue-chart";
 import { RecentTrips } from "@/components/dashboard/recent-trips";
-import { Car, Users, MapPin, DollarSign, Wrench, Fuel } from "lucide-react";
+import { Car, Users, MapPin, TrendingUp, Wrench, Fuel } from "lucide-react";
 import { subDays, format } from "date-fns";
+import { getCurrency } from "@/lib/currency-server";
+import { formatAmount } from "@/lib/currency";
 
 async function getDashboardData() {
   const [
@@ -94,7 +96,7 @@ async function getDashboardData() {
 }
 
 export default async function DashboardPage() {
-  const data = await getDashboardData();
+  const [data, currency] = await Promise.all([getDashboardData(), getCurrency()]);
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
@@ -134,9 +136,9 @@ export default async function DashboardPage() {
           />
           <KpiCard
             title="Total Revenue"
-            value={`$${data.totalRevenue.toFixed(0)}`}
+            value={formatAmount(data.totalRevenue, currency)}
             subtitle="All completed trips"
-            icon={DollarSign}
+            icon={TrendingUp}
             iconColor="text-yellow-600"
             iconBg="bg-yellow-50"
             trend={8.7}
@@ -186,7 +188,7 @@ export default async function DashboardPage() {
 
         {/* Charts */}
         <div className="grid grid-cols-3 gap-4">
-          <RevenueChart data={data.revenueData} />
+          <RevenueChart data={data.revenueData} currency={currency} />
           <FleetStatusChart
             available={data.availableVehicles}
             onTrip={data.onTripVehicles}

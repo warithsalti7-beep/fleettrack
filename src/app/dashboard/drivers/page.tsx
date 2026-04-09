@@ -5,11 +5,17 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate, getStatusColor } from "@/lib/utils";
+import { getCurrency } from "@/lib/currency-server";
+import { formatAmount } from "@/lib/currency";
+import { ExportButton } from "@/components/ui/export-button";
+import { SortBar } from "@/components/ui/sort-bar";
 import { Star, Phone, Mail } from "lucide-react";
 
-async function getDrivers() {
+type SortField = "name" | "rating" | "totalTrips" | "licenseExpiry" | "joinedAt";
+
+async function getDrivers(sort: SortField, dir: "asc" | "desc") {
   return prisma.driver.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: { [sort]: dir },
     include: {
       trips: { where: { status: "COMPLETED" }, select: { fare: true } },
       vehicles: {
@@ -20,8 +26,24 @@ async function getDrivers() {
   });
 }
 
-export default async function DriversPage() {
-  const drivers = await getDrivers();
+const SORT_OPTIONS = [
+  { value: "name", label: "Name" },
+  { value: "rating", label: "Rating" },
+  { value: "totalTrips", label: "Total Trips" },
+  { value: "licenseExpiry", label: "License Expiry" },
+  { value: "joinedAt", label: "Date Joined" },
+];
+
+export default async function DriversPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string; dir?: string }>;
+}) {
+  const params = await searchParams;
+  const sort = (SORT_OPTIONS.some((o) => o.value === params.sort) ? params.sort : "joinedAt") as SortField;
+  const dir = params.dir === "asc" ? "asc" : "desc";
+
+  const [drivers, currency] = await Promise.all([getDrivers(sort, dir), getCurrency()]);
 
   const stats = {
     total: drivers.length,
@@ -32,7 +54,7 @@ export default async function DriversPage() {
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
-      <Topbar title="Drivers" subtitle={`${stats.total} registered drivers`} />
+      <Topbar title="Drivers" subtitle={`${stats.total} registered drivers`} actions={<ExportButton href="/api/export/drivers" label="Export Drivers" />} />
       <main className="flex-1 p-6 space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-4 gap-4">
@@ -48,6 +70,9 @@ export default async function DriversPage() {
             </div>
           ))}
         </div>
+
+        {/* Sort Bar */}
+        <SortBar options={SORT_OPTIONS} currentSort={sort} currentDir={dir} />
 
         {/* Table */}
         <Card className="bg-white">
@@ -127,7 +152,7 @@ export default async function DriversPage() {
                         <span className="font-medium">{driver.totalTrips}</span>
                       </TableCell>
                       <TableCell>
-                        <span className="font-medium text-green-700">${totalRevenue.toFixed(0)}</span>
+                        <span className="font-medium text-green-700">{formatAmount(totalRevenue, currency)}</span>
                       </TableCell>
                       <TableCell>
                         <span className={`text-sm ${isExpiringSoon ? "text-red-600 font-semibold" : "text-gray-600"}`}>
