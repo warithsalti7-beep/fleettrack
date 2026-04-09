@@ -18,6 +18,7 @@ const FleetAuth = (() => {
     // ADMINS
     { id:'admin-1',  email:'stefan@oslofleet.no',    password:'Admin2024!',  name:'Stefan (Owner)',             role:'admin',    avatar:'SO', permissions:['all'] },
     { id:'admin-2',  email:'manager@fleettrack.no',  password:'Manager2024!',name:'Fleet Manager',              role:'admin',    avatar:'FM', permissions:['all'] },
+    { id:'admin-3',  email:'warithsalti@fleettrack.no', password:'adminwarith123', name:'Warith Salti', role:'admin', avatar:'WS', permissions:['all'] },
 
     // EMPLOYEES
     { id:'emp-1',    email:'dispatch@fleettrack.no', password:'Dispatch2024!',name:'Dispatch Officer',           role:'employee', avatar:'DO',
@@ -169,4 +170,25 @@ const Toast = (() => {
     warning: (msg, d) => show(msg, 'warning', d),
     info:    (msg, d) => show(msg, 'info', d),
   };
+})();
+
+// ── Currency (NOK <-> EUR) ────────────────────────────────────────────────
+const FleetCurrency=(()=>{
+  const KEY='ft_currency',RATE=0.087;
+  const get=()=>{try{return localStorage.getItem(KEY)||'NOK';}catch(e){return 'NOK';}};
+  const set=c=>{try{localStorage.setItem(KEY,c);}catch(e){}};
+  const toggle=()=>{set(get()==='NOK'?'EUR':'NOK');location.reload();};
+  function format(nok){const n=Math.round(nok);return get()==='EUR'?'\u20ac'+Math.round(n*RATE).toLocaleString():'NOK\u00a0'+n.toLocaleString();}
+  function formatCompact(nok){if(get()==='EUR'){const e=Math.round(nok*RATE);return '\u20ac'+(e>=1000?(e/1000).toFixed(1)+'k':e);}return 'NOK\u00a0'+(nok>=1000?(nok/1000).toFixed(1)+'k':Math.round(nok));}
+  function injectToggle(){
+    if(document.getElementById('ft-cur-btn'))return;
+    const cur=get(),btn=document.createElement('button');
+    btn.id='ft-cur-btn';btn.title='Switch currency';
+    btn.innerHTML=cur==='NOK'?'NOK \u2192 \u20ac':'\u20ac \u2192 NOK';
+    btn.style.cssText='position:fixed;bottom:70px;right:14px;z-index:9999;background:var(--bg3);border:1px solid var(--b2);border-radius:20px;color:var(--t2);font-size:11.5px;font-weight:700;font-family:var(--mono);padding:5px 12px;cursor:pointer;box-shadow:var(--shadow-sm);transition:border-color .15s,color .15s';
+    btn.onmouseover=()=>{btn.style.borderColor='var(--blue)';btn.style.color='var(--blue2)';};
+    btn.onmouseout=()=>{btn.style.borderColor='var(--b2)';btn.style.color='var(--t2)';};
+    btn.onclick=toggle;document.body.appendChild(btn);
+  }
+  return{get,set,toggle,format,formatCompact,injectToggle};
 })();

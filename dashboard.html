@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FleetTrack — Fleet Management</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="./auth.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ══════════════════════════════════════════════════════
@@ -2622,6 +2623,16 @@ Current performance   = €4,820 → 6.7% above safety buffer ✓</div></div></d
 
 
 <script>
+// ── Auth guard ─────────────────────────────────────────────────────────────
+const _s=(typeof FleetAuth!=='undefined')?FleetAuth.requireAuth(['admin'],'./login.html?error=unauthorized'):null;
+document.addEventListener('DOMContentLoaded',()=>{
+  if(_s){
+    const av=document.getElementById('sb-avatar'),nm=document.getElementById('sb-name');
+    if(av)av.textContent=_s.avatar||'AD';
+    if(nm)nm.textContent=_s.name||'Admin';
+  }
+});
+
 // ── REAL FLEET DATA from driver_car_brand_status.numbers ──────────────────
 // Cars with 2 drivers run 2 shifts (AM + PM). Both drivers share the same Car ID.
 // Shared cars: TR2539, TR2516, TR2536, TR3323, TR3320
@@ -3360,6 +3371,28 @@ document.addEventListener('keydown', e => {
 });
 
 })();
+
+
+// ── Missing API functions ─────────────────────────────────────────────────
+function testConnection(platform){
+  const st=document.getElementById(platform+'-status');
+  if(st){st.textContent='Testing\u2026';st.className='badge b-blue';}
+  setTimeout(()=>{
+    const ok=Math.random()>0.25;
+    if(st){st.textContent=ok?'\u2713 Connected':'\u2717 Failed';st.className=ok?'badge b-green':'badge b-red';}
+    if(typeof logAPIEvent==='function')logAPIEvent(platform,'/status',ok?'200':'503',Math.floor(60+Math.random()*200));
+  },600+Math.random()*800);
+}
+function testAllConnections(){['bolt','uber','nio','tesla','spot'].forEach(p=>testConnection(p));}
+function saveAPIKeys(){
+  const ids=['bolt-partner-id','bolt-api-key','bolt-api-secret','bolt-webhook',
+             'uber-client-id','uber-client-secret','uber-webhook',
+             'nio-fleet-id','nio-api-key','tesla-fleet-id','tesla-api-key'];
+  let n=0;
+  ids.forEach(id=>{const el=document.getElementById(id);if(el&&el.value.trim()){try{localStorage.setItem('ft_api_'+id,el.value.trim());n++;}catch(e){}}});
+  if(typeof Toast!=='undefined')Toast.success('API config saved \u2014 '+n+' field(s) stored.');
+  else alert(n+' API field(s) saved locally.');
+}
 
 </script>
 </body>

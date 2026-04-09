@@ -322,10 +322,10 @@ const driverStats = {
   'drv-18': { earnings:1580, trips:4,  hours:7.0, accept:70, boltTrips:4,  uberTrips:0,  boltWin:'06:00–13:00', uberWin:'—',           score:44 },
   'drv-19': { earnings:1490, trips:4,  hours:7.5, accept:68, boltTrips:4,  uberTrips:1,  boltWin:'14:00–21:00', uberWin:'14:30–15:30', score:41 },
 };
-const myStats = driverStats[session.id] || { earnings:0, trips:0, hours:0, accept:0, boltTrips:0, uberTrips:0, boltWin:'—', uberWin:'—', score:0 };
+const myStats = driverStats[session.userId] || { earnings:0, trips:0, hours:0, accept:0, boltTrips:0, uberTrips:0, boltWin:'—', uberWin:'—', score:0 };
 
 // ── Render home tab ──────────────────────────────────────────────────
-document.getElementById('d-earnings').textContent = 'NOK ' + myStats.earnings.toLocaleString();
+document.getElementById('d-earnings').textContent = FleetCurrency.format(myStats.earnings);
 document.getElementById('d-trips').textContent    = myStats.trips;
 document.getElementById('d-hours').textContent    = myStats.hours + 'h';
 document.getElementById('d-accept').textContent   = myStats.accept + '%';
@@ -372,7 +372,7 @@ for (let i = 0; i < myStats.trips; i++) {
       <span class="trip-to">${zones[(i+2) % zones.length]}</span>
     </div>
     <div class="trip-footer">
-      <span class="trip-earn">NOK ${fare}</span>
+      <span class="trip-earn">${FleetCurrency.format(parseInt(fare))}</span>
       <span class="trip-km">${km} km</span>
       <span class="badge b-green">Done</span>
     </div>
@@ -388,24 +388,24 @@ const chart = document.getElementById('earnings-chart');
 weekData.forEach(w => {
   const pct = Math.round(w.val / maxVal * 100);
   chart.innerHTML += `<div class="day-bar-wrap">
-    <div class="day-val">NOK ${Math.round(w.val/1000)}k</div>
+    <div class="day-val">${FleetCurrency.formatCompact(w.val)}</div>
     <div class="day-bar ${w.today?'today':''}" style="height:${pct}%"></div>
     <div class="day-label">${w.d}</div>
   </div>`;
 });
 const weekTotal = weekData.reduce((s,w)=>s+w.val,0);
-document.getElementById('weekly-total').textContent = 'NOK ' + weekTotal.toLocaleString();
-document.getElementById('daily-avg').textContent    = 'NOK ' + Math.round(weekTotal/7).toLocaleString();
+document.getElementById('weekly-total').textContent = FleetCurrency.format(weekTotal);
+document.getElementById('daily-avg').textContent    = FleetCurrency.format(Math.round(weekTotal/7));
 
 // Payslip
 const gross = Math.round(myStats.earnings * 1.18);
 const platFee = Math.round(gross * 0.15);
 const net  = gross - platFee;
 const comm = Math.round(net * 0.65);
-document.getElementById('ps-gross').textContent      = 'NOK ' + gross.toLocaleString();
-document.getElementById('ps-platform').textContent   = '−NOK ' + platFee.toLocaleString();
-document.getElementById('ps-commission').textContent  = 'NOK ' + comm.toLocaleString();
-document.getElementById('ps-payout').textContent      = 'NOK ' + comm.toLocaleString();
+document.getElementById('ps-gross').textContent      = FleetCurrency.format(gross);
+document.getElementById('ps-platform').textContent   = '−'+FleetCurrency.format(platFee);
+document.getElementById('ps-commission').textContent  = FleetCurrency.format(comm);
+document.getElementById('ps-payout').textContent      = FleetCurrency.format(comm);
 
 // ── Schedule ─────────────────────────────────────────────────────────
 const schedDays = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
@@ -458,7 +458,7 @@ document.getElementById('perf-tips').innerHTML = tips;
 // ── Notifications ─────────────────────────────────────────────────────
 const notifs = [
   { dot:'var(--blue)',  title:'Shift reminder',    time:'06:00', msg:`Your ${session.shift||'AM'} shift starts at ${session.shift==='PM'?'14:00':'06:00'}. Car ${session.carId||'—'} is ready.`, unread:true },
-  { dot:'var(--green)', title:'Earnings update',   time:'Yesterday', msg:`You earned NOK ${myStats.earnings.toLocaleString()} yesterday. Great work!`, unread:false },
+  { dot:'var(--green)', title:'Earnings update',   time:'Yesterday', msg:`You earned ${FleetCurrency.format(myStats.earnings)} yesterday. Great work!`, unread:false },
   { dot:'var(--amber)', title:'Acceptance reminder',time:'Yesterday', msg:'Keep your acceptance rate above 80% to maintain platform standing.', unread:false },
   { dot:'var(--blue)',  title:'Fleet update',       time:'2 days ago', msg:'New zone repositioning rules are in effect. Check with your dispatcher.', unread:false },
 ];
@@ -480,6 +480,7 @@ function showTab(id, btn) {
   if(btn) btn.classList.add('active');
   window.scrollTo(0,0);
 }
+FleetCurrency.injectToggle();
 </script>
 </body>
 </html>
