@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      String   @default("DISPATCHER")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Driver {
+  id            String          @id @default(cuid())
+  name          String
+  email         String          @unique
+  phone         String
+  licenseNumber String          @unique
+  licenseExpiry DateTime
+  status        String          @default("AVAILABLE")
+  rating        Float           @default(5.0)
+  totalTrips    Int             @default(0)
+  joinedAt      DateTime        @default(now())
+  photoUrl      String?
+  address       String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  trips         Trip[]
+  vehicles      DriverVehicle[]
+}
+
+model Vehicle {
+  id           String          @id @default(cuid())
+  plateNumber  String          @unique
+  make         String
+  model        String
+  year         Int
+  color        String
+  status       String          @default("AVAILABLE")
+  fuelType     String          @default("PETROL")
+  fuelLevel    Float           @default(100.0)
+  mileage      Int             @default(0)
+  lastService  DateTime?
+  nextService  DateTime?
+  latitude     Float?
+  longitude    Float?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  trips        Trip[]
+  drivers      DriverVehicle[]
+  maintenance  Maintenance[]
+  fuelLogs     FuelLog[]
+}
+
+model DriverVehicle {
+  id         String   @id @default(cuid())
+  driverId   String
+  vehicleId  String
+  assignedAt DateTime @default(now())
+  driver     Driver   @relation(fields: [driverId], references: [id])
+  vehicle    Vehicle  @relation(fields: [vehicleId], references: [id])
+}
+
+model Trip {
+  id             String    @id @default(cuid())
+  driverId       String
+  vehicleId      String
+  status         String    @default("PENDING")
+  pickupAddress  String
+  dropoffAddress String
+  pickupLat      Float?
+  pickupLng      Float?
+  dropoffLat     Float?
+  dropoffLng     Float?
+  distance       Float?
+  duration       Int?
+  fare           Float?
+  paymentMethod  String    @default("CASH")
+  startedAt      DateTime?
+  completedAt    DateTime?
+  rating         Float?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  driver         Driver    @relation(fields: [driverId], references: [id])
+  vehicle        Vehicle   @relation(fields: [vehicleId], references: [id])
+}
+
+model Maintenance {
+  id             String    @id @default(cuid())
+  vehicleId      String
+  type           String
+  description    String
+  status         String    @default("SCHEDULED")
+  priority       String    @default("NORMAL")
+  cost           Float?
+  scheduledAt    DateTime
+  completedAt    DateTime?
+  technicianName String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  vehicle        Vehicle   @relation(fields: [vehicleId], references: [id])
+}
+
+model FuelLog {
+  id            String   @id @default(cuid())
+  vehicleId     String
+  liters        Float
+  pricePerLiter Float
+  totalCost     Float
+  mileageAtFill Int
+  station       String?
+  filledAt      DateTime @default(now())
+  createdAt     DateTime @default(now())
+  vehicle       Vehicle  @relation(fields: [vehicleId], references: [id])
+}
