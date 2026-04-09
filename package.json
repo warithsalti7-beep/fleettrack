@@ -4,11 +4,23 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:backend": "pnpm --filter backend start:dev",
+    "dev:all": "concurrently \"pnpm dev\" \"pnpm dev:backend\"",
     "build": "next build",
+    "build:backend": "pnpm --filter backend build",
+    "build:all": "pnpm build && pnpm build:backend",
     "start": "next start",
     "lint": "eslint",
+    "lint:backend": "pnpm --filter backend lint",
     "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
-    "db:reset": "npx prisma migrate reset --force && npm run db:seed"
+    "db:reset": "npx prisma migrate reset --force && npm run db:seed",
+    "docker:dev": "docker-compose up -d postgres redis",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "devDependencies_workspace": {
+    "concurrently": "^9.1.2"
   },
   "prisma": {
     "seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts"
