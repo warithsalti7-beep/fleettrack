@@ -1,56 +1,106 @@
 /**
  * Fleet Intelligence — configurable thresholds.
  *
- * All values are intentionally exposed as plain constants so operators can
- * override them via environment variables in a future iteration without
- * touching scoring logic.
+ * THRESHOLDS are the static defaults. FleetConfig is the runtime shape
+ * stored in the database and cached in Redis, allowing per-fleet overrides.
  */
 
-export const THRESHOLDS = {
-  /** Battery / energy level (%) */
-  battery: {
-    critical: 10,  // charge immediately
-    high: 20,      // charge within 1 hour
-    medium: 40,    // charge within 4 hours
-    low: 60,       // opportunistic — charge when convenient
-  },
+// ─── Static defaults (used as fallback when no DB config exists) ─────────────
 
-  /** Inactivity detection */
+export const THRESHOLDS = {
+  battery: {
+    critical: 10,
+    high: 20,
+    medium: 40,
+    low: 60,
+  },
   inactivity: {
-    /** Hours since last GPS update before raising VEHICLE_INACTIVE alert */
     vehicleHours: 6,
-    /** Minutes since last telematics log before raising TELEMETRY_GAP alert */
     telemetryMinutes: 30,
   },
-
-  /** Trip efficiency thresholds */
   tripEfficiency: {
-    /** Minimum distance (km) — trips shorter than this are skipped in analysis */
     minDistanceKm: 0.5,
-    /** Avg speed below this fraction of the fleet average → "slow trip" flag */
     slowSpeedFactor: 0.5,
-    /** durationMin / distanceKm > this value → "excessive duration" flag */
-    excessiveDurationPerKm: 15, // 15 min/km ≈ 4 km/h (walking speed)
+    excessiveDurationPerKm: 15,
   },
-
-  /** Health score penalties */
   health: {
-    /** Points deducted per active OBD fault code (P/U/B/C codes) */
     obdFaultPenalty: 5,
-    /** Maximum points that can be lost to OBD faults */
     maxObdPenalty: 10,
   },
-
-  /** Cache TTLs (milliseconds) */
   cache: {
-    healthScores: 5 * 60 * 1_000,        // 5 minutes
-    chargingRecs: 2 * 60 * 1_000,        // 2 minutes
-    alerts: 60 * 1_000,                   // 1 minute
-    tripInsights: 10 * 60 * 1_000,       // 10 minutes
+    healthScores:   5 * 60 * 1_000,
+    chargingRecs:   2 * 60 * 1_000,
+    alerts:         60 * 1_000,
+    tripInsights:   10 * 60 * 1_000,
+    fleetConfig:    10 * 60 * 1_000,   // fleet settings from DB
+    recommendations: 5 * 60 * 1_000,
   },
 } as const;
 
-/** Health score grade boundaries */
+// ─── Fleet Config — stored in PostgreSQL, cached in Redis ────────────────────
+
+export interface HealthWeights {
+  /** Max points for battery/fuel energy level (default 40) */
+  energy: number;
+  /** Max points for telematics recency (default 20) */
+  freshness: number;
+  /** Max points for trip utilization (default 20) */
+  utilization: number;
+  /** Max points for diagnostics (OBD; penalty-based, default 10) */
+  diagnostics: number;
+  /** Max points for maintenance currency (penalty-based, default 10) */
+  maintenance: number;
+}
+
+export interface FleetConfig {
+  health: {
+    weights: HealthWeights;
+    obdFaultPenalty: number;
+    maxObdPenalty: number;
+  };
+  battery: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+  };
+  inactivity: {
+    vehicleHours: number;
+    telemetryMinutes: number;
+  };
+  tripEfficiency: {
+    minDistanceKm: number;
+    slowSpeedFactor: number;
+    excessiveDurationPerKm: number;
+  };
+}
+
+/** Canonical default — derived from THRESHOLDS so there is a single source of truth */
+export const DEFAULT_CONFIG: FleetConfig = {
+  health: {
+    weights: { energy: 40, freshness: 20, utilization: 20, diagnostics: 10, maintenance: 10 },
+    obdFaultPenalty: THRESHOLDS.health.obdFaultPenalty,
+    maxObdPenalty: THRESHOLDS.health.maxObdPenalty,
+  },
+  battery: {
+    critical: THRESHOLDS.battery.critical,
+    high: THRESHOLDS.battery.high,
+    medium: THRESHOLDS.battery.medium,
+    low: THRESHOLDS.battery.low,
+  },
+  inactivity: {
+    vehicleHours: THRESHOLDS.inactivity.vehicleHours,
+    telemetryMinutes: THRESHOLDS.inactivity.telemetryMinutes,
+  },
+  tripEfficiency: {
+    minDistanceKm: THRESHOLDS.tripEfficiency.minDistanceKm,
+    slowSpeedFactor: THRESHOLDS.tripEfficiency.slowSpeedFactor,
+    excessiveDurationPerKm: THRESHOLDS.tripEfficiency.excessiveDurationPerKm,
+  },
+};
+
+// ─── Grade boundaries ─────────────────────────────────────────────────────────
+
 export const GRADE_BOUNDARIES = [
   { min: 90, grade: 'A' },
   { min: 75, grade: 'B' },
@@ -59,9 +109,12 @@ export const GRADE_BOUNDARIES = [
   { min: 0,  grade: 'F' },
 ] as const;
 
-export type HealthGrade = 'A' | 'B' | 'C' | 'D' | 'F';
-export type UrgencyLevel = 'low' | 'medium' | 'high' | 'critical';
-export type AlertSeverity = 'info' | 'warning' | 'critical';
+// ─── Shared types ─────────────────────────────────────────────────────────────
+
+export type HealthGrade    = 'A' | 'B' | 'C' | 'D' | 'F';
+export type UrgencyLevel   = 'low' | 'medium' | 'high' | 'critical';
+export type AlertSeverity  = 'info' | 'warning' | 'critical';
+export type AlertPriority  = 'low' | 'medium' | 'high' | 'critical';
 export type AlertType =
   | 'LOW_BATTERY'
   | 'VEHICLE_INACTIVE'
@@ -69,10 +122,19 @@ export type AlertType =
   | 'OBD_FAULT'
   | 'MAINTENANCE_OVERDUE';
 
-/** Cache key factory — keeps cache key logic in one place */
+export type RecommendationType =
+  | 'DRIVER_HIGH_IDLE_RATIO'
+  | 'DRIVER_BELOW_FLEET_SPEED'
+  | 'VEHICLE_EFFICIENCY_DECLINE'
+  | 'DRIVER_LOW_COMPLETION_RATE';
+
+// ─── Cache key factory ────────────────────────────────────────────────────────
+
 export const CACHE_KEYS = {
-  healthScores: () => 'intelligence:health-scores',
-  chargingRecs: () => 'intelligence:charging-recommendations',
-  alerts: () => 'intelligence:alerts',
-  tripInsights: (from: string, to: string) => `intelligence:trip-insights:${from}:${to}`,
+  healthScores:    () => 'intelligence:health-scores',
+  chargingRecs:    () => 'intelligence:charging-recommendations',
+  alerts:          () => 'intelligence:alerts',
+  tripInsights:    (from: string, to: string) => `intelligence:trip-insights:${from}:${to}`,
+  fleetConfig:     () => 'intelligence:fleet-config',
+  recommendations: () => 'intelligence:recommendations',
 } as const;

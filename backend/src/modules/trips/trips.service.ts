@@ -4,6 +4,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { RealtimeGateway } from '../realtime/realtime.gateway';
 import { MapsService } from '../../services/maps/maps.service';
+import { IntelligenceEventBus } from '../intelligence/intelligence.events';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
 import { QueryTripsDto } from './dto/query-trips.dto';
@@ -27,6 +28,7 @@ export class TripsService {
     private readonly prisma: PrismaService,
     private readonly gateway: RealtimeGateway,
     private readonly maps: MapsService,
+    private readonly intelligenceEvents: IntelligenceEventBus,
   ) {}
 
   async findAll(query: QueryTripsDto) {
@@ -262,6 +264,15 @@ export class TripsService {
       vehicleId: trip.vehicleId,
       ts: new Date().toISOString(),
     });
+
+    // Notify intelligence engine so it can recompute health score + flush trip-insights cache
+    if (body.status === 'COMPLETED') {
+      this.intelligenceEvents.emitTripCompleted({
+        tripId: id,
+        vehicleId: trip.vehicleId,
+        driverId: trip.driverId,
+      });
+    }
 
     return updated;
   }

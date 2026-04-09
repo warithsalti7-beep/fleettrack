@@ -5,6 +5,7 @@ import { VehicleStatusProcessor } from './processors/vehicle-status.processor';
 import { TeslaService } from '../tesla/tesla.service';
 import { NioService } from '../nio/nio.service';
 import { RealtimeModule } from '../../modules/realtime/realtime.module';
+import { IntelligenceModule } from '../../modules/intelligence/intelligence.module';
 
 export const QUEUE_NAMES = {
   TELEMATICS_SYNC: 'telematics-sync',
@@ -18,6 +19,7 @@ export const QUEUE_NAMES = {
       { name: QUEUE_NAMES.VEHICLE_STATUS },
     ),
     RealtimeModule,
+    IntelligenceModule,
   ],
   providers: [
     TelematicsSyncProcessor,

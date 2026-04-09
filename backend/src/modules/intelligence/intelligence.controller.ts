@@ -1,6 +1,10 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller, Get, Put, Delete, Body, Query, UseGuards, Request,
+} from '@nestjs/common';
 import { IntelligenceService } from './intelligence.service';
+import { FleetConfigService } from './fleet-config.service';
 import { TripInsightsQueryDto } from './dto/query-intelligence.dto';
+import { UpdateFleetConfigDto } from './dto/fleet-config.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -8,32 +12,17 @@ import { Roles } from '../../common/decorators/roles.decorator';
 @Controller({ path: 'intelligence', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class IntelligenceController {
-  constructor(private readonly intelligence: IntelligenceService) {}
+  constructor(
+    private readonly intelligence: IntelligenceService,
+    private readonly configSvc: FleetConfigService,
+  ) {}
+
+  // ── Existing endpoints (unchanged signatures) ─────────────────────────────
 
   /**
    * GET /api/v1/intelligence/vehicles/health
-   *
-   * Returns a health score (0–100) and letter grade per active vehicle.
-   * Score is composed of 5 weighted components:
-   *   • energy      (0–40 pts) — battery SoC or fuel level
-   *   • freshness   (0–20 pts) — telematics data recency
-   *   • utilization (0–20 pts) — completed trips in last 7 days
-   *   • diagnostics (0–10 pts) — active OBD fault codes (penalty)
-   *   • maintenance (0–10 pts) — overdue service records (penalty)
-   *
-   * Results are cached in Redis for 5 minutes and pre-warmed every 5 minutes
-   * by the IntelligenceScheduler.
-   *
-   * Example response:
-   * [
-   *   {
-   *     "vehicleId": "clx1...",
-   *     "score": 82,
-   *     "grade": "B",
-   *     "components": { "energy": 36, "freshness": 20, "utilization": 15, "diagnostics": 10, "maintenance": 1 },
-   *     "flags": ["Very high utilization (> 15 trips / 7 days)"]
-   *   }
-   * ]
+   * Health score (0–100) + grade (A–F) per vehicle.
+   * Scores use weights from fleet config (configurable via PUT /intelligence/config).
    */
   @Get('vehicles/health')
   @Roles('ADMIN', 'DISPATCHER', 'SUPER_ADMIN')
@@ -43,33 +32,27 @@ export class IntelligenceController {
 
   /**
    * GET /api/v1/intelligence/charging/recommendations
+   * Predictive charging queue for EV/Hybrid vehicles.
    *
-   * Returns EV/Hybrid vehicles that need charging, sorted by urgency:
-   *   • critical — battery ≤ 10%  → charge immediately
-   *   • high     — battery ≤ 20%  → charge within 1 hour
-   *   • medium   — battery ≤ 40%  → charge within 4 hours
-   *   • low      — battery ≤ 60%  → opportunistic charge
+   * Now includes:
+   *   • timeToDepletionMin  — estimated minutes until critical threshold
+   *   • recommendedChargeBy — ISO timestamp by which charging should start
+   *   • drainRatePerHour    — % battery per hour from telematics history
+   *   • predictionBasis     — 'telemetry' | 'estimated'
    *
-   * Non-charging vehicles are sorted before vehicles already charging.
-   * Within each urgency tier, lowest battery level appears first.
-   *
-   * Example response:
+   * Example response item:
    * {
-   *   "recommendations": [
-   *     {
-   *       "vehicleId": "clx2...",
-   *       "plateNumber": "EV-001",
-   *       "make": "Tesla", "model": "Model 3",
-   *       "batteryLevel": 8,
-   *       "batteryRangeKm": 34,
-   *       "urgency": "critical",
-   *       "reason": "Battery at 8% — risk of vehicle shutdown. 2 trip(s) scheduled in the next 4 hours.",
-   *       "suggestedAction": "Charge immediately",
-   *       "isCurrentlyCharging": false,
-   *       "upcomingTrips": 2
-   *     }
-   *   ],
-   *   "meta": { "total": 5, "critical": 1, "high": 2, "medium": 1, "low": 1 }
+   *   "vehicleId": "...",
+   *   "plateNumber": "EV-003",
+   *   "batteryLevel": 28,
+   *   "batteryRangeKm": 112,
+   *   "urgency": "medium",
+   *   "timeToDepletionMin": 72,
+   *   "recommendedChargeBy": "2026-04-09T16:45:00.000Z",
+   *   "drainRatePerHour": 18.5,
+   *   "predictionBasis": "telemetry",
+   *   "reason": "Battery at 28% — limited range available.",
+   *   "suggestedAction": "Charge within 4 hours"
    * }
    */
   @Get('charging/recommendations')
@@ -80,33 +63,24 @@ export class IntelligenceController {
 
   /**
    * GET /api/v1/intelligence/alerts
+   * Rule-based fleet alert engine, now with severityScore (0–100) and priority.
    *
-   * Rule-based alert engine. Evaluates every active vehicle against 5 rules:
-   *   • LOW_BATTERY         — EV battery ≤ 20%
-   *   • VEHICLE_INACTIVE    — no GPS update for ≥ 6 hours
-   *   • TELEMETRY_GAP       — telematics-enabled vehicle, no log for ≥ 30 min
-   *   • OBD_FAULT           — active OBD-II diagnostic codes in latest log
-   *   • MAINTENANCE_OVERDUE — past-due maintenance records
+   * Alerts are sorted by severityScore descending (most impactful first).
+   * Each alert includes:
+   *   • severityScore — numeric 0–100; determines badge colour
+   *   • priority      — critical / high / medium / low
    *
-   * Alert IDs are deterministic (`{TYPE}:{vehicleId}`) — safe to use as
-   * React keys or for deduplication in notification systems.
-   *
-   * Example response:
+   * Example response item:
    * {
-   *   "alerts": [
-   *     {
-   *       "id": "LOW_BATTERY:clx2...",
-   *       "type": "LOW_BATTERY",
-   *       "severity": "critical",
-   *       "vehicleId": "clx2...",
-   *       "plateNumber": "EV-001",
-   *       "message": "Battery at 8%",
-   *       "detail": "Vehicle has critically low battery (8%). Range: 34 km.",
-   *       "detectedAt": "2026-04-09T14:22:00.000Z",
-   *       "metadata": { "batteryLevel": 8 }
-   *     }
-   *   ],
-   *   "meta": { "total": 3, "critical": 1, "warning": 2, "info": 0 }
+   *   "id": "LOW_BATTERY:v-abc",
+   *   "type": "LOW_BATTERY",
+   *   "severity": "critical",
+   *   "severityScore": 98,
+   *   "priority": "critical",
+   *   "plateNumber": "EV-001",
+   *   "message": "Battery at 2%",
+   *   "detail": "Vehicle has critically low battery (2%).",
+   *   "detectedAt": "2026-04-09T14:22:00.000Z"
    * }
    */
   @Get('alerts')
@@ -117,42 +91,100 @@ export class IntelligenceController {
 
   /**
    * GET /api/v1/intelligence/trips/insights?from=&to=
-   *
-   * Analyses completed trips to surface efficiency metrics:
-   *   • Fleet-wide avg speed, fare/km, and duration
-   *   • Flagged inefficient trips with specific reasons:
-   *       - Speed below 50% of fleet average
-   *       - Excessive duration per km (> 15 min/km ≈ walking pace)
-   *   • Per-vehicle summary sorted by avg speed (best performers first)
-   *
-   * Defaults to the last 30 days if no date range is supplied.
-   * Results are cached in Redis for 10 minutes.
-   *
-   * Example response:
-   * {
-   *   "totalTripsAnalyzed": 142,
-   *   "fleetAvgSpeedKmh": 34.7,
-   *   "fleetAvgFarePerKm": 2.15,
-   *   "fleetAvgDurationMin": 28.4,
-   *   "inefficientTrips": [
-   *     {
-   *       "tripId": "clx9...",
-   *       "vehicleId": "clx1...",
-   *       "driverId": "cly2...",
-   *       "distanceKm": 3.2,
-   *       "durationMin": 82,
-   *       "avgSpeedKmh": 2.3,
-   *       "farePerKm": 4.84,
-   *       "flags": ["2.3 km/h is below 50% of fleet average (34.7 km/h)", "25.6 min/km — excessive time per distance"]
-   *     }
-   *   ],
-   *   "vehicleSummaries": [...],
-   *   "queryRange": { "from": "2026-03-10T00:00:00.000Z", "to": "2026-04-09T00:00:00.000Z" }
-   * }
+   * Fleet trip efficiency analysis against current config thresholds.
    */
   @Get('trips/insights')
   @Roles('ADMIN', 'SUPER_ADMIN')
   getTripInsights(@Query() query: TripInsightsQueryDto) {
     return this.intelligence.getTripInsights(query.from, query.to);
+  }
+
+  // ── New endpoints ─────────────────────────────────────────────────────────
+
+  /**
+   * GET /api/v1/intelligence/recommendations
+   * Actionable operational recommendations for drivers and vehicles.
+   *
+   * Types:
+   *   • DRIVER_HIGH_IDLE_RATIO       — min/km > 1.3× fleet avg
+   *   • DRIVER_BELOW_FLEET_SPEED     — avg speed < 80% of fleet avg
+   *   • DRIVER_LOW_COMPLETION_RATE   — < 80% trips completed
+   *   • VEHICLE_EFFICIENCY_DECLINE   — last-7d speed < 80% of prior-7d
+   *
+   * Each recommendation includes:
+   *   • entity: { type, id, label }
+   *   • insight: human-readable finding
+   *   • suggestedAction: concrete next step
+   *   • metrics: supporting numbers (percentages, counts, speeds)
+   *
+   * Example response item:
+   * {
+   *   "id": "DRIVER_HIGH_IDLE_RATIO:d-xyz",
+   *   "type": "DRIVER_HIGH_IDLE_RATIO",
+   *   "entity": { "type": "driver", "id": "d-xyz", "label": "John Doe" },
+   *   "insight": "John Doe spends 42% more time per km than the fleet average, indicating high idle or stop time.",
+   *   "suggestedAction": "Review route choices, stop frequency, and idling habits. Consider driver coaching session.",
+   *   "severity": "info",
+   *   "metrics": { "avgMinPerKm": 4.8, "fleetAvgMinPerKm": 3.4, "pctAboveFleetAvg": 42, "tripsAnalyzed": 18 }
+   * }
+   */
+  @Get('recommendations')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  getRecommendations() {
+    return this.intelligence.getRecommendations();
+  }
+
+  /**
+   * GET /api/v1/intelligence/config
+   * Returns the active fleet configuration.
+   * Falls back to system defaults if no custom config has been saved.
+   *
+   * Example response:
+   * {
+   *   "health": { "weights": { "energy": 40, "freshness": 20, "utilization": 20, "diagnostics": 10, "maintenance": 10 }, "obdFaultPenalty": 5, "maxObdPenalty": 10 },
+   *   "battery": { "critical": 10, "high": 20, "medium": 40, "low": 60 },
+   *   "inactivity": { "vehicleHours": 6, "telemetryMinutes": 30 },
+   *   "tripEfficiency": { "minDistanceKm": 0.5, "slowSpeedFactor": 0.5, "excessiveDurationPerKm": 15 }
+   * }
+   */
+  @Get('config')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  getConfig() {
+    return this.configSvc.getConfig();
+  }
+
+  /**
+   * PUT /api/v1/intelligence/config
+   * Persist custom fleet intelligence thresholds.
+   * Partial updates are merged with current config (any omitted section keeps its value).
+   * Changes take effect immediately — the config cache is invalidated on save.
+   *
+   * Weight validation: energy + freshness + utilization + diagnostics + maintenance
+   * should equal 100 for scores to be on a 0–100 scale. A warning is logged if not.
+   *
+   * Example request body (partial update — only battery section):
+   * { "battery": { "critical": 15, "high": 25, "medium": 50, "low": 70 } }
+   */
+  @Put('config')
+  @Roles('SUPER_ADMIN')
+  async updateConfig(@Body() dto: UpdateFleetConfigDto, @Request() req: any) {
+    const updatedBy = req.user?.id;
+    const config = await this.configSvc.updateConfig(dto, updatedBy);
+    // Bust all intelligence caches so next request uses new thresholds
+    await this.intelligence.invalidateAll();
+    return { config, message: 'Fleet configuration updated. All intelligence caches cleared.' };
+  }
+
+  /**
+   * DELETE /api/v1/intelligence/config
+   * Resets the fleet configuration to system defaults.
+   */
+  @Delete('config')
+  @Roles('SUPER_ADMIN')
+  async resetConfig(@Request() req: any) {
+    const updatedBy = req.user?.id;
+    const config = await this.configSvc.resetToDefaults(updatedBy);
+    await this.intelligence.invalidateAll();
+    return { config, message: 'Fleet configuration reset to system defaults.' };
   }
 }

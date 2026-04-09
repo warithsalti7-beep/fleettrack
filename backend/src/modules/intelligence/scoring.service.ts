@@ -2,53 +2,48 @@
  * ScoringService — pure, stateless logic.
  *
  * No database calls, no HTTP calls, no injected dependencies.
- * Every public method takes plain data objects and returns plain results.
- * This makes the entire file trivially unit-testable.
+ * Every public method takes plain data and returns plain results.
+ * All FleetConfig parameters are optional — tests pass without supplying them.
+ *
+ * BACKWARD COMPAT NOTE
+ * All existing call sites continue to work unchanged because:
+ *   - config parameters default to DEFAULT_CONFIG
+ *   - ChargingRecommendation & FleetAlert interfaces are strictly extended
+ *     (new fields added, nothing removed)
  */
 
 import { Injectable } from '@nestjs/common';
 import {
-  THRESHOLDS,
+  DEFAULT_CONFIG,
   GRADE_BOUNDARIES,
+  FleetConfig,
   HealthGrade,
   UrgencyLevel,
   AlertType,
   AlertSeverity,
+  AlertPriority,
 } from './intelligence.constants';
 
-// ─── Input / Output types ─────────────────────────────────────────────────────
+// ─── Health score types ───────────────────────────────────────────────────────
 
 export interface HealthScoreInput {
   vehicleId: string;
-  /** 0–100 State of Charge; null when vehicle has no battery sensor */
   batteryLevel: number | null;
-  /** 0–100 fuel level for ICE vehicles */
   fuelLevel: number | null;
-  /** 'ELECTRIC' | 'HYBRID' | 'PETROL' | 'DIESEL' | 'HYDROGEN' */
   fuelType: string;
   telematicsEnabled: boolean;
-  /** Timestamp of most recent telematics log, or null if none */
   lastLogAt: Date | null;
-  /** Number of COMPLETED trips in the last 7 days */
   recentTripCount: number;
-  /** Active OBD-II fault codes from the latest telematics log */
   obdCodes: string[];
-  /** Whether any maintenance record is currently overdue */
   hasOverdueMaintenance: boolean;
-  /** Highest priority of overdue maintenance (null if none) */
   overduePriority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT' | 'CRITICAL' | null;
 }
 
 export interface HealthScoreComponents {
-  /** 0–40 pts: battery / fuel energy level */
   energy: number;
-  /** 0–20 pts: how recent the last telematics ping was */
   freshness: number;
-  /** 0–20 pts: utilization (trips completed in last 7 days) */
   utilization: number;
-  /** 0–10 pts: OBD fault penalty */
   diagnostics: number;
-  /** 0–10 pts: maintenance currency */
   maintenance: number;
 }
 
@@ -57,9 +52,10 @@ export interface HealthScoreResult {
   score: number;
   grade: HealthGrade;
   components: HealthScoreComponents;
-  /** Human-readable flags surfaced to the operator */
   flags: string[];
 }
+
+// ─── Charging types ───────────────────────────────────────────────────────────
 
 export interface ChargingInput {
   vehicleId: string;
@@ -67,11 +63,9 @@ export interface ChargingInput {
   make: string;
   model: string;
   batteryLevel: number | null;
-  /** Estimated remaining range in km */
   batteryRange: number | null;
   isCharging: boolean;
   status: string;
-  /** Scheduled trips starting within the next 4 hours */
   upcomingTripCount: number;
 }
 
@@ -88,6 +82,29 @@ export interface ChargingRecommendation {
   isCurrentlyCharging: boolean;
   upcomingTrips: number;
 }
+
+/** Extended input that includes battery history for predictive drain calculation */
+export interface PredictiveChargingInput extends ChargingInput {
+  /**
+   * Battery readings ordered oldest → newest, fetched from the last 2 h of
+   * telematics logs. Minimum 2 entries needed to compute a drain rate.
+   */
+  batteryHistory: Array<{ timestamp: Date; batteryLevel: number | null }>;
+}
+
+/** ChargingRecommendation extended with predictive fields */
+export interface PredictiveChargingRecommendation extends ChargingRecommendation {
+  /** Estimated minutes until battery reaches the critical threshold */
+  timeToDepletionMin: number | null;
+  /** ISO timestamp by which charging should start to stay above medium threshold */
+  recommendedChargeBy: string | null;
+  /** Battery drain in percentage points per hour; null if not enough data */
+  drainRatePerHour: number | null;
+  /** 'telemetry' — computed from real readings; 'estimated' — default assumption */
+  predictionBasis: 'telemetry' | 'estimated';
+}
+
+// ─── Trip efficiency types ────────────────────────────────────────────────────
 
 export interface TripEfficiencyInput {
   id: string;
@@ -115,7 +132,6 @@ export interface TripEfficiencyResult {
   fleetAvgFarePerKm: number;
   fleetAvgDurationMin: number;
   inefficientTrips: TripFlag[];
-  /** Per-vehicle efficiency summary sorted by avg speed desc */
   vehicleSummaries: Array<{
     vehicleId: string;
     tripCount: number;
@@ -123,6 +139,8 @@ export interface TripEfficiencyResult {
     avgFarePerKm: number;
   }>;
 }
+
+// ─── Alert types ──────────────────────────────────────────────────────────────
 
 export interface AlertInput {
   vehicleId: string;
@@ -141,10 +159,13 @@ export interface AlertInput {
 }
 
 export interface FleetAlert {
-  /** Deterministic ID — stable for the same vehicle + type so consumers can deduplicate */
   id: string;
   type: AlertType;
   severity: AlertSeverity;
+  /** Numeric 0–100 impact score; used for sorting and badge colour */
+  severityScore: number;
+  /** Human-readable priority level derived from severityScore */
+  priority: AlertPriority;
   vehicleId: string;
   plateNumber: string;
   message: string;
@@ -157,16 +178,20 @@ export interface FleetAlert {
 
 @Injectable()
 export class ScoringService {
+
   // ── Health scoring ────────────────────────────────────────────────────────
 
-  computeHealthScore(input: HealthScoreInput): HealthScoreResult {
+  computeHealthScore(
+    input: HealthScoreInput,
+    config: FleetConfig = DEFAULT_CONFIG,
+  ): HealthScoreResult {
     const flags: string[] = [];
 
-    const energy = this.scoreEnergy(input, flags);
-    const freshness = this.scoreFreshness(input, flags);
-    const utilization = this.scoreUtilization(input, flags);
-    const diagnostics = this.scoreDiagnostics(input, flags);
-    const maintenance = this.scoreMaintenance(input, flags);
+    const energy      = this.scoreEnergy(input, config, flags);
+    const freshness   = this.scoreFreshness(input, config, flags);
+    const utilization = this.scoreUtilization(input, config, flags);
+    const diagnostics = this.scoreDiagnostics(input, config, flags);
+    const maintenance = this.scoreMaintenance(input, config, flags);
 
     const score = Math.round(energy + freshness + utilization + diagnostics + maintenance);
     const grade = this.toGrade(score);
@@ -180,27 +205,32 @@ export class ScoringService {
     };
   }
 
-  private scoreEnergy(input: HealthScoreInput, flags: string[]): number {
+  private scoreEnergy(
+    input: HealthScoreInput,
+    config: FleetConfig,
+    flags: string[],
+  ): number {
+    const maxPts = config.health.weights.energy;
     const isElectric = input.fuelType === 'ELECTRIC' || input.fuelType === 'HYBRID';
-
-    // For EVs use batteryLevel; for ICE use fuelLevel; fall back to 50 (neutral)
-    const level = isElectric
-      ? (input.batteryLevel ?? null)
-      : (input.fuelLevel ?? null);
+    const level = isElectric ? (input.batteryLevel ?? null) : (input.fuelLevel ?? null);
 
     if (level === null) {
       if (isElectric) flags.push('Battery level unknown');
-      return isElectric ? 0 : 20; // EV unknown = worst case; ICE unknown = neutral
+      return isElectric ? 0 : Math.round(maxPts / 2);
     }
 
-    if (level <= THRESHOLDS.battery.critical) flags.push(`Critical energy level (${level}%)`);
-    else if (level <= THRESHOLDS.battery.high) flags.push(`Low energy level (${level}%)`);
+    if (level <= config.battery.critical) flags.push(`Critical energy level (${level}%)`);
+    else if (level <= config.battery.high) flags.push(`Low energy level (${level}%)`);
 
-    return Math.round((level / 100) * 40);
+    return Math.round((level / 100) * maxPts);
   }
 
-  private scoreFreshness(input: HealthScoreInput, flags: string[]): number {
-    if (!input.telematicsEnabled) return 20; // no telematics expected — full score
+  private scoreFreshness(
+    input: HealthScoreInput,
+    config: FleetConfig,
+    flags: string[],
+  ): number {
+    if (!input.telematicsEnabled) return config.health.weights.freshness;
 
     if (!input.lastLogAt) {
       flags.push('No telematics data received');
@@ -208,49 +238,63 @@ export class ScoringService {
     }
 
     const ageMin = (Date.now() - input.lastLogAt.getTime()) / 60_000;
+    const max = config.health.weights.freshness;
 
-    if (ageMin < 10) return 20;
-    if (ageMin < 30) return 15;
+    if (ageMin < 10) return max;
+    if (ageMin < 30) return Math.round(max * 0.75);
     if (ageMin < 60) {
       flags.push('Telematics data stale (> 30 min)');
-      return 10;
+      return Math.round(max * 0.5);
     }
-    if (ageMin < 360) {
+    if (ageMin < config.inactivity.vehicleHours * 60) {
       flags.push('Telematics data stale (> 1 h)');
-      return 5;
+      return Math.round(max * 0.25);
     }
     flags.push(`No telematics signal for ${Math.round(ageMin / 60)} h`);
     return 0;
   }
 
-  private scoreUtilization(input: HealthScoreInput, flags: string[]): number {
+  private scoreUtilization(
+    input: HealthScoreInput,
+    config: FleetConfig,
+    flags: string[],
+  ): number {
     const n = input.recentTripCount;
-    if (n === 0) {
-      flags.push('No trips in last 7 days');
-      return 10; // idle vehicles are technically healthy
-    }
-    if (n <= 5) return 20;
-    if (n <= 15) return 15; // high utilization — slight wear signal
+    const max = config.health.weights.utilization;
+
+    if (n === 0) { flags.push('No trips in last 7 days'); return Math.round(max * 0.5); }
+    if (n <= 5)  return max;
+    if (n <= 15) return Math.round(max * 0.75);
     flags.push('Very high utilization (> 15 trips / 7 days)');
-    return 10;
+    return Math.round(max * 0.5);
   }
 
-  private scoreDiagnostics(input: HealthScoreInput, flags: string[]): number {
+  private scoreDiagnostics(
+    input: HealthScoreInput,
+    config: FleetConfig,
+    flags: string[],
+  ): number {
     const faultCount = input.obdCodes.length;
-    if (faultCount === 0) return 10;
+    const max = config.health.weights.diagnostics;
+    if (faultCount === 0) return max;
 
     flags.push(`${faultCount} active OBD fault code${faultCount > 1 ? 's' : ''}: ${input.obdCodes.slice(0, 3).join(', ')}`);
-    const penalty = Math.min(faultCount * THRESHOLDS.health.obdFaultPenalty, THRESHOLDS.health.maxObdPenalty);
-    return Math.max(0, 10 - penalty);
+    const penalty = Math.min(faultCount * config.health.obdFaultPenalty, config.health.maxObdPenalty);
+    return Math.max(0, max - penalty);
   }
 
-  private scoreMaintenance(input: HealthScoreInput, flags: string[]): number {
-    if (!input.hasOverdueMaintenance) return 10;
+  private scoreMaintenance(
+    input: HealthScoreInput,
+    config: FleetConfig,
+    flags: string[],
+  ): number {
+    const max = config.health.weights.maintenance;
+    if (!input.hasOverdueMaintenance) return max;
 
     const p = input.overduePriority;
     if (p === 'LOW' || p === 'NORMAL') {
       flags.push('Maintenance overdue (normal priority)');
-      return 5;
+      return Math.round(max * 0.5);
     }
     flags.push(`Maintenance overdue (${p ?? 'HIGH'} priority)`);
     return 0;
@@ -263,23 +307,18 @@ export class ScoringService {
     return 'F';
   }
 
-  // ── Charging recommendations ──────────────────────────────────────────────
+  // ── Charging — threshold-based (backward compat) ──────────────────────────
 
-  /**
-   * Returns a recommendation for a single EV/Hybrid vehicle, or null if
-   * charging is not needed or not applicable.
-   */
-  computeChargingRecommendation(input: ChargingInput): ChargingRecommendation | null {
+  computeChargingRecommendation(
+    input: ChargingInput,
+    config: FleetConfig = DEFAULT_CONFIG,
+  ): ChargingRecommendation | null {
     const { batteryLevel, isCharging } = input;
-
-    // Skip non-EV vehicles (callers should pre-filter, but guard defensively)
     if (batteryLevel === null) return null;
+    if (batteryLevel > config.battery.low) return null;
 
-    // Already adequately charged
-    if (batteryLevel > THRESHOLDS.battery.low) return null;
-
-    const urgency = this.chargeUrgency(batteryLevel);
-    const { reason, suggestedAction } = this.chargeReason(batteryLevel, isCharging, input.upcomingTripCount);
+    const urgency = this.chargeUrgency(batteryLevel, config);
+    const { reason, suggestedAction } = this.chargeReason(batteryLevel, isCharging, input.upcomingTripCount, config);
 
     return {
       vehicleId: input.vehicleId,
@@ -296,14 +335,107 @@ export class ScoringService {
     };
   }
 
-  private chargeUrgency(level: number): UrgencyLevel {
-    if (level <= THRESHOLDS.battery.critical) return 'critical';
-    if (level <= THRESHOLDS.battery.high)    return 'high';
-    if (level <= THRESHOLDS.battery.medium)  return 'medium';
+  // ── Charging — predictive (new method, extends base recommendation) ────────
+
+  /**
+   * Computes a charging recommendation with predictive depletion timing.
+   *
+   * Prediction algorithm:
+   *   1. Compute drain rate from battery history (oldest vs newest reading in window)
+   *   2. timeToDepletion = (current% - critical%) / drainRate * 60 minutes
+   *   3. recommendedChargeBy = now + (current% - medium%) / drainRate hours
+   *   4. If history is insufficient → fall back to 15%/h conservative estimate
+   */
+  computePredictiveCharging(
+    input: PredictiveChargingInput,
+    config: FleetConfig = DEFAULT_CONFIG,
+  ): PredictiveChargingRecommendation | null {
+    const base = this.computeChargingRecommendation(input, config);
+    if (!base) return null;
+
+    const { drainRatePerHour, predictionBasis } = this.estimateDrainRate(input);
+    let timeToDepletionMin: number | null = null;
+    let recommendedChargeBy: string | null = null;
+
+    const currentBattery = base.batteryLevel;
+
+    if (drainRatePerHour !== null && drainRatePerHour > 0) {
+      // Minutes until battery hits critical threshold
+      const minutesToCritical = ((currentBattery - config.battery.critical) / drainRatePerHour) * 60;
+      timeToDepletionMin = Math.max(0, Math.round(minutesToCritical));
+
+      // Recommend charging before reaching medium threshold
+      const minutesToMedium = ((currentBattery - config.battery.medium) / drainRatePerHour) * 60;
+      if (minutesToMedium > 0) {
+        recommendedChargeBy = new Date(Date.now() + minutesToMedium * 60_000).toISOString();
+      } else {
+        // Already below medium — recommend charging now
+        recommendedChargeBy = new Date().toISOString();
+      }
+
+      // Upgrade urgency if depletion is imminent
+      const revisedUrgency = this.predictiveUrgency(base.urgency, timeToDepletionMin, currentBattery, config);
+      base.urgency = revisedUrgency;
+    }
+
+    return {
+      ...base,
+      timeToDepletionMin,
+      recommendedChargeBy,
+      drainRatePerHour: drainRatePerHour !== null ? parseFloat(drainRatePerHour.toFixed(2)) : null,
+      predictionBasis,
+    };
+  }
+
+  private estimateDrainRate(
+    input: PredictiveChargingInput,
+  ): { drainRatePerHour: number | null; predictionBasis: 'telemetry' | 'estimated' } {
+    const history = input.batteryHistory.filter((h) => h.batteryLevel !== null);
+
+    if (history.length >= 2) {
+      const oldest = history[0];
+      const newest = history[history.length - 1];
+      const timeDiffHours =
+        (newest.timestamp.getTime() - oldest.timestamp.getTime()) / 3_600_000;
+      const batteryDrop = (oldest.batteryLevel as number) - (newest.batteryLevel as number);
+
+      // Only use if time window is meaningful (> 6 minutes) and battery is draining
+      if (timeDiffHours > 0.1 && batteryDrop > 0) {
+        return { drainRatePerHour: batteryDrop / timeDiffHours, predictionBasis: 'telemetry' };
+      }
+    }
+
+    // Not enough data: conservative 15%/h assumption (common urban EV usage)
+    if (input.isCharging) return { drainRatePerHour: null, predictionBasis: 'estimated' };
+    return { drainRatePerHour: 15, predictionBasis: 'estimated' };
+  }
+
+  private predictiveUrgency(
+    base: UrgencyLevel,
+    timeToDepletionMin: number,
+    batteryLevel: number,
+    config: FleetConfig,
+  ): UrgencyLevel {
+    // If depletion is < 30 min away, escalate to critical regardless of battery %
+    if (timeToDepletionMin < 30) return 'critical';
+    // If depletion is < 90 min away, escalate to high
+    if (timeToDepletionMin < 90 && base === 'medium') return 'high';
+    return base;
+  }
+
+  private chargeUrgency(level: number, config: FleetConfig): UrgencyLevel {
+    if (level <= config.battery.critical) return 'critical';
+    if (level <= config.battery.high)    return 'high';
+    if (level <= config.battery.medium)  return 'medium';
     return 'low';
   }
 
-  private chargeReason(level: number, isCharging: boolean, upcomingTrips: number) {
+  private chargeReason(
+    level: number,
+    isCharging: boolean,
+    upcomingTrips: number,
+    config: FleetConfig,
+  ) {
     const tripNote = upcomingTrips > 0 ? ` ${upcomingTrips} trip(s) scheduled in the next 4 hours.` : '';
 
     if (isCharging) {
@@ -312,20 +444,19 @@ export class ScoringService {
         suggestedAction: 'Continue charging until at least 80%',
       };
     }
-
-    if (level <= THRESHOLDS.battery.critical) {
+    if (level <= config.battery.critical) {
       return {
         reason: `Battery at ${level}% — risk of vehicle shutdown.${tripNote}`,
         suggestedAction: 'Charge immediately',
       };
     }
-    if (level <= THRESHOLDS.battery.high) {
+    if (level <= config.battery.high) {
       return {
         reason: `Battery at ${level}% — insufficient for most trips.${tripNote}`,
         suggestedAction: 'Charge within 1 hour',
       };
     }
-    if (level <= THRESHOLDS.battery.medium) {
+    if (level <= config.battery.medium) {
       return {
         reason: `Battery at ${level}% — limited range available.${tripNote}`,
         suggestedAction: 'Charge within 4 hours',
@@ -337,76 +468,60 @@ export class ScoringService {
     };
   }
 
-  /** Sort recommendations: currently-not-charging first, then by battery level ascending */
-  sortRecommendations(recs: ChargingRecommendation[]): ChargingRecommendation[] {
+  sortRecommendations<T extends ChargingRecommendation>(recs: T[]): T[] {
     return [...recs].sort((a, b) => {
-      // Not charging before charging
       if (a.isCurrentlyCharging !== b.isCurrentlyCharging) {
         return a.isCurrentlyCharging ? 1 : -1;
       }
-      // Lower battery first
       return a.batteryLevel - b.batteryLevel;
     });
   }
 
   // ── Trip efficiency ───────────────────────────────────────────────────────
 
-  computeTripEfficiency(trips: TripEfficiencyInput[]): TripEfficiencyResult {
-    // Filter to trips with sufficient data
+  computeTripEfficiency(
+    trips: TripEfficiencyInput[],
+    config: FleetConfig = DEFAULT_CONFIG,
+  ): TripEfficiencyResult {
     const usable = trips.filter(
       (t) =>
         t.distanceKm !== null &&
         t.durationMin !== null &&
-        t.distanceKm >= THRESHOLDS.tripEfficiency.minDistanceKm &&
+        t.distanceKm >= config.tripEfficiency.minDistanceKm &&
         t.durationMin > 0,
     ) as Array<TripEfficiencyInput & { distanceKm: number; durationMin: number }>;
 
     if (usable.length === 0) {
-      return {
-        totalTripsAnalyzed: 0,
-        fleetAvgSpeedKmh: 0,
-        fleetAvgFarePerKm: 0,
-        fleetAvgDurationMin: 0,
-        inefficientTrips: [],
-        vehicleSummaries: [],
-      };
+      return { totalTripsAnalyzed: 0, fleetAvgSpeedKmh: 0, fleetAvgFarePerKm: 0, fleetAvgDurationMin: 0, inefficientTrips: [], vehicleSummaries: [] };
     }
 
-    // Per-trip metrics
-    const metrics = usable.map((t) => {
-      const avgSpeedKmh = (t.distanceKm / t.durationMin) * 60;
-      const farePerKm = t.fare !== null ? t.fare / t.distanceKm : null;
-      return { ...t, avgSpeedKmh, farePerKm };
-    });
+    const metrics = usable.map((t) => ({
+      ...t,
+      avgSpeedKmh: (t.distanceKm / t.durationMin) * 60,
+      farePerKm: t.fare !== null ? t.fare / t.distanceKm : null,
+    }));
 
-    // Fleet-level aggregates
-    const fleetAvgSpeedKmh =
-      metrics.reduce((s, m) => s + m.avgSpeedKmh, 0) / metrics.length;
-
+    const fleetAvgSpeedKmh = metrics.reduce((s, m) => s + m.avgSpeedKmh, 0) / metrics.length;
     const fareMetrics = metrics.filter((m) => m.farePerKm !== null);
-    const fleetAvgFarePerKm =
-      fareMetrics.length > 0
-        ? fareMetrics.reduce((s, m) => s + m.farePerKm!, 0) / fareMetrics.length
-        : 0;
+    const fleetAvgFarePerKm = fareMetrics.length > 0
+      ? fareMetrics.reduce((s, m) => s + m.farePerKm!, 0) / fareMetrics.length
+      : 0;
+    const fleetAvgDurationMin = metrics.reduce((s, m) => s + m.durationMin, 0) / metrics.length;
 
-    const fleetAvgDurationMin =
-      metrics.reduce((s, m) => s + m.durationMin, 0) / metrics.length;
-
-    // Flag inefficient trips
     const inefficientTrips: TripFlag[] = [];
     for (const m of metrics) {
       const flags: string[] = [];
 
-      if (m.avgSpeedKmh < fleetAvgSpeedKmh * THRESHOLDS.tripEfficiency.slowSpeedFactor) {
+      if (m.avgSpeedKmh < fleetAvgSpeedKmh * config.tripEfficiency.slowSpeedFactor) {
         flags.push(
-          `Avg speed ${m.avgSpeedKmh.toFixed(1)} km/h is below 50% of fleet average (${fleetAvgSpeedKmh.toFixed(1)} km/h)`,
+          `Avg speed ${m.avgSpeedKmh.toFixed(1)} km/h is below ${Math.round(config.tripEfficiency.slowSpeedFactor * 100)}% of fleet average (${fleetAvgSpeedKmh.toFixed(1)} km/h)`,
         );
       }
 
       const durationPerKm = m.durationMin / m.distanceKm;
-      if (durationPerKm > THRESHOLDS.tripEfficiency.excessiveDurationPerKm) {
+      if (durationPerKm > config.tripEfficiency.excessiveDurationPerKm) {
         flags.push(
-          `${durationPerKm.toFixed(1)} min/km — excessive time per distance (threshold: ${THRESHOLDS.tripEfficiency.excessiveDurationPerKm} min/km)`,
+          `${durationPerKm.toFixed(1)} min/km — excessive time per distance (threshold: ${config.tripEfficiency.excessiveDurationPerKm} min/km)`,
         );
       }
 
@@ -424,31 +539,14 @@ export class ScoringService {
       }
     }
 
-    // Per-vehicle summaries
-    const byVehicle = new Map<
-      string,
-      { speeds: number[]; fares: number[]; count: number }
-    >();
+    const byVehicle = new Map<string, { speeds: number[]; fares: number[]; count: number }>();
     for (const m of metrics) {
-      if (!byVehicle.has(m.vehicleId)) {
-        byVehicle.set(m.vehicleId, { speeds: [], fares: [], count: 0 });
-      }
-      const entry = byVehicle.get(m.vehicleId)!;
-      entry.speeds.push(m.avgSpeedKmh);
-      if (m.farePerKm !== null) entry.fares.push(m.farePerKm);
-      entry.count++;
+      if (!byVehicle.has(m.vehicleId)) byVehicle.set(m.vehicleId, { speeds: [], fares: [], count: 0 });
+      const e = byVehicle.get(m.vehicleId)!;
+      e.speeds.push(m.avgSpeedKmh);
+      if (m.farePerKm !== null) e.fares.push(m.farePerKm);
+      e.count++;
     }
-
-    const vehicleSummaries = Array.from(byVehicle.entries())
-      .map(([vehicleId, { speeds, fares, count }]) => ({
-        vehicleId,
-        tripCount: count,
-        avgSpeedKmh: parseFloat((speeds.reduce((a, b) => a + b, 0) / speeds.length).toFixed(2)),
-        avgFarePerKm: fares.length
-          ? parseFloat((fares.reduce((a, b) => a + b, 0) / fares.length).toFixed(3))
-          : 0,
-      }))
-      .sort((a, b) => b.avgSpeedKmh - a.avgSpeedKmh);
 
     return {
       totalTripsAnalyzed: usable.length,
@@ -456,116 +554,127 @@ export class ScoringService {
       fleetAvgFarePerKm: parseFloat(fleetAvgFarePerKm.toFixed(3)),
       fleetAvgDurationMin: parseFloat(fleetAvgDurationMin.toFixed(1)),
       inefficientTrips,
-      vehicleSummaries,
+      vehicleSummaries: Array.from(byVehicle.entries())
+        .map(([vehicleId, { speeds, fares, count }]) => ({
+          vehicleId,
+          tripCount: count,
+          avgSpeedKmh: parseFloat((speeds.reduce((a, b) => a + b, 0) / speeds.length).toFixed(2)),
+          avgFarePerKm: fares.length ? parseFloat((fares.reduce((a, b) => a + b, 0) / fares.length).toFixed(3)) : 0,
+        }))
+        .sort((a, b) => b.avgSpeedKmh - a.avgSpeedKmh),
     };
   }
 
   // ── Alert engine ──────────────────────────────────────────────────────────
 
-  /**
-   * Evaluates a single vehicle against all alert rules and returns any
-   * triggered alerts. Callers aggregate across the fleet.
-   */
-  evaluateAlerts(input: AlertInput): FleetAlert[] {
+  evaluateAlerts(
+    input: AlertInput,
+    config: FleetConfig = DEFAULT_CONFIG,
+  ): FleetAlert[] {
     const alerts: FleetAlert[] = [];
     const now = new Date();
 
-    // Rule 1: Low battery
+    // Rule 1: Low battery (EV/Hybrid only)
     const isEv = input.fuelType === 'ELECTRIC' || input.fuelType === 'HYBRID';
-    if (isEv && input.batteryLevel !== null && input.batteryLevel <= THRESHOLDS.battery.high) {
-      const severity: AlertSeverity =
-        input.batteryLevel <= THRESHOLDS.battery.critical ? 'critical' : 'warning';
-      alerts.push(
-        this.makeAlert(
-          'LOW_BATTERY',
-          severity,
-          input,
-          `Battery at ${input.batteryLevel}%`,
-          `Vehicle has ${input.batteryLevel <= THRESHOLDS.battery.critical ? 'critically' : ''} low battery (${input.batteryLevel}%). Range: ${input.batteryRange ?? 'unknown'} km.`,
-          { batteryLevel: input.batteryLevel },
-        ),
-      );
+    if (isEv && input.batteryLevel !== null && input.batteryLevel <= config.battery.high) {
+      const score = this.batteryAlertScore(input.batteryLevel, config);
+      const severity: AlertSeverity = input.batteryLevel <= config.battery.critical ? 'critical' : 'warning';
+      alerts.push(this.makeAlert('LOW_BATTERY', severity, score, input,
+        `Battery at ${input.batteryLevel}%`,
+        `Vehicle has ${input.batteryLevel <= config.battery.critical ? 'critically ' : ''}low battery (${input.batteryLevel}%).`,
+        { batteryLevel: input.batteryLevel },
+      ));
     }
 
-    // Rule 2: Vehicle inactive (no GPS update)
+    // Rule 2: Vehicle inactive
     if (input.status !== 'DECOMMISSIONED' && input.status !== 'MAINTENANCE') {
       const locationAge = input.lastLocationAt
         ? (now.getTime() - input.lastLocationAt.getTime()) / 3_600_000
         : Infinity;
 
-      if (locationAge >= THRESHOLDS.inactivity.vehicleHours) {
-        alerts.push(
-          this.makeAlert(
-            'VEHICLE_INACTIVE',
-            'warning',
-            input,
-            `No location update for ${locationAge === Infinity ? '∞' : locationAge.toFixed(1)} h`,
-            `Vehicle has not reported a location in over ${THRESHOLDS.inactivity.vehicleHours} hours. It may be offline or out of coverage.`,
-            { lastLocationAt: input.lastLocationAt?.toISOString() ?? null },
-          ),
-        );
+      if (locationAge >= config.inactivity.vehicleHours) {
+        const score = Math.min(50 + Math.round((locationAge - config.inactivity.vehicleHours) * 3), 75);
+        alerts.push(this.makeAlert('VEHICLE_INACTIVE', 'warning', score, input,
+          `No location update for ${locationAge === Infinity ? '∞' : locationAge.toFixed(1)} h`,
+          `Vehicle has not reported a location in over ${config.inactivity.vehicleHours} hours.`,
+          { lastLocationAt: input.lastLocationAt?.toISOString() ?? null },
+        ));
       }
     }
 
-    // Rule 3: Telematics gap (enabled vehicle not reporting)
+    // Rule 3: Telematics gap
     if (input.telematicsEnabled) {
       const logAgeMin = input.lastLogAt
         ? (now.getTime() - input.lastLogAt.getTime()) / 60_000
         : Infinity;
 
-      if (logAgeMin >= THRESHOLDS.inactivity.telemetryMinutes) {
-        alerts.push(
-          this.makeAlert(
-            'TELEMETRY_GAP',
-            'warning',
-            input,
-            `Telematics gap: ${logAgeMin === Infinity ? 'no data ever' : `${Math.round(logAgeMin)} min`}`,
-            `Telematics is enabled but no data received in ${THRESHOLDS.inactivity.telemetryMinutes}+ minutes. Check provider connection.`,
-            { lastLogAt: input.lastLogAt?.toISOString() ?? null, gapMinutes: logAgeMin },
-          ),
-        );
+      if (logAgeMin >= config.inactivity.telemetryMinutes) {
+        const score = Math.min(40 + Math.round(logAgeMin * 0.3), 70);
+        alerts.push(this.makeAlert('TELEMETRY_GAP', 'warning', score, input,
+          `Telematics gap: ${logAgeMin === Infinity ? 'no data ever' : `${Math.round(logAgeMin)} min`}`,
+          `Telematics enabled but no data received in ${config.inactivity.telemetryMinutes}+ minutes.`,
+          { lastLogAt: input.lastLogAt?.toISOString() ?? null, gapMinutes: Math.round(logAgeMin) },
+        ));
       }
     }
 
-    // Rule 4: Active OBD fault codes
+    // Rule 4: OBD faults
     if (input.latestObdCodes.length > 0) {
-      alerts.push(
-        this.makeAlert(
-          'OBD_FAULT',
-          input.latestObdCodes.length >= 3 ? 'critical' : 'warning',
-          input,
-          `${input.latestObdCodes.length} OBD fault(s): ${input.latestObdCodes.slice(0, 3).join(', ')}`,
-          `Active diagnostic fault codes detected. Vehicle should be inspected before next trip.`,
-          { codes: input.latestObdCodes },
-        ),
-      );
+      const faultCount = input.latestObdCodes.length;
+      const score = Math.min(50 + faultCount * 10, 90);
+      const severity: AlertSeverity = faultCount >= 3 ? 'critical' : 'warning';
+      alerts.push(this.makeAlert('OBD_FAULT', severity, score, input,
+        `${faultCount} OBD fault(s): ${input.latestObdCodes.slice(0, 3).join(', ')}`,
+        `Active diagnostic fault codes detected. Inspect before next trip.`,
+        { codes: input.latestObdCodes },
+      ));
     }
 
     // Rule 5: Overdue maintenance
     if (input.hasOverdueMaintenance) {
-      const sev: AlertSeverity =
+      const score = this.maintenanceAlertScore(input.overduePriority);
+      const severity: AlertSeverity =
         input.overduePriority === 'URGENT' || input.overduePriority === 'CRITICAL'
-          ? 'critical'
-          : 'warning';
-      alerts.push(
-        this.makeAlert(
-          'MAINTENANCE_OVERDUE',
-          sev,
-          input,
-          `Maintenance overdue (${input.overduePriority ?? 'NORMAL'} priority)`,
-          `One or more maintenance tasks are past their scheduled date. Prioritise workshop visit.`,
-          { priority: input.overduePriority },
-        ),
-      );
+          ? 'critical' : 'warning';
+      alerts.push(this.makeAlert('MAINTENANCE_OVERDUE', severity, score, input,
+        `Maintenance overdue (${input.overduePriority ?? 'NORMAL'} priority)`,
+        `One or more maintenance tasks are past their scheduled date.`,
+        { priority: input.overduePriority },
+      ));
     }
 
     return alerts;
   }
 
+  private batteryAlertScore(level: number, config: FleetConfig): number {
+    if (level <= config.battery.critical) return 90 + Math.min(config.battery.critical - level, 10);
+    return 60 + Math.round((config.battery.high - level) * 2);
+  }
+
+  private maintenanceAlertScore(
+    priority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT' | 'CRITICAL' | null,
+  ): number {
+    switch (priority) {
+      case 'CRITICAL': return 90;
+      case 'URGENT':   return 80;
+      case 'HIGH':     return 65;
+      case 'NORMAL':   return 50;
+      default:         return 35;
+    }
+  }
+
+  private scoreToAlertPriority(score: number): AlertPriority {
+    if (score >= 75) return 'critical';
+    if (score >= 50) return 'high';
+    if (score >= 30) return 'medium';
+    return 'low';
+  }
+
   private makeAlert(
     type: AlertType,
     severity: AlertSeverity,
-    vehicle: Pick<AlertInput, 'vehicleId' | 'plateNumber'> & { batteryRange?: number | null },
+    severityScore: number,
+    vehicle: Pick<AlertInput, 'vehicleId' | 'plateNumber'>,
     message: string,
     detail: string,
     metadata: Record<string, unknown>,
@@ -574,6 +683,8 @@ export class ScoringService {
       id: `${type}:${vehicle.vehicleId}`,
       type,
       severity,
+      severityScore,
+      priority: this.scoreToAlertPriority(severityScore),
       vehicleId: vehicle.vehicleId,
       plateNumber: vehicle.plateNumber,
       message,

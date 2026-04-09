@@ -36,6 +36,7 @@ import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { RealtimeGateway } from '../../../modules/realtime/realtime.gateway';
 import { TeslaService } from '../../tesla/tesla.service';
 import { NioService } from '../../nio/nio.service';
+import { IntelligenceEventBus } from '../../../modules/intelligence/intelligence.events';
 import { QUEUE_NAMES } from '../queue.module';
 
 export interface TelematicsSyncJobData {
@@ -51,6 +52,7 @@ export class TelematicsSyncProcessor {
     private readonly gateway: RealtimeGateway,
     private readonly tesla: TeslaService,
     private readonly nio: NioService,
+    private readonly intelligenceEvents: IntelligenceEventBus,
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
   ) {}
 
@@ -86,6 +88,11 @@ export class TelematicsSyncProcessor {
       try {
         await this.syncVehicle(vehicle);
         synced++;
+        // Notify intelligence engine for event-driven partial recomputation
+        this.intelligenceEvents.emitTelemetryReceived({
+          vehicleId: vehicle.id,
+          timestamp: new Date(),
+        });
       } catch (error: any) {
         failed++;
         this.logger.error(`Failed to sync ${vehicle.plateNumber}: ${error.message}`);

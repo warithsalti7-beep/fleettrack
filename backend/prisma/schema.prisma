@@ -429,3 +429,17 @@ model FuelLog {
   @@index([filledAt])
   @@map("fuel_logs")
 }
+
+// ─── Fleet Settings (singleton config row) ────────────────────────────────────
+
+model FleetSettings {
+  /// Singleton row — always use id = "singleton" when upserting
+  id        String   @id @default("singleton")
+  /// Full FleetConfig JSON object
+  config    Json
+  updatedAt DateTime @updatedAt
+  /// ID of the user who last updated the settings
+  updatedBy String?
+
+  @@map("fleet_settings")
+}
