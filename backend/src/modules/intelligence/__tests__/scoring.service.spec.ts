@@ -1,5 +1,12 @@
-import { ScoringService, HealthScoreInput, ChargingInput, TripEfficiencyInput, AlertInput } from '../scoring.service';
-import { THRESHOLDS } from '../intelligence.constants';
+import {
+  ScoringService,
+  HealthScoreInput,
+  ChargingInput,
+  PredictiveChargingInput,
+  TripEfficiencyInput,
+  AlertInput,
+} from '../scoring.service';
+import { THRESHOLDS, DEFAULT_CONFIG, FleetConfig } from '../intelligence.constants';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -30,6 +37,22 @@ function makeChargingInput(overrides: Partial<ChargingInput> = {}): ChargingInpu
     isCharging: false,
     status: 'AVAILABLE',
     upcomingTripCount: 0,
+    ...overrides,
+  };
+}
+
+function makePredictiveInput(overrides: Partial<PredictiveChargingInput> = {}): PredictiveChargingInput {
+  return {
+    vehicleId: 'v-1',
+    plateNumber: 'EV-001',
+    make: 'Tesla',
+    model: 'Model 3',
+    batteryLevel: 15,
+    batteryRange: 60,
+    isCharging: false,
+    status: 'AVAILABLE',
+    upcomingTripCount: 0,
+    batteryHistory: [],
     ...overrides,
   };
 }
@@ -245,19 +268,22 @@ describe('ScoringService', () => {
   });
 
   describe('sortRecommendations', () => {
+    function makeRec(batteryLevel: number, isCurrentlyCharging: boolean) {
+      return {
+        vehicleId: 'v-1', plateNumber: 'EV-001', make: 'Tesla', model: 'Model 3',
+        batteryLevel, batteryRangeKm: null, urgency: 'high' as const,
+        reason: '', suggestedAction: '', isCurrentlyCharging, upcomingTrips: 0,
+      };
+    }
+
     it('puts non-charging vehicles before charging ones', () => {
-      const recs = [
-        { ...makeChargingInput({ batteryLevel: 15, isCharging: true }), urgency: 'high' as const, reason: '', suggestedAction: '', batteryRangeKm: null, upcomingTrips: 0 },
-        { ...makeChargingInput({ batteryLevel: 15, isCharging: false }), urgency: 'high' as const, reason: '', suggestedAction: '', batteryRangeKm: null, upcomingTrips: 0 },
-      ];
-      const sorted = service.sortRecommendations(recs as any);
+      const recs = [makeRec(15, true), makeRec(15, false)];
+      const sorted = service.sortRecommendations(recs);
       expect(sorted[0].isCurrentlyCharging).toBe(false);
     });
 
     it('sorts by battery level ascending within same charging state', () => {
-      const low = { ...makeChargingInput({ batteryLevel: 5, isCharging: false }), urgency: 'critical' as const, reason: '', suggestedAction: '', batteryRangeKm: null, upcomingTrips: 0 };
-      const mid = { ...makeChargingInput({ batteryLevel: 15, isCharging: false }), urgency: 'high' as const, reason: '', suggestedAction: '', batteryRangeKm: null, upcomingTrips: 0 };
-      const sorted = service.sortRecommendations([mid, low] as any);
+      const sorted = service.sortRecommendations([makeRec(15, false), makeRec(5, false)]);
       expect(sorted[0].batteryLevel).toBe(5);
     });
   });
@@ -440,6 +466,203 @@ describe('ScoringService', () => {
         }),
       );
       expect(alerts.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it('includes severityScore (0–100) on every alert', () => {
+      const alerts = service.evaluateAlerts(makeAlertInput({ batteryLevel: 5 }));
+      for (const alert of alerts) {
+        expect(alert.severityScore).toBeGreaterThanOrEqual(0);
+        expect(alert.severityScore).toBeLessThanOrEqual(100);
+      }
+    });
+
+    it('includes priority derived from severityScore', () => {
+      const alerts = service.evaluateAlerts(makeAlertInput({ batteryLevel: 5 }));
+      const batteryAlert = alerts.find((a) => a.type === 'LOW_BATTERY')!;
+      // Critical battery (5%) → score ≥ 90 → priority = 'critical'
+      expect(batteryAlert.severityScore).toBeGreaterThanOrEqual(90);
+      expect(batteryAlert.priority).toBe('critical');
+    });
+
+    it('maps severityScore 50–74 to high priority', () => {
+      // HIGH maintenance → score 65 → priority 'high'
+      const alerts = service.evaluateAlerts(
+        makeAlertInput({ hasOverdueMaintenance: true, overduePriority: 'HIGH' }),
+      );
+      const maint = alerts.find((a) => a.type === 'MAINTENANCE_OVERDUE')!;
+      expect(maint.severityScore).toBe(65);
+      expect(maint.priority).toBe('high');
+    });
+
+    it('maps severityScore 30–49 to medium priority', () => {
+      // LOW maintenance → score 35 → priority 'medium'
+      const alerts = service.evaluateAlerts(
+        makeAlertInput({ hasOverdueMaintenance: true, overduePriority: 'LOW' }),
+      );
+      const maint = alerts.find((a) => a.type === 'MAINTENANCE_OVERDUE')!;
+      expect(maint.severityScore).toBe(35);
+      expect(maint.priority).toBe('medium');
+    });
+  });
+
+  // ─── Predictive charging ──────────────────────────────────────────────────
+
+  describe('computePredictiveCharging', () => {
+    it('returns null for battery > low threshold', () => {
+      const r = service.computePredictiveCharging(makePredictiveInput({ batteryLevel: 75 }));
+      expect(r).toBeNull();
+    });
+
+    it('uses 15%/h estimated drain rate when no history provided', () => {
+      const r = service.computePredictiveCharging(makePredictiveInput({ batteryLevel: 15 }));
+      expect(r).not.toBeNull();
+      expect(r!.predictionBasis).toBe('estimated');
+      expect(r!.drainRatePerHour).toBe(15);
+    });
+
+    it('computes timeToDepletionMin correctly from estimated drain rate', () => {
+      // battery=15%, critical=10%, drain=15%/h → (15-10)/15 * 60 = 20 min
+      const r = service.computePredictiveCharging(makePredictiveInput({ batteryLevel: 15 }));
+      expect(r!.timeToDepletionMin).toBe(20);
+    });
+
+    it('escalates urgency to critical when timeToDepletion < 30 min', () => {
+      // battery=15%, drain=15%/h → 20 min to depletion → escalates to critical
+      const r = service.computePredictiveCharging(makePredictiveInput({ batteryLevel: 15 }));
+      expect(r!.urgency).toBe('critical');
+    });
+
+    it('computes drain rate from telemetry history', () => {
+      const now = Date.now();
+      const batteryHistory = [
+        { timestamp: new Date(now - 2 * 3_600_000), batteryLevel: 40 }, // 2h ago: 40%
+        { timestamp: new Date(now),                  batteryLevel: 20 }, // now:    20%
+        // drain = 20%/2h = 10%/h
+      ];
+      const r = service.computePredictiveCharging(
+        makePredictiveInput({ batteryLevel: 20, batteryHistory }),
+      );
+      expect(r!.predictionBasis).toBe('telemetry');
+      expect(r!.drainRatePerHour).toBeCloseTo(10, 1);
+    });
+
+    it('falls back to estimated rate when history shows no drain (charging)', () => {
+      const now = Date.now();
+      const batteryHistory = [
+        { timestamp: new Date(now - 3_600_000), batteryLevel: 10 },
+        { timestamp: new Date(now),             batteryLevel: 50 }, // battery went up
+      ];
+      const r = service.computePredictiveCharging(
+        makePredictiveInput({ batteryLevel: 15, isCharging: true, batteryHistory }),
+      );
+      // batteryDrop is negative → no telemetry rate → isCharging → drainRate null
+      expect(r!.drainRatePerHour).toBeNull();
+      expect(r!.predictionBasis).toBe('estimated');
+    });
+
+    it('includes recommendedChargeBy timestamp when above medium threshold', () => {
+      // battery=50% (below low=60, above medium=40), drain=15%/h
+      // minutesToMedium = (50-40)/15*60 = 40 min → recommendedChargeBy = now + 40 min
+      const r = service.computePredictiveCharging(makePredictiveInput({ batteryLevel: 50 }));
+      expect(r).not.toBeNull();
+      expect(r!.recommendedChargeBy).not.toBeNull();
+      const recommended = new Date(r!.recommendedChargeBy!).getTime();
+      expect(recommended).toBeGreaterThan(Date.now());
+    });
+
+    it('sets recommendedChargeBy to now when already below medium threshold', () => {
+      // battery=15% < medium=40% → recommend immediately
+      const before = Date.now();
+      const r = service.computePredictiveCharging(makePredictiveInput({ batteryLevel: 15 }));
+      const recommended = new Date(r!.recommendedChargeBy!).getTime();
+      expect(recommended).toBeGreaterThanOrEqual(before - 100); // within ~100ms
+      expect(recommended).toBeLessThanOrEqual(Date.now() + 100);
+    });
+
+    it('ignores history with < 2 valid readings', () => {
+      const batteryHistory = [{ timestamp: new Date(), batteryLevel: 20 }];
+      const r = service.computePredictiveCharging(makePredictiveInput({ batteryHistory }));
+      expect(r!.predictionBasis).toBe('estimated');
+    });
+
+    it('ignores history with null battery levels', () => {
+      const now = Date.now();
+      const batteryHistory = [
+        { timestamp: new Date(now - 3_600_000), batteryLevel: null },
+        { timestamp: new Date(now),             batteryLevel: null },
+      ];
+      const r = service.computePredictiveCharging(makePredictiveInput({ batteryHistory }));
+      expect(r!.predictionBasis).toBe('estimated');
+    });
+
+    it('inherits all base ChargingRecommendation fields', () => {
+      const r = service.computePredictiveCharging(makePredictiveInput({ batteryLevel: 15, upcomingTripCount: 2 }));
+      expect(r!.vehicleId).toBe('v-1');
+      expect(r!.plateNumber).toBe('EV-001');
+      expect(r!.upcomingTrips).toBe(2);
+    });
+  });
+
+  // ─── Custom FleetConfig ───────────────────────────────────────────────────
+
+  describe('custom FleetConfig', () => {
+    it('respects custom battery thresholds for health scoring', () => {
+      const customConfig: FleetConfig = {
+        ...DEFAULT_CONFIG,
+        battery: { critical: 20, high: 30, medium: 50, low: 70 },
+      };
+      const r = service.computeHealthScore(
+        makeHealthInput({ batteryLevel: 25 }), // 25% is above default critical (10) but below custom critical (20)
+        customConfig,
+      );
+      expect(r.flags.some((f) => f.includes('Low energy level'))).toBe(true);
+    });
+
+    it('respects custom health weights summing to 100', () => {
+      const customConfig: FleetConfig = {
+        ...DEFAULT_CONFIG,
+        health: {
+          ...DEFAULT_CONFIG.health,
+          weights: { energy: 50, freshness: 20, utilization: 10, diagnostics: 10, maintenance: 10 },
+        },
+      };
+      const r = service.computeHealthScore(makeHealthInput({ batteryLevel: 100 }), customConfig);
+      expect(r.components.energy).toBe(50);
+    });
+
+    it('respects custom inactivity threshold for alerts', () => {
+      const customConfig: FleetConfig = {
+        ...DEFAULT_CONFIG,
+        inactivity: { vehicleHours: 2, telemetryMinutes: 10 },
+      };
+      // 3h old location → above custom 2h threshold → alert raised
+      const alerts = service.evaluateAlerts(
+        makeAlertInput({ lastLocationAt: new Date(Date.now() - 3 * 3_600_000) }),
+        customConfig,
+      );
+      expect(alerts.find((a) => a.type === 'VEHICLE_INACTIVE')).toBeDefined();
+    });
+
+    it('no VEHICLE_INACTIVE alert with default config for same 3h gap', () => {
+      // Default threshold is 6h → 3h should NOT trigger
+      const alerts = service.evaluateAlerts(
+        makeAlertInput({ lastLocationAt: new Date(Date.now() - 3 * 3_600_000) }),
+      );
+      expect(alerts.find((a) => a.type === 'VEHICLE_INACTIVE')).toBeUndefined();
+    });
+
+    it('respects custom charging low threshold', () => {
+      const customConfig: FleetConfig = {
+        ...DEFAULT_CONFIG,
+        battery: { critical: 10, high: 20, medium: 40, low: 80 }, // wider low threshold
+      };
+      // 70% battery — normally no recommendation, but above custom low=80? → still no (above)
+      // Actually with low=80, battery=70 < 80 → should trigger
+      const r = service.computeChargingRecommendation(
+        makeChargingInput({ batteryLevel: 70 }), customConfig,
+      );
+      expect(r).not.toBeNull();
+      expect(r!.urgency).toBe('low');
     });
   });
 });

@@ -32,6 +32,8 @@ export class IntelligenceScheduler {
         this.intelligence.getAlerts(),
         // Trip insights cover last 30 days — included in warm-up
         this.intelligence.getTripInsights(),
+        // Operational recommendations (driver/vehicle efficiency analysis)
+        this.intelligence.getRecommendations(),
       ]);
 
       this.logger.log(`Intelligence cache refreshed in ${Date.now() - start} ms`);
