@@ -1,0 +1,54 @@
+# FleetTrack .gitignore
+
+# Environment variables — NEVER commit these
+.env
+.env.local
+.env.production
+*.env
+
+# API Keys — NEVER commit
+api-keys.json
+secrets.json
+credentials.json
+
+# Node
+node_modules/
+package-lock.json
+npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+Desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build outputs
+dist/
+build/
+.cache/
+
+# Logs
+*.log
+logs/
+
+# Local database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
