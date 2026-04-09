@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>FleetTrack — Driver Portal</title>
-<link rel="stylesheet" href="../shared/css/design-system.css">
+<link rel="stylesheet" href="./design-system.css">
 <style>
 body { background:var(--bg); min-height:100vh; }
 .app { display:flex; flex-direction:column; min-height:100vh; max-width:600px; margin:0 auto; }
@@ -283,7 +283,7 @@ body { background:var(--bg); min-height:100vh; }
   </div>
 </div>
 
-<script src="../shared/js/auth.js"></script>
+<script src="./auth.js"></script>
 <script>
 // ── Auth guard ───────────────────────────────────────────────────────
 const session = FleetAuth.requireAuth(['driver'], '../login.html?portal=driver');
