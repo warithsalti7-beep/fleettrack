@@ -16,6 +16,7 @@ import { RealtimeModule } from './modules/realtime/realtime.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { QueueModule } from './services/queue/queue.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
+import { IntelligenceModule } from './modules/intelligence/intelligence.module';
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { PrismaModule } from './modules/prisma/prisma.module';
     TelematicsModule,
     RealtimeModule,
     QueueModule,
+    IntelligenceModule,
   ],
 })
 export class AppModule {}
