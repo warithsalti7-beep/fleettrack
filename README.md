@@ -1,152 +1,179 @@
-# 🚖 FleetTrack — Enterprise Fleet Management Platform
+# FleetTrack — Taxi Fleet Management Dashboard
 
-A complete multi-portal fleet management system for taxi/ride-hailing operations.
+A production-ready full-stack fleet management platform for taxi and EV fleets. Built with Next.js 16, NestJS 10, PostgreSQL, Redis, and real-time WebSocket telemetry.
 
-## 📁 Project Structure
+## Features
+
+- **Dashboard** — KPI cards, revenue charts, fleet status, recent trips
+- **Vehicle management** — Status tracking, EV battery levels, telematics sync
+- **Driver management** — Online presence, trip history, earnings, ratings
+- **Trip dispatch** — Auto fare estimation, route calculation via Google Maps
+- **Real-time telemetry** — Tesla Fleet API, Smartcar (NIO + 40 brands), Samsara OBD
+- **Live map** — Vehicle locations updated every 10 seconds via WebSocket
+- **Analytics** — Revenue trends, peak hours, top drivers, payment breakdown
+- **Maintenance** — Scheduled service records, priority tracking
+- **Authentication** — JWT + refresh token rotation, RBAC (Admin/Dispatcher/Driver)
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 16, React 19, Tailwind CSS v4, Recharts, Leaflet |
+| Backend | NestJS 10, Prisma 7, Passport JWT |
+| Database | PostgreSQL (Neon/Render) + SQLite for local frontend dev |
+| Cache / Queue | Redis + BullMQ |
+| Real-time | Socket.io with room-based subscriptions |
+| Telematics | Tesla Fleet API, Smartcar, Samsara |
+| Maps | Google Maps (Directions, Geocoding, ETA) |
+| Monitoring | Sentry, Pino structured logging |
+| Deploy | Vercel (frontend) + Render (backend) |
+
+## Quick Start
+
+### Prerequisites
+- Node.js 20+
+- pnpm 9+
+- Docker + Docker Compose (for PostgreSQL + Redis)
+
+### 1. Clone and install
+```bash
+git clone git@github.com:warithsalti7-beep/fleettrack.git
+cd fleettrack
+pnpm install            # install frontend deps
+cd backend && pnpm install && cd ..
+```
+
+### 2. Environment variables
+```bash
+cp .env.example .env
+# Fill in required values: DATABASE_URL, JWT_SECRET, JWT_REFRESH_SECRET
+```
+
+### 3. Start infrastructure
+```bash
+pnpm docker:dev         # starts PostgreSQL + Redis
+```
+
+### 4. Database setup
+```bash
+# Frontend (SQLite — for local Next.js dev)
+npx prisma generate
+pnpm db:seed
+
+# Backend (PostgreSQL)
+cd backend
+pnpm prisma migrate dev --name init
+cd ..
+```
+
+### 5. Start development servers
+```bash
+pnpm dev                # Next.js on :3000
+pnpm dev:backend        # NestJS on :3001
+# or both at once:
+pnpm dev:all
+```
+
+Open [http://localhost:3000](http://localhost:3000)
+
+---
+
+## Project Structure
 
 ```
 fleettrack/
-├── login.html                    ← Unified login for all portals
-├── admin/
-│   ├── dashboard.html            ← Full admin fleet dashboard
-│   └── access-management.html   ← Grant/revoke employee permissions
-├── driver/
-│   └── index.html                ← Mobile-first driver portal
-├── employee/
-│   └── index.html                ← Role-restricted employee portal
-├── shared/
-│   ├── css/design-system.css     ← Shared design tokens + components
-│   └── js/auth.js                ← Auth system + session management
-└── api-mock/                     ← (Future) API mock server
+├── src/                    # Next.js frontend
+│   ├── app/
+│   │   ├── dashboard/      # All dashboard pages
+│   │   │   ├── page.tsx    # Overview (KPIs, charts)
+│   │   │   ├── vehicles/
+│   │   │   ├── drivers/
+│   │   │   ├── trips/
+│   │   │   ├── analytics/
+│   │   │   ├── maintenance/
+│   │   │   └── fuel/
+│   │   └── api/            # Next.js API routes (proxies to backend)
+│   ├── components/         # Sidebar, Topbar, KPI cards, charts
+│   └── lib/                # Prisma client, utils
+├── prisma/                 # Frontend SQLite schema + seed
+├── backend/                # NestJS API server
+│   ├── src/
+│   │   ├── modules/        # auth, vehicles, drivers, trips, telematics, realtime
+│   │   ├── services/       # tesla, smartcar (nio), maps, queue processors
+│   │   └── config/         # env validation, typed config
+│   └── prisma/             # Backend PostgreSQL schema + migrations
+├── database/               # init.sql for Docker PostgreSQL
+├── docs/                   # API.md, INTEGRATIONS.md, REAL_TIME.md, SCALING.md
+├── .github/workflows/      # CI/CD (GitHub Actions)
+├── docker-compose.yml      # Dev: PostgreSQL + Redis + backend
+├── docker-compose.prod.yml # Prod: backend only (uses managed DB/Redis)
+├── vercel.json             # Vercel frontend config
+└── render.yaml             # Render backend + database config
 ```
-
-## 🚀 Getting Started (Local)
-
-```bash
-# Clone the repo
-git clone https://github.com/YOUR_USERNAME/fleettrack.git
-cd fleettrack
-
-# Serve locally (Python)
-python3 -m http.server 8080
-
-# OR with Node.js
-npx serve .
-
-# Open in browser
-open http://localhost:8080/login.html
-```
-
-## 🔐 Demo Credentials
-
-| Portal   | Email                        | Password      |
-|----------|------------------------------|---------------|
-| Admin    | stefan@oslofleet.no          | Admin2024!    |
-| Admin    | manager@fleettrack.no        | Manager2024!  |
-| Employee | dispatch@fleettrack.no       | Dispatch2024! |
-| Employee | accounts@regnskap.no         | Finance2024!  |
-| Employee | ops@fleettrack.no            | Ops2024!      |
-| Driver   | olsztynski@fleettrack.no     | Driver2024!   |
-| Driver   | (any driver email)           | Driver2024!   |
-
-## 🌐 Deploy to GitHub Pages
-
-1. Push to GitHub:
-```bash
-git init
-git add .
-git commit -m "Initial FleetTrack deployment"
-git remote add origin https://github.com/YOUR_USERNAME/fleettrack.git
-git push -u origin main
-```
-
-2. Enable GitHub Pages:
-   - Go to repo → **Settings** → **Pages**
-   - Source: **Deploy from a branch**
-   - Branch: `main` / `/ (root)`
-   - Click **Save**
-
-3. Your site will be live at:
-   ```
-   https://YOUR_USERNAME.github.io/fleettrack/login.html
-   ```
-
-## 🏛️ Portal Overview
-
-### Admin Dashboard (`/admin/dashboard.html`)
-- Full fleet KPI overview (revenue, profit, utilization, alerts)
-- 40+ pages: drivers, vehicles, P&L, zones, platforms, compliance
-- API Integration settings (Bolt, Uber, NIO, Tesla)
-- Access Management for employee permissions
-- Norway cost structure (VAT, Arbeidsgiveravgift, EV costs)
-- Dashboard checklist tracker
-
-### Driver Portal (`/driver/index.html`)
-- Mobile-first design (max-width 600px, bottom nav)
-- Today's stats: earnings, trips, acceptance rate, online hours
-- Trip log with Bolt/Uber split
-- Weekly earnings chart + payslip breakdown
-- 7-day shift schedule
-- Performance score with breakdown (0–100)
-- Notifications and alerts
-
-### Employee Portal (`/employee/index.html`)
-- Sidebar navigation with locked sections based on permissions
-- Available pages: Overview, Drivers, Trips, Vehicles, Alerts, Dispatch, Finance, Payroll
-- Permissions granted manually by admin via Access Management page
-
-### Access Management (`/admin/access-management.html`)
-- Toggle each permission on/off per employee
-- Grant All / Revoke All controls
-- Permissions: view:drivers, view:trips, view:vehicles, view:alerts,
-  view:financial, view:payroll, view:zones, manage:dispatch,
-  manage:maintenance, export:reports
-
-## 🔌 API Integration (Next Steps for Claude Code)
-
-The following APIs need to be wired in `shared/js/auth.js` and the admin API settings page:
-
-| API     | Docs URL                              | Auth Method              |
-|---------|---------------------------------------|--------------------------|
-| Bolt    | fleet.bolt.eu                         | OAuth2 client_credentials|
-| Uber    | developer.uber.com                    | OAuth2 Bearer token      |
-| NIO     | developer.nio.io                      | App Key + Secret + MQTT  |
-| Tesla   | fleet-api.prd.na.vn.cloud.tesla.com   | OAuth2 refresh_token     |
-| Spot    | Your FMS provider                     | API Key                  |
-
-Each API config field is in Admin → Settings → API Integrations.
-
-## 🔒 Production Security Checklist (IMPORTANT)
-
-Before going live, Claude Code must implement:
-
-- [ ] Replace localStorage auth with JWT tokens (httpOnly cookies)
-- [ ] Add a real backend (Node.js/Express or Python/FastAPI)
-- [ ] Move all API keys to environment variables (.env)
-- [ ] Add rate limiting to login endpoint (max 5 attempts/15 min)
-- [ ] Add HTTPS (mandatory — never serve over HTTP with real credentials)
-- [ ] Replace hardcoded passwords in auth.js with hashed passwords (bcrypt)
-- [ ] Add CSRF protection on all POST endpoints
-- [ ] Add proper session invalidation on logout (server-side)
-- [ ] Set Content-Security-Policy headers
-- [ ] Enable GitHub repository secret scanning
-
-## 📊 Tech Stack
-
-- **Frontend**: Pure HTML5 + CSS3 + Vanilla JavaScript (no framework dependency)
-- **Charts**: Chart.js 4.4.1 (CDN)
-- **Fonts**: Google Fonts (Outfit + JetBrains Mono)
-- **Auth**: Frontend session system → replace with backend JWT
-- **Hosting**: GitHub Pages (static) → upgrade to Vercel/Railway for backend
-
-## 🗄️ Database Schema (for backend implementation)
-
-See Admin Dashboard → Data Model page for full schema with 7 tables:
-`Drivers`, `Vehicles`, `Trips`, `Payments`, `Expenses`, `Maintenance`, `Driver_Shifts`
-
-## 📞 Support
-
-Contact: stefan@oslofleet.no | manager@fleettrack.no
 
 ---
-Built with FleetTrack Platform v1.0 · © 2025
+
+## API Documentation
+
+See [docs/API.md](./docs/API.md) for the complete REST API reference.
+
+Base URL (local): `http://localhost:3001/api/v1`
+
+Key endpoints:
+- `POST /auth/login` — Get JWT tokens
+- `GET /vehicles` — List all vehicles
+- `GET /trips/active` — Live active trips
+- `GET /telematics/fleet/ev-summary` — EV battery health
+- `GET /telematics/fleet/locations` — All vehicle GPS positions
+
+---
+
+## Deployment
+
+### Frontend → Vercel
+```bash
+npx vercel --prod
+```
+Set environment variables in Vercel dashboard (see `vercel.json`).
+
+### Backend → Render
+```bash
+# Render reads render.yaml automatically on push to main
+git push origin main
+```
+Or deploy manually via [Render Dashboard](https://dashboard.render.com).
+
+### One-command infrastructure (Docker)
+```bash
+pnpm docker:up     # all services
+pnpm docker:down   # stop all
+pnpm docker:logs   # tail logs
+```
+
+---
+
+## External API Setup
+
+See [docs/INTEGRATIONS.md](./docs/INTEGRATIONS.md) for step-by-step setup:
+- **Tesla Fleet API** — OAuth 2.0 PKCE, developer.tesla.com
+- **Smartcar** — Covers NIO + 40 other EV brands, dashboard.smartcar.com
+- **Google Maps Platform** — Geocoding + Directions APIs
+- **Samsara** — OBD-II hardware telematics, cloud.samsara.com
+
+---
+
+## Real-Time Events
+
+See [docs/REAL_TIME.md](./docs/REAL_TIME.md) for the complete WebSocket event reference and Redis key patterns.
+
+---
+
+## Scaling
+
+See [docs/SCALING.md](./docs/SCALING.md) for guidance on scaling from 50 to 1000+ vehicles, including TimescaleDB, Kafka, and Redis Cluster configurations.
+
+---
+
+## License
+
+MIT
