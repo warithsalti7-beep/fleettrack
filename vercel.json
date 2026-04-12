@@ -3,10 +3,6 @@
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install",
   "outputDirectory": ".next",
-  "env": {
-    "NEXT_PUBLIC_API_URL": "@next_public_api_url",
-    "NEXT_PUBLIC_WS_URL": "@next_public_ws_url"
-  },
   "headers": [
     {
       "source": "/api/(.*)",
