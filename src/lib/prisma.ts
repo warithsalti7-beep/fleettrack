@@ -1,14 +1,16 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-import path from "path";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import { neonConfig, Pool } from "@neondatabase/serverless";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
 function createPrismaClient() {
-  const dbPath = path.join(process.cwd(), "dev.db");
-  const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` });
+  neonConfig.webSocketConstructor =
+    typeof WebSocket !== "undefined" ? WebSocket : undefined;
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const adapter = new PrismaNeon(pool);
   return new PrismaClient({ adapter });
 }
 
