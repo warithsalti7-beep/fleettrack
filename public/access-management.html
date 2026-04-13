@@ -34,7 +34,7 @@ body { padding: var(--s5); max-width: 1200px; margin: 0 auto; }
 </style>
 </head>
 <body>
-<a class="back-btn" href="dashboard.html">← Back to Admin Dashboard</a>
+<a class="back-btn" href="dashboard.html" onclick="if(window.history.length>1 && document.referrer && document.referrer.indexOf(location.host)>-1){event.preventDefault();history.back();}">← Back to Admin Dashboard</a>
 
 <div class="page-header">
   <div class="ph-title">Access Management</div>
@@ -180,6 +180,8 @@ function resetAll() {
   Toast.info('Permissions reset to defaults. Reload to see changes.');
   setTimeout(() => location.reload(), 1200);
 }
+
+if (typeof FleetCurrency !== 'undefined') { FleetCurrency.rerender(); FleetCurrency.injectToggle(); }
 </script>
 </body>
 </html>

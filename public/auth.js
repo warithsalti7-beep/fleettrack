@@ -177,9 +177,24 @@ const FleetCurrency=(()=>{
   const KEY='ft_currency',RATE=0.087;
   const get=()=>{try{return localStorage.getItem(KEY)||'NOK';}catch(e){return 'NOK';}};
   const set=c=>{try{localStorage.setItem(KEY,c);}catch(e){}};
-  const toggle=()=>{set(get()==='NOK'?'EUR':'NOK');location.reload();};
-  function format(nok){const n=Math.round(nok);return get()==='EUR'?'\u20ac'+Math.round(n*RATE).toLocaleString():'NOK\u00a0'+n.toLocaleString();}
-  function formatCompact(nok){if(get()==='EUR'){const e=Math.round(nok*RATE);return '\u20ac'+(e>=1000?(e/1000).toFixed(1)+'k':e);}return 'NOK\u00a0'+(nok>=1000?(nok/1000).toFixed(1)+'k':Math.round(nok));}
+  // Norwegian style formatting with thin-space thousand separators
+  function fmtNum(n){
+    // Use 2 decimals for small absolute values (<10) so per-km / per-trip costs display sensibly
+    const abs=Math.abs(n);
+    if(abs>0 && abs<10) return n.toFixed(2).replace('.',',');
+    return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'\u202F');
+  }
+  function fmtNOK(n){return fmtNum(n)+'\u00a0kr';}
+  function fmtEUR(n){const abs=Math.abs(n);if(abs>0 && abs<10) return '\u20ac'+n.toFixed(2);return '\u20ac'+(Math.round(n)).toLocaleString('en-US');}
+  function format(nok){const n=parseFloat(nok);if(isNaN(n))return '';if(get()==='EUR'){const e=n*RATE;return (e<0?'\u2212':'')+fmtEUR(Math.abs(e));}return (n<0?'\u2212':'')+fmtNOK(Math.abs(n));}
+  function formatCompact(nok){if(get()==='EUR'){const e=Math.round(nok*RATE);return '\u20ac'+(Math.abs(e)>=1000?(e/1000).toFixed(1)+'k':e);}return (Math.abs(nok)>=1000?(nok/1000).toFixed(1)+'k':Math.round(nok))+'\u00a0kr';}
+  function rerender(){
+    document.querySelectorAll('.cur').forEach(el=>{
+      const nok=parseFloat(el.dataset.nok);
+      if(!isNaN(nok)) el.textContent = format(nok);
+    });
+  }
+  const toggle=()=>{set(get()==='NOK'?'EUR':'NOK');rerender();const b=document.getElementById('ft-cur-btn');if(b)b.innerHTML=get()==='NOK'?'NOK \u2192 \u20ac':'\u20ac \u2192 NOK';};
   function injectToggle(){
     if(document.getElementById('ft-cur-btn'))return;
     const cur=get(),btn=document.createElement('button');
@@ -190,5 +205,32 @@ const FleetCurrency=(()=>{
     btn.onmouseout=()=>{btn.style.borderColor='var(--b2)';btn.style.color='var(--t2)';};
     btn.onclick=toggle;document.body.appendChild(btn);
   }
-  return{get,set,toggle,format,formatCompact,injectToggle};
+  return{get,set,toggle,format,formatCompact,injectToggle,rerender};
 })();
+
+// ── CSV export helper ────────────────────────────────────────────────
+function exportTableToCSV(tableSelector, filename){
+  const table = typeof tableSelector==='string' ? document.querySelector(tableSelector) : tableSelector;
+  if(!table) return (typeof Toast!=='undefined' && Toast.error) ? Toast.error('No table found to export') : alert('No table');
+  const rows = [...table.querySelectorAll('tr')].map(tr =>
+    [...tr.querySelectorAll('th,td')].map(c => {
+      const t = c.innerText.replace(/\s+/g,' ').trim().replace(/"/g,'""');
+      return /[",\n]/.test(t) ? `"${t}"` : t;
+    }).join(',')
+  ).join('\n');
+  const blob = new Blob([rows], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename || 'export.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{a.remove(); URL.revokeObjectURL(url);}, 100);
+  if(typeof Toast!=='undefined') Toast.success('Exported: '+a.download);
+}
+
+// Export the nearest table within the same page/panel as the clicked button.
+function exportNearestTable(btn, prefix){
+  const scope = btn.closest('.page, .tab-panel, .card, section') || document.body;
+  const table = scope.querySelector('table') || document.querySelector('.page.active table') || document.querySelector('table');
+  const date = new Date().toISOString().slice(0,10);
+  exportTableToCSV(table, (prefix||'export')+'-'+date+'.csv');
+}

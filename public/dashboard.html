@@ -694,6 +694,36 @@ th.sort-asc, th.sort-desc { color: var(--blue2); background: var(--bg4); }
   flex-wrap: wrap;
   padding: var(--s2) 0;
 }
+.tbl-sort-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  color: var(--t3);
+  font-family: var(--mono);
+  background: transparent;
+  border: 1px solid var(--b1);
+  border-radius: var(--r1);
+  padding: 4px 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--fast);
+}
+.tbl-sort-toggle:hover { color: var(--t2); border-color: var(--b3); background: var(--bg4); }
+.tbl-sort-toggle .chev { transition: transform .18s ease; display: inline-block; }
+.tbl-sort-bar.open .tbl-sort-toggle .chev { transform: rotate(90deg); }
+.tbl-sort-active-badge {
+  font-size: 10px; color: var(--blue2);
+  background: var(--bluebg); border: 1px solid var(--blueborder);
+  padding: 2px 8px; border-radius: var(--r1); font-family: var(--mono);
+}
+.tbl-sort-items {
+  display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap;
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height .22s ease, opacity .18s ease;
+  flex-basis: 100%;
+}
+.tbl-sort-bar.open .tbl-sort-items { max-height: 500px; opacity: 1; padding-top: var(--s2); }
 .tbl-sort-label { font-size: 10.5px; color: var(--t3); font-family: var(--mono); white-space: nowrap; }
 .tbl-sort-btn {
   font-size: 10.5px;
@@ -1322,7 +1352,7 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
       </div>
     </div>
     <div class="topbar-actions">
-      <button class="tb-btn" onclick="go('reports',null,'Reports','System')"><span>⬇</span> <span>Export</span></button>
+      <button class="tb-btn" onclick="exportNearestTable(this,'dashboard')" aria-label="Export current view"><span>⬇</span> <span>Export</span></button>
       <div class="clock-chip" id="clock">--:--:--</div>
       <div class="notif-btn" title="4 active alerts">⚑<div class="notif-pip"></div></div>
     </div>
@@ -1337,19 +1367,19 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
     <div class="ph-right"><button class="tb-btn primary">⟳ Refresh</button></div>
   </div>
   <div class="kpi-grid g6">
-    <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">Revenue Today</div><div class="kc-value">€4,820</div><div class="kc-delta up">↑ 8.3% vs yesterday</div><div class="kc-sub">Target: €4,500</div></div>
-    <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">Net Profit</div><div class="kc-value">€800</div><div class="kc-delta up">↑ 16.6% margin</div><div class="kc-sub">Break-even: €3,374</div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">Revenue Today</div><div class="kc-value"><span class="cur" data-nok="55430">55 430 kr</span></div><div class="kc-delta up">↑ 8.3% vs yesterday</div><div class="kc-sub">Target: <span class="cur" data-nok="51750">51 750 kr</span></div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">Net Profit</div><div class="kc-value"><span class="cur" data-nok="9200">9 200 kr</span></div><div class="kc-delta up">↑ 16.6% margin</div><div class="kc-sub">Break-even: <span class="cur" data-nok="38800">38 800 kr</span></div></div>
     <div class="kc"><div class="kc-accent" style="background:var(--blue)"></div><div class="kc-label">Active Drivers</div><div class="kc-value">21/25</div><div class="kc-delta neu">4 offline</div><div class="kc-sub">84% attendance</div></div>
     <div class="kc"><div class="kc-accent" style="background:var(--blue)"></div><div class="kc-label">Trips Done</div><div class="kc-value">187</div><div class="kc-delta up">↑ +12 vs target</div><div class="kc-sub">Target: 175</div></div>
     <div class="kc"><div class="kc-accent" style="background:var(--amber)"></div><div class="kc-label">Utilization</div><div class="kc-value">68.4%</div><div class="kc-bar"><div class="kc-bar-fill" style="width:68.4%;background:var(--amber)"></div></div><div class="kc-sub">Target: >70%</div></div>
-    <div class="kc"><div class="kc-accent" style="background:var(--teal)"></div><div class="kc-label">Avg Rev/Hour</div><div class="kc-value">€22.40</div><div class="kc-delta up">↑ Above €20 target</div><div class="kc-sub">Fleet average</div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--teal)"></div><div class="kc-label">Avg Rev/Hour</div><div class="kc-value"><span class="cur" data-nok="258">258 kr</span></div><div class="kc-delta up">↑ Above <span class="cur" data-nok="230">230 kr</span> target</div><div class="kc-sub">Fleet average</div></div>
   </div>
   <div class="kpi-grid g6">
     <div class="kc"><div class="kc-label">Acceptance Rate</div><div class="kc-value">83.5%</div><div class="kc-bar"><div class="kc-bar-fill" style="width:83.5%;background:var(--green)"></div></div><div class="kc-sub">Target: >80%</div></div>
     <div class="kc"><div class="kc-label">Cancellation Rate</div><div class="kc-value">6.2%</div><div class="kc-delta up">↑ Below 10% limit</div><div class="kc-sub">Safe zone</div></div>
     <div class="kc"><div class="kc-label">Avg Idle Time</div><div class="kc-value">24.1%</div><div class="kc-bar"><div class="kc-bar-fill" style="width:24.1%;background:var(--green)"></div></div><div class="kc-sub">Target: <30%</div></div>
     <div class="kc"><div class="kc-label">Trips/Active Hr</div><div class="kc-value">2.1</div><div class="kc-delta neu">Target: 2.5</div><div class="kc-sub">Below optimal</div></div>
-    <div class="kc"><div class="kc-label">Cost Per Trip</div><div class="kc-value">€18.90</div><div class="kc-sub">Revenue/trip: €25.77</div></div>
+    <div class="kc"><div class="kc-label">Cost Per Trip</div><div class="kc-value"><span class="cur" data-nok="217">217 kr</span></div><div class="kc-sub">Revenue/trip: <span class="cur" data-nok="296">296 kr</span></div></div>
     <div class="kc"><div class="kc-label">Platform Split</div><div class="kc-value">58/42</div><div class="split-bar"><div class="sb-seg" style="width:58%;background:rgba(139,92,246,0.4);color:#c4b5fd">Bolt</div><div class="sb-seg" style="width:42%;background:rgba(59,130,246,0.4);color:#93c5fd">Uber</div></div></div>
   </div>
   <div class="two-col">
@@ -1360,7 +1390,7 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
     <div class="card"><div class="card-header"><div class="card-title">Platform Split</div></div><div class="ch" style="height:180px"><canvas id="c-platform-donut" role="img" aria-label="Platform revenue split">Bolt 58% Uber 42%.</canvas></div></div>
     <div class="card"><div class="card-header"><div class="card-title">Active Critical Alerts</div></div>
       <div class="alert a-red"><div class="adot" style="background:var(--red)"></div><div><div class="alert-title">T. Błaszczyk — Acceptance rate 58%</div><div class="alert-body">Below 70% threshold. Platform deactivation risk. Call now.</div></div></div>
-      <div class="alert a-red"><div class="adot" style="background:var(--red)"></div><div><div class="alert-title">VH-14 — Negative profit for 3 days</div><div class="alert-body">BMW 3 Series losing €23/day. Audit required.</div></div></div>
+      <div class="alert a-red"><div class="adot" style="background:var(--red)"></div><div><div class="alert-title">VH-14 — Negative profit for 3 days</div><div class="alert-body">BMW 3 Series losing <span class="cur" data-nok="265">265 kr</span>/day. Audit required.</div></div></div>
       <div class="alert a-amber"><div class="adot" style="background:var(--amber)"></div><div><div class="alert-title">C. Popescu — Idle time 55%</div><div class="alert-body">Driver stationary >40 min. Push zone reposition.</div></div></div>
       <div class="alert a-amber"><div class="adot" style="background:var(--amber)"></div><div><div class="alert-title">Revenue 11% below yesterday at 13:00</div><div class="alert-body">Lunch slump. Activate shopping mall demand push.</div></div></div>
     </div>
@@ -1372,7 +1402,7 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
   <div class="page-header"><div class="ph-left"><div class="ph-title">FleetTrack Command Centre</div><div class="ph-sub">Full operational control panel — all systems at a glance</div></div></div>
   <div class="kpi-grid g4">
     <div class="kc"><div class="kc-label">Fleet Status</div><div class="kc-value" style="color:var(--green)">Operational</div><div class="kc-sub">21 active · 2 workshop · 2 offline</div></div>
-    <div class="kc"><div class="kc-label">Today Revenue Pace</div><div class="kc-value">€4,820</div><div class="kc-delta up">On track for €5,200 EOD</div></div>
+    <div class="kc"><div class="kc-label">Today Revenue Pace</div><div class="kc-value"><span class="cur" data-nok="55430">55 430 kr</span></div><div class="kc-delta up">On track for <span class="cur" data-nok="59800">59 800 kr</span> EOD</div></div>
     <div class="kc"><div class="kc-label">Open Alerts</div><div class="kc-value" style="color:var(--red)">4</div><div class="kc-sub">2 critical · 2 warnings</div></div>
     <div class="kc"><div class="kc-label">Platform Health</div><div class="kc-value" style="color:var(--green)">Good</div><div class="kc-sub">Bolt avg 86% · Uber avg 80%</div></div>
   </div>
@@ -1447,7 +1477,7 @@ Tier: Top ≥80 · Average 60–79 · Low <60</div>
           <tr><td>Acceptance</td><td>< 70%</td><td><span class="badge b-red">Critical</span></td><td>Call driver; reassign zone</td></tr>
           <tr><td>Cancellation</td><td>> 10%</td><td><span class="badge b-red">Critical</span></td><td>Formal warning issued</td></tr>
           <tr><td>Idle Time</td><td>> 40%</td><td><span class="badge b-amber">Warning</span></td><td>Push zone reposition</td></tr>
-          <tr><td>Rev/Hour</td><td>< €15</td><td><span class="badge b-amber">Warning</span></td><td>Check vehicle/platform</td></tr>
+          <tr><td>Rev/Hour</td><td>&lt; <span class="cur" data-nok="175">175 kr</span></td><td><span class="badge b-amber">Warning</span></td><td>Check vehicle/platform</td></tr>
         </tbody>
       </table></div>
     </div>
@@ -1508,21 +1538,21 @@ Tier: Top ≥80 · Average 60–79 · Low <60</div>
 
 <!-- ═══ PAGE: DRIVER PAYROLL ═══ -->
 <div class="page" id="page-driver-payroll">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Payroll & Payouts</div><div class="ph-sub">Driver earnings, commissions, bonuses, and deductions</div></div><div class="ph-right"><button class="tb-btn primary">⬇ Export Payroll</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Payroll & Payouts</div><div class="ph-sub">Driver earnings, commissions, bonuses, and deductions</div></div><div class="ph-right"><button class="tb-btn primary" onclick="exportNearestTable(this,'payroll')" aria-label="Export payroll">⬇ Export Payroll</button></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Total Payouts Today</div><div class="kc-value">€2,663</div><div class="kc-sub">65% of net revenue</div></div>
-    <div class="kc"><div class="kc-label">Avg Payout / Driver</div><div class="kc-value">€126.80</div></div>
-    <div class="kc"><div class="kc-label">Highest Earner</div><div class="kc-value" style="color:var(--green)">€203</div><div class="kc-sub">A. Kovač</div></div>
-    <div class="kc"><div class="kc-label">Lowest Earner</div><div class="kc-value" style="color:var(--amber)">€51</div><div class="kc-sub">W. Hoffmann</div></div>
+    <div class="kc"><div class="kc-label">Total Payouts Today</div><div class="kc-value"><span class="cur" data-nok="30625">30 625 kr</span></div><div class="kc-sub">65% of net revenue</div></div>
+    <div class="kc"><div class="kc-label">Avg Payout / Driver</div><div class="kc-value"><span class="cur" data-nok="1458">1 458 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Highest Earner</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="2335">2 335 kr</span></div><div class="kc-sub">A. Kovač</div></div>
+    <div class="kc"><div class="kc-label">Lowest Earner</div><div class="kc-value" style="color:var(--amber)"><span class="cur" data-nok="585">585 kr</span></div><div class="kc-sub">W. Hoffmann</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Payroll Breakdown — Today</div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Driver</th><th>Gross Rev</th><th>Platform Fee</th><th>Net Rev</th><th>Commission %</th><th>Base Payout</th><th>Bonus</th><th>Deductions</th><th>Final Payout</th></tr></thead>
       <tbody>
-        <tr><td>A. Kovač</td><td>€312</td><td>€47</td><td>€265</td><td>65%</td><td>€172</td><td>€31</td><td>€0</td><td style="color:var(--green);font-weight:600">€203</td></tr>
-        <tr><td>M. Petrov</td><td>€289</td><td>€43</td><td>€246</td><td>65%</td><td>€160</td><td>€18</td><td>€0</td><td style="color:var(--green);font-weight:600">€178</td></tr>
-        <tr><td>T. Błaszczyk</td><td>€104</td><td>€16</td><td>€88</td><td>65%</td><td>€57</td><td>€0</td><td>€12</td><td style="color:var(--amber);font-weight:600">€45</td></tr>
-        <tr><td>W. Hoffmann</td><td>€78</td><td>€12</td><td>€66</td><td>65%</td><td>€43</td><td>€0</td><td>€20</td><td style="color:var(--red);font-weight:600">€51 (fine applied)</td></tr>
+        <tr><td>A. Kovač</td><td><span class="cur" data-nok="3590">3 590 kr</span></td><td><span class="cur" data-nok="540">540 kr</span></td><td><span class="cur" data-nok="3045">3 045 kr</span></td><td>65%</td><td><span class="cur" data-nok="1980">1 980 kr</span></td><td><span class="cur" data-nok="355">355 kr</span></td><td><span class="cur" data-nok="0">0 kr</span></td><td style="color:var(--green);font-weight:600"><span class="cur" data-nok="2335">2 335 kr</span></td></tr>
+        <tr><td>M. Petrov</td><td><span class="cur" data-nok="3325">3 325 kr</span></td><td><span class="cur" data-nok="495">495 kr</span></td><td><span class="cur" data-nok="2830">2 830 kr</span></td><td>65%</td><td><span class="cur" data-nok="1840">1 840 kr</span></td><td><span class="cur" data-nok="205">205 kr</span></td><td><span class="cur" data-nok="0">0 kr</span></td><td style="color:var(--green);font-weight:600"><span class="cur" data-nok="2045">2 045 kr</span></td></tr>
+        <tr><td>T. Błaszczyk</td><td><span class="cur" data-nok="1195">1 195 kr</span></td><td><span class="cur" data-nok="185">185 kr</span></td><td><span class="cur" data-nok="1010">1 010 kr</span></td><td>65%</td><td><span class="cur" data-nok="655">655 kr</span></td><td><span class="cur" data-nok="0">0 kr</span></td><td><span class="cur" data-nok="140">140 kr</span></td><td style="color:var(--amber);font-weight:600"><span class="cur" data-nok="520">520 kr</span></td></tr>
+        <tr><td>W. Hoffmann</td><td><span class="cur" data-nok="895">895 kr</span></td><td><span class="cur" data-nok="140">140 kr</span></td><td><span class="cur" data-nok="760">760 kr</span></td><td>65%</td><td><span class="cur" data-nok="495">495 kr</span></td><td><span class="cur" data-nok="0">0 kr</span></td><td><span class="cur" data-nok="230">230 kr</span></td><td style="color:var(--red);font-weight:600"><span class="cur" data-nok="585">585 kr</span> (fine applied)</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -1542,7 +1572,7 @@ Tier: Top ≥80 · Average 60–79 · Low <60</div>
       <thead><tr><th>Driver</th><th>Flag Reason</th><th>Start Date</th><th>Review Date</th><th>Week 1 Target</th><th>Week 2 Target</th><th>Current Score</th><th>Progress</th></tr></thead>
       <tbody>
         <tr><td>T. Błaszczyk</td><td><span class="badge b-red">Acceptance 58%</span></td><td>2024-01-02</td><td>2024-01-16</td><td>Acceptance >70%</td><td>Score >55</td><td>31 → 38</td><td><span class="badge b-amber">In progress</span></td></tr>
-        <tr><td>C. Popescu</td><td><span class="badge b-red">Score 32</span></td><td>2024-01-05</td><td>2024-01-19</td><td>Idle <40%</td><td>Rev/hr >€14</td><td>33 → 35</td><td><span class="badge b-amber">Slow progress</span></td></tr>
+        <tr><td>C. Popescu</td><td><span class="badge b-red">Score 32</span></td><td>2024-01-05</td><td>2024-01-19</td><td>Idle <40%</td><td>Rev/hr &gt; <span class="cur" data-nok="160">160 kr</span></td><td>33 → 35</td><td><span class="badge b-amber">Slow progress</span></td></tr>
         <tr><td>W. Hoffmann</td><td><span class="badge b-amber">Cancel 21%</span></td><td>2024-01-08</td><td>2024-01-22</td><td>Cancel <15%</td><td>Cancel <10%</td><td>29 → 29</td><td><span class="badge b-red">No progress</span></td></tr>
       </tbody>
     </table></div>
@@ -1571,9 +1601,9 @@ Tier: Top ≥80 · Average 60–79 · Low <60</div>
 <div class="page" id="page-vehicle-performance">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Vehicle Performance & P&L</div><div class="ph-sub">Revenue, profit, cost-per-km, and utilization per vehicle</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Best Vehicle</div><div class="kc-value" style="color:var(--green)">VH-07</div><div class="kc-sub">€182/day profit</div></div>
-    <div class="kc"><div class="kc-label">Worst Vehicle</div><div class="kc-value" style="color:var(--red)">VH-14</div><div class="kc-sub">−€23/day loss</div></div>
-    <div class="kc"><div class="kc-label">Fleet Avg Cost/km</div><div class="kc-value">€0.42</div></div>
+    <div class="kc"><div class="kc-label">Best Vehicle</div><div class="kc-value" style="color:var(--green)">VH-07</div><div class="kc-sub"><span class="cur" data-nok="2095">2 095 kr</span>/day profit</div></div>
+    <div class="kc"><div class="kc-label">Worst Vehicle</div><div class="kc-value" style="color:var(--red)">VH-14</div><div class="kc-sub"><span class="cur" data-nok="-265">−265 kr</span>/day loss</div></div>
+    <div class="kc"><div class="kc-label">Fleet Avg Cost/km</div><div class="kc-value"><span class="cur" data-nok="4.80">4.80 kr</span></div></div>
     <div class="kc"><div class="kc-label">Downtime Rate</div><div class="kc-value" style="color:var(--amber)">8%</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">All Vehicles — P&L Ranked</div></div>
@@ -1595,7 +1625,7 @@ Tier: Top ≥80 · Average 60–79 · Low <60</div>
 − Amortized maintenance (monthly_cost / 30)
 
 Cost/km = (fuel + maintenance + depreciation) / total_km</div>
-      <div style="font-size:12px;color:var(--t2);margin-top:10px;line-height:1.7">TR2517 (Tesla Model S) and TR731/TV1409721 (VITO/SPRINTER) have zero revenue, daily fixed costs of €32–48 still accrue.: lease €45 + insurance €44 = €89 fixed before a single km driven. Combined with €0.61/km fuel+wear vs fleet avg €0.38 — unrecoverable at current trip volumes.</div>
+      <div style="font-size:12px;color:var(--t2);margin-top:10px;line-height:1.7">TR2517 (Tesla Model S) and TR731/TV1409721 (VITO/SPRINTER) have zero revenue, daily fixed costs of <span class="cur" data-nok="368">368 kr</span>–<span class="cur" data-nok="552">552 kr</span> still accrue.: lease <span class="cur" data-nok="520">520 kr</span> + insurance <span class="cur" data-nok="505">505 kr</span> = <span class="cur" data-nok="1025">1 025 kr</span> fixed before a single km driven. Combined with <span class="cur" data-nok="7.00">7.00 kr</span>/km fuel+wear vs fleet avg <span class="cur" data-nok="4.35">4.35 kr</span> — unrecoverable at current trip volumes.</div>
     </div>
   </div>
 </div>
@@ -1606,7 +1636,7 @@ Cost/km = (fuel + maintenance + depreciation) / total_km</div>
   <div class="kpi-grid g5">
     <div class="kc"><div class="kc-label">Currently in Workshop</div><div class="kc-value" style="color:var(--amber)">2</div></div>
     <div class="kc"><div class="kc-label">Due Within 500km</div><div class="kc-value" style="color:var(--amber)">3</div></div>
-    <div class="kc"><div class="kc-label">MTD Maintenance Cost</div><div class="kc-value">€2,940</div></div>
+    <div class="kc"><div class="kc-label">MTD Maintenance Cost</div><div class="kc-value"><span class="cur" data-nok="33810">33 810 kr</span></div></div>
     <div class="kc"><div class="kc-label">Avg Days in Workshop</div><div class="kc-value">1.8d</div></div>
     <div class="kc"><div class="kc-label">Emergency Repairs MTD</div><div class="kc-value" style="color:var(--red)">2</div></div>
   </div>
@@ -1614,20 +1644,20 @@ Cost/km = (fuel + maintenance + depreciation) / total_km</div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Vehicle</th><th>Type</th><th>Description</th><th>Date In</th><th>Date Out</th><th>Workshop</th><th>Cost</th><th>km at Service</th><th>Next Due km</th><th>Status</th></tr></thead>
       <tbody>
-        <tr><td>VH-14</td><td><span class="badge b-red">Emergency</span></td><td>Brake pad replacement + fluid</td><td>2024-01-08</td><td>2024-01-09</td><td>AutoFix GmbH</td><td>€340</td><td>87,412</td><td>97,412</td><td><span class="badge b-amber">In Workshop</span></td></tr>
-        <tr><td>VH-21</td><td><span class="badge b-amber">Routine</span></td><td>10,000km oil service + filter</td><td>2024-01-08</td><td>2024-01-08</td><td>DealerService</td><td>€180</td><td>72,100</td><td>82,100</td><td><span class="badge b-amber">In Workshop</span></td></tr>
-        <tr><td>VH-07</td><td><span class="badge b-blue">Upcoming</span></td><td>10,000km service</td><td>2024-01-15</td><td>—</td><td>TBD</td><td>~€200</td><td>—</td><td>91,200</td><td><span class="badge b-gray">Scheduled</span></td></tr>
-        <tr><td>VH-03</td><td><span class="badge b-blue">Upcoming</span></td><td>Tire replacement (2 fronts)</td><td>2024-01-16</td><td>—</td><td>TirePro</td><td>~€280</td><td>—</td><td>—</td><td><span class="badge b-gray">Scheduled</span></td></tr>
-        <tr><td>VH-09</td><td><span class="badge b-green">Completed</span></td><td>Annual inspection + MOT</td><td>2024-01-03</td><td>2024-01-03</td><td>MOT Centre</td><td>€95</td><td>64,300</td><td>—</td><td><span class="badge b-green">Pass</span></td></tr>
+        <tr><td>VH-14</td><td><span class="badge b-red">Emergency</span></td><td>Brake pad replacement + fluid</td><td>2024-01-08</td><td>2024-01-09</td><td>AutoFix GmbH</td><td><span class="cur" data-nok="3910">3 910 kr</span></td><td>87,412</td><td>97,412</td><td><span class="badge b-amber">In Workshop</span></td></tr>
+        <tr><td>VH-21</td><td><span class="badge b-amber">Routine</span></td><td>10,000km oil service + filter</td><td>2024-01-08</td><td>2024-01-08</td><td>DealerService</td><td><span class="cur" data-nok="2070">2 070 kr</span></td><td>72,100</td><td>82,100</td><td><span class="badge b-amber">In Workshop</span></td></tr>
+        <tr><td>VH-07</td><td><span class="badge b-blue">Upcoming</span></td><td>10,000km service</td><td>2024-01-15</td><td>—</td><td>TBD</td><td>~<span class="cur" data-nok="2300">2 300 kr</span></td><td>—</td><td>91,200</td><td><span class="badge b-gray">Scheduled</span></td></tr>
+        <tr><td>VH-03</td><td><span class="badge b-blue">Upcoming</span></td><td>Tire replacement (2 fronts)</td><td>2024-01-16</td><td>—</td><td>TirePro</td><td>~<span class="cur" data-nok="3220">3 220 kr</span></td><td>—</td><td>—</td><td><span class="badge b-gray">Scheduled</span></td></tr>
+        <tr><td>VH-09</td><td><span class="badge b-green">Completed</span></td><td>Annual inspection + MOT</td><td>2024-01-03</td><td>2024-01-03</td><td>MOT Centre</td><td><span class="cur" data-nok="1095">1 095 kr</span></td><td>64,300</td><td>—</td><td><span class="badge b-green">Pass</span></td></tr>
       </tbody>
     </table></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Maintenance Cost Impact Analysis</div></div>
-    <div class="fbox">Planned maintenance avg cost:   €200 per event (10,000km interval)
-Emergency repair avg cost:      €620 per event (3.1× planned cost)
-Revenue lost per workshop day:  €280 (avg vehicle daily revenue)
-Break-even servicing interval:  Every 10,000km = cost per km: €0.02
-Unplanned breakdown km cost:    Emergency repair = additional €0.04/km over life
+    <div class="fbox">Planned maintenance avg cost:   <span class="cur" data-nok="2300">2 300 kr</span> per event (10,000km interval)
+Emergency repair avg cost:      <span class="cur" data-nok="7130">7 130 kr</span> per event (3.1× planned cost)
+Revenue lost per workshop day:  <span class="cur" data-nok="3220">3 220 kr</span> (avg vehicle daily revenue)
+Break-even servicing interval:  Every 10,000km = cost per km: <span class="cur" data-nok="0.25">0.25 kr</span>
+Unplanned breakdown km cost:    Emergency repair = additional <span class="cur" data-nok="0.45">0.45 kr</span>/km over life
 
 Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days.</div>
   </div>
@@ -1637,20 +1667,20 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
 <div class="page" id="page-vehicle-fuel">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Fuel Management</div><div class="ph-sub">Consumption, cost, efficiency, and card usage tracking</div></div></div>
   <div class="kpi-grid g5">
-    <div class="kc"><div class="kc-label">Fuel Cost Today</div><div class="kc-value">€312</div><div class="kc-sub">6.5% of gross revenue</div></div>
-    <div class="kc"><div class="kc-label">Avg Fuel Cost/km</div><div class="kc-value">€0.14</div><div class="kc-sub">Fleet average</div></div>
-    <div class="kc"><div class="kc-label">Highest Fuel/km</div><div class="kc-value" style="color:var(--red)">€0.22</div><div class="kc-sub">VH-14 (BMW)</div></div>
+    <div class="kc"><div class="kc-label">Fuel Cost Today</div><div class="kc-value"><span class="cur" data-nok="3590">3 590 kr</span></div><div class="kc-sub">6.5% of gross revenue</div></div>
+    <div class="kc"><div class="kc-label">Avg Fuel Cost/km</div><div class="kc-value"><span class="cur" data-nok="1.60">1.60 kr</span></div><div class="kc-sub">Fleet average</div></div>
+    <div class="kc"><div class="kc-label">Highest Fuel/km</div><div class="kc-value" style="color:var(--red)"><span class="cur" data-nok="2.55">2.55 kr</span></div><div class="kc-sub">VH-14 (BMW)</div></div>
     <div class="kc"><div class="kc-label">Fuel Card Usage</div><div class="kc-value">97%</div><div class="kc-sub">3% cash (flagged)</div></div>
-    <div class="kc"><div class="kc-label">Monthly Fuel Budget</div><div class="kc-value">€9,360</div><div class="kc-sub">On track</div></div>
+    <div class="kc"><div class="kc-label">Monthly Fuel Budget</div><div class="kc-value"><span class="cur" data-nok="107640">107 640 kr</span></div><div class="kc-sub">On track</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Fuel Log — Vehicle Summary</div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Vehicle</th><th>Model</th><th>Fuel Type</th><th>km Today</th><th>Litres Used</th><th>L/100km</th><th>Cost/km</th><th>Total Fuel Cost</th><th>Efficiency Rating</th></tr></thead>
       <tbody>
-        <tr><td>VH-07</td><td>Skoda Octavia</td><td>Diesel</td><td>312</td><td>18.7</td><td>6.0</td><td>€0.12</td><td>€37</td><td><span class="badge b-green">Excellent</span></td></tr>
-        <tr><td>VH-03</td><td>Toyota Corolla</td><td>Hybrid</td><td>288</td><td>14.4</td><td>5.0</td><td>€0.10</td><td>€29</td><td><span class="badge b-green">Excellent</span></td></tr>
-        <tr><td>VH-11</td><td>VW Passat</td><td>Diesel</td><td>264</td><td>17.2</td><td>6.5</td><td>€0.13</td><td>€34</td><td><span class="badge b-blue">Good</span></td></tr>
-        <tr class="tr-amber"><td>VH-14</td><td>BMW 3 Series</td><td>Petrol</td><td>198</td><td>21.8</td><td>11.0</td><td>€0.22</td><td>€44</td><td><span class="badge b-red">Poor</span></td></tr>
+        <tr><td>VH-07</td><td>Skoda Octavia</td><td>Diesel</td><td>312</td><td>18.7</td><td>6.0</td><td><span class="cur" data-nok="1.40">1.40 kr</span></td><td><span class="cur" data-nok="425">425 kr</span></td><td><span class="badge b-green">Excellent</span></td></tr>
+        <tr><td>VH-03</td><td>Toyota Corolla</td><td>Hybrid</td><td>288</td><td>14.4</td><td>5.0</td><td><span class="cur" data-nok="1.15">1.15 kr</span></td><td><span class="cur" data-nok="335">335 kr</span></td><td><span class="badge b-green">Excellent</span></td></tr>
+        <tr><td>VH-11</td><td>VW Passat</td><td>Diesel</td><td>264</td><td>17.2</td><td>6.5</td><td><span class="cur" data-nok="1.50">1.50 kr</span></td><td><span class="cur" data-nok="390">390 kr</span></td><td><span class="badge b-blue">Good</span></td></tr>
+        <tr class="tr-amber"><td>VH-14</td><td>BMW 3 Series</td><td>Petrol</td><td>198</td><td>21.8</td><td>11.0</td><td><span class="cur" data-nok="2.55">2.55 kr</span></td><td><span class="cur" data-nok="505">505 kr</span></td><td><span class="badge b-red">Poor</span></td></tr>
       </tbody>
     </table></div>
   </div>
@@ -1685,10 +1715,10 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
     <div class="kc"><div class="kc-label">Completed Today</div><div class="kc-value">187</div></div>
     <div class="kc"><div class="kc-label">Cancelled Today</div><div class="kc-value" style="color:var(--red)">12</div></div>
     <div class="kc"><div class="kc-label">Avg Trip Duration</div><div class="kc-value">22 min</div></div>
-    <div class="kc"><div class="kc-label">Avg Fare</div><div class="kc-value">€25.77</div></div>
+    <div class="kc"><div class="kc-label">Avg Fare</div><div class="kc-value"><span class="cur" data-nok="296">296 kr</span></div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Recent Trips — Last 20</div></div>
-    <div class="tbl-wrap"><table>
+    <div class="tbl-wrap"><table id="trip-log-table">
       <thead><tr><th>Trip ID</th><th>Driver</th><th>Vehicle</th><th>Platform</th><th>Start</th><th>Pickup Zone</th><th>Dropoff Zone</th><th>km</th><th>Fare</th><th>Tip</th><th>Status</th></tr></thead>
       <tbody id="trip-log-tbody"></tbody>
     </table></div>
@@ -1697,48 +1727,48 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
 
 <!-- ═══ PAGE: FINANCIAL P&L ═══ -->
 <div class="page" id="page-financial">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">P&L Dashboard</div><div class="ph-sub">Daily, weekly, monthly profit & loss with per-trip economics</div></div><div class="ph-right"><button class="tb-btn primary">⬇ Export P&L</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">P&L Dashboard</div><div class="ph-sub">Daily, weekly, monthly profit & loss with per-trip economics</div></div><div class="ph-right"><button class="tb-btn primary" onclick="exportNearestTable(this,'pnl')" aria-label="Export P&amp;L">⬇ Export P&L</button></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Gross Revenue</div><div class="kc-value">€4,820</div></div>
-    <div class="kc"><div class="kc-label">Net Revenue</div><div class="kc-value">€4,097</div><div class="kc-sub">After platform fees</div></div>
-    <div class="kc"><div class="kc-label">Net Profit</div><div class="kc-value" style="color:var(--green)">€800</div><div class="kc-sub">16.6% margin</div></div>
-    <div class="kc"><div class="kc-label">Break-Even</div><div class="kc-value">€3,374</div><div class="kc-sub">Daily requirement</div></div>
+    <div class="kc"><div class="kc-label">Gross Revenue</div><div class="kc-value"><span class="cur" data-nok="55430">55 430 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Net Revenue</div><div class="kc-value"><span class="cur" data-nok="47115">47 115 kr</span></div><div class="kc-sub">After platform fees</div></div>
+    <div class="kc"><div class="kc-label">Net Profit</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="9200">9 200 kr</span></div><div class="kc-sub">16.6% margin</div></div>
+    <div class="kc"><div class="kc-label">Break-Even</div><div class="kc-value"><span class="cur" data-nok="38800">38 800 kr</span></div><div class="kc-sub">Daily requirement</div></div>
   </div>
   <div class="three-col">
     <div class="card" style="margin-bottom:0">
       <div class="card-header"><div class="card-title">Daily P&L</div><div class="card-sub">Today</div></div>
-      <div class="pl-row"><span style="color:var(--t2)">Gross revenue</span><span style="color:var(--green);font-weight:600">€4,820</span></div>
-      <div class="pl-row"><span style="color:var(--t2)">Platform commission (15%)</span><span style="color:var(--red)">−€723</span></div>
-      <div class="pl-row pl-total"><span>Net revenue</span><span>€4,097</span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Gross revenue</span><span style="color:var(--green);font-weight:600"><span class="cur" data-nok="55430">55 430 kr</span></span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Platform commission (15%)</span><span style="color:var(--red)"><span class="cur" data-nok="-8315">−8 315 kr</span></span></div>
+      <div class="pl-row pl-total"><span>Net revenue</span><span><span class="cur" data-nok="47115">47 115 kr</span></span></div>
       <hr class="div">
-      <div class="pl-row"><span style="color:var(--t2)">Driver payouts (65%)</span><span style="color:var(--red)">−€2,663</span></div>
-      <div class="pl-row"><span style="color:var(--t2)">Fuel costs</span><span style="color:var(--red)">−€312</span></div>
-      <div class="pl-row"><span style="color:var(--t2)">Fixed costs</span><span style="color:var(--red)">−€224</span></div>
-      <div class="pl-row"><span style="color:var(--t2)">Maintenance (amortized)</span><span style="color:var(--red)">−€98</span></div>
-      <div class="pl-row pl-total"><span>Net profit</span><span style="color:var(--green)">€800</span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Driver payouts (65%)</span><span style="color:var(--red)"><span class="cur" data-nok="-30625">−30 625 kr</span></span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Fuel costs</span><span style="color:var(--red)"><span class="cur" data-nok="-3590">−3 590 kr</span></span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Fixed costs</span><span style="color:var(--red)"><span class="cur" data-nok="-2575">−2 575 kr</span></span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Maintenance (amortized)</span><span style="color:var(--red)"><span class="cur" data-nok="-1130">−1 130 kr</span></span></div>
+      <div class="pl-row pl-total"><span>Net profit</span><span style="color:var(--green)"><span class="cur" data-nok="9200">9 200 kr</span></span></div>
       <div class="pl-row"><span style="color:var(--t2)">Margin</span><span style="color:var(--green);font-weight:600">16.6%</span></div>
     </div>
     <div class="card" style="margin-bottom:0">
       <div class="card-header"><div class="card-title">Monthly Projection</div><div class="card-sub">×30 days</div></div>
-      <div class="pl-row"><span style="color:var(--t2)">Revenue</span><span style="color:var(--green);font-weight:600">€144,600</span></div>
-      <div class="pl-row"><span style="color:var(--t2)">Platform commissions</span><span style="color:var(--red)">−€21,690</span></div>
-      <div class="pl-row"><span style="color:var(--t2)">Driver payouts</span><span style="color:var(--red)">−€79,899</span></div>
-      <div class="pl-row"><span style="color:var(--t2)">Fuel</span><span style="color:var(--red)">−€9,360</span></div>
-      <div class="pl-row"><span style="color:var(--t2)">Fixed costs</span><span style="color:var(--red)">−€6,720</span></div>
-      <div class="pl-row"><span style="color:var(--t2)">Maintenance</span><span style="color:var(--red)">−€2,940</span></div>
-      <div class="pl-row pl-total"><span>Monthly profit</span><span style="color:var(--green)">€23,991</span></div>
-      <div class="pl-row"><span style="color:var(--t2)">Annual projection</span><span style="color:var(--green);font-weight:600">€287,892</span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Revenue</span><span style="color:var(--green);font-weight:600"><span class="cur" data-nok="1662900">1 662 900 kr</span></span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Platform commissions</span><span style="color:var(--red)"><span class="cur" data-nok="-249435">−249 435 kr</span></span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Driver payouts</span><span style="color:var(--red)"><span class="cur" data-nok="-918840">−918 840 kr</span></span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Fuel</span><span style="color:var(--red)"><span class="cur" data-nok="-107640">−107 640 kr</span></span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Fixed costs</span><span style="color:var(--red)"><span class="cur" data-nok="-77280">−77 280 kr</span></span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Maintenance</span><span style="color:var(--red)"><span class="cur" data-nok="-33810">−33 810 kr</span></span></div>
+      <div class="pl-row pl-total"><span>Monthly profit</span><span style="color:var(--green)"><span class="cur" data-nok="275895">275 895 kr</span></span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Annual projection</span><span style="color:var(--green);font-weight:600"><span class="cur" data-nok="3310760">3 310 760 kr</span></span></div>
     </div>
     <div class="card" style="margin-bottom:0">
       <div class="card-header"><div class="card-title">Per-Trip Economics</div></div>
-      <div class="pl-row"><span style="color:var(--t2)">Avg fare</span><span>€25.77</span></div>
-      <div class="pl-row"><span style="color:var(--t2)">Platform fee</span><span style="color:var(--red)">−€3.87</span></div>
-      <div class="pl-row pl-total"><span>Net / trip</span><span>€21.90</span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Avg fare</span><span><span class="cur" data-nok="296">296 kr</span></span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Platform fee</span><span style="color:var(--red)"><span class="cur" data-nok="-44.50">−44.50 kr</span></span></div>
+      <div class="pl-row pl-total"><span>Net / trip</span><span><span class="cur" data-nok="252">252 kr</span></span></div>
       <hr class="div">
-      <div class="pl-row"><span style="color:var(--t2)">Driver payout</span><span style="color:var(--red)">−€14.24</span></div>
-      <div class="pl-row"><span style="color:var(--t2)">Fuel cost</span><span style="color:var(--red)">−€1.67</span></div>
-      <div class="pl-row"><span style="color:var(--t2)">Fixed allocation</span><span style="color:var(--red)">−€1.71</span></div>
-      <div class="pl-row pl-total"><span>Profit/trip</span><span style="color:var(--green)">€4.28</span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Driver payout</span><span style="color:var(--red)"><span class="cur" data-nok="-164">−164 kr</span></span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Fuel cost</span><span style="color:var(--red)"><span class="cur" data-nok="-19">−19 kr</span></span></div>
+      <div class="pl-row"><span style="color:var(--t2)">Fixed allocation</span><span style="color:var(--red)"><span class="cur" data-nok="-20">−20 kr</span></span></div>
+      <div class="pl-row pl-total"><span>Profit/trip</span><span style="color:var(--green)"><span class="cur" data-nok="49">49 kr</span></span></div>
       <div class="pl-row"><span style="color:var(--t2)">Break-even trips/day</span><span>131 trips</span></div>
     </div>
   </div>
@@ -1749,7 +1779,7 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
 <div class="page" id="page-efficiency">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Efficiency & KPIs</div><div class="ph-sub">What every metric means and what to do when it's wrong</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Revenue/Hour</div><div class="kc-value">€22.40</div><div class="kc-delta up">↑ Target: €20</div></div>
+    <div class="kc"><div class="kc-label">Revenue/Hour</div><div class="kc-value"><span class="cur" data-nok="258">258 kr</span></div><div class="kc-delta up">↑ Target: <span class="cur" data-nok="230">230 kr</span></div></div>
     <div class="kc"><div class="kc-label">Trips/Hour</div><div class="kc-value">2.1</div><div class="kc-delta neu">Target: 2.5</div></div>
     <div class="kc"><div class="kc-label">Idle Time</div><div class="kc-value">24.1%</div><div class="kc-delta up">↑ <30% target</div></div>
     <div class="kc"><div class="kc-label">Time Between Trips</div><div class="kc-value">8.4 min</div><div class="kc-delta up">↑ <10 min target</div></div>
@@ -1758,7 +1788,7 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
     <div class="tbl-wrap"><table>
       <thead><tr><th>Metric</th><th>Formula</th><th>Value</th><th>Target</th><th>If Below → Action</th><th>If Above → Action</th></tr></thead>
       <tbody>
-        <tr><td><strong>Revenue/hr</strong></td><td style="font-family:var(--mono);font-size:11px">Revenue/active_hrs</td><td>€22.40</td><td>€20.00</td><td>Reposition to busy zone; check vehicle</td><td>Sustain; monitor acceptance rate</td></tr>
+        <tr><td><strong>Revenue/hr</strong></td><td style="font-family:var(--mono);font-size:11px">Revenue/active_hrs</td><td><span class="cur" data-nok="258">258 kr</span></td><td><span class="cur" data-nok="230">230 kr</span></td><td>Reposition to busy zone; check vehicle</td><td>Sustain; monitor acceptance rate</td></tr>
         <tr><td><strong>Trips/hr</strong></td><td style="font-family:var(--mono);font-size:11px">Completed/active_hrs</td><td>2.1</td><td>2.5</td><td>Low-demand zone or rejecting trips</td><td>Check quality — rush = cancellations</td></tr>
         <tr><td><strong>Idle time%</strong></td><td style="font-family:var(--mono);font-size:11px">idle_min/shift_min</td><td>24.1%</td><td><30%</td><td>Normal; <18% = peak performance</td><td>>40% = reposition urgently</td></tr>
         <tr><td><strong>Utilization%</strong></td><td style="font-family:var(--mono);font-size:11px">busy/(busy+idle)</td><td>68.4%</td><td>>70%</td><td><60%: schedule vs demand mismatch</td><td>>85%: fatigue risk; check breaks</td></tr>
@@ -1778,20 +1808,20 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
 <div class="page" id="page-platforms">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Platform Analysis</div><div class="ph-sub">Bolt vs Uber — comparative performance and balancing strategy</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Bolt Revenue</div><div class="kc-value" style="color:#a78bfa">€2,796</div><div class="kc-sub">58% of total</div></div>
-    <div class="kc"><div class="kc-label">Uber Revenue</div><div class="kc-value" style="color:var(--blue2)">€2,024</div><div class="kc-sub">42% of total</div></div>
-    <div class="kc"><div class="kc-label">Bolt Rev/Hour</div><div class="kc-value">€23.80</div><div class="kc-delta up">↑ +€2.60 vs Uber</div></div>
-    <div class="kc"><div class="kc-label">Uber Rev/Hour</div><div class="kc-value">€21.20</div></div>
+    <div class="kc"><div class="kc-label">Bolt Revenue</div><div class="kc-value" style="color:#a78bfa"><span class="cur" data-nok="32155">32 155 kr</span></div><div class="kc-sub">58% of total</div></div>
+    <div class="kc"><div class="kc-label">Uber Revenue</div><div class="kc-value" style="color:var(--blue2)"><span class="cur" data-nok="23275">23 275 kr</span></div><div class="kc-sub">42% of total</div></div>
+    <div class="kc"><div class="kc-label">Bolt Rev/Hour</div><div class="kc-value"><span class="cur" data-nok="274">274 kr</span></div><div class="kc-delta up">↑ +<span class="cur" data-nok="30">30 kr</span> vs Uber</div></div>
+    <div class="kc"><div class="kc-label">Uber Rev/Hour</div><div class="kc-value"><span class="cur" data-nok="244">244 kr</span></div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Head-to-Head Comparison</div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Metric</th><th>Bolt</th><th>Uber</th><th>Delta</th><th>Winner</th></tr></thead>
       <tbody>
         <tr><td>Total trips</td><td>109</td><td>78</td><td>+31</td><td><span class="badge b-purple">Bolt</span></td></tr>
-        <tr><td>Revenue/trip</td><td>€25.65</td><td>€25.95</td><td>+€0.30</td><td><span class="badge b-blue">Uber (slim)</span></td></tr>
-        <tr><td>Revenue/hour</td><td>€23.80</td><td>€21.20</td><td>+€2.60</td><td><span class="badge b-purple">Bolt</span></td></tr>
+        <tr><td>Revenue/trip</td><td><span class="cur" data-nok="295">295 kr</span></td><td><span class="cur" data-nok="298">298 kr</span></td><td>+<span class="cur" data-nok="3">3 kr</span></td><td><span class="badge b-blue">Uber (slim)</span></td></tr>
+        <tr><td>Revenue/hour</td><td><span class="cur" data-nok="274">274 kr</span></td><td><span class="cur" data-nok="244">244 kr</span></td><td>+<span class="cur" data-nok="30">30 kr</span></td><td><span class="badge b-purple">Bolt</span></td></tr>
         <tr><td>Commission rate</td><td>15%</td><td>25%</td><td>−10pp Bolt</td><td><span class="badge b-purple">Bolt</span></td></tr>
-        <tr><td>Net to operator/trip</td><td>€21.80</td><td>€19.46</td><td>+€2.34</td><td><span class="badge b-purple">Bolt</span></td></tr>
+        <tr><td>Net to operator/trip</td><td><span class="cur" data-nok="251">251 kr</span></td><td><span class="cur" data-nok="224">224 kr</span></td><td>+<span class="cur" data-nok="27">27 kr</span></td><td><span class="badge b-purple">Bolt</span></td></tr>
         <tr><td>Acceptance rate</td><td>86%</td><td>80%</td><td>+6pp</td><td><span class="badge b-purple">Bolt</span></td></tr>
         <tr><td>Cancellation rate</td><td>5.1%</td><td>7.8%</td><td>−2.7pp</td><td><span class="badge b-purple">Bolt</span></td></tr>
         <tr><td>Surge availability</td><td>Moderate</td><td>High</td><td>—</td><td><span class="badge b-blue">Uber</span></td></tr>
@@ -1800,10 +1830,10 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
     </table></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Dual-Platform Balancing Strategy</div></div>
-    <div class="cl-item"><div class="cl-num">1</div><div><strong style="color:var(--t1)">Primary platform: Bolt</strong> — 15% commission vs Uber's 25% means €2.34 more net per trip to operator. Default accept on Bolt at all times unless override conditions met.</div></div>
+    <div class="cl-item"><div class="cl-num">1</div><div><strong style="color:var(--t1)">Primary platform: Bolt</strong> — 15% commission vs Uber's 25% means <span class="cur" data-nok="27">27 kr</span> more net per trip to operator. Default accept on Bolt at all times unless override conditions met.</div></div>
     <div class="cl-item"><div class="cl-num">2</div><div><strong style="color:var(--t1)">Switch to Uber when:</strong> Bolt idle >12 minutes in current zone, Uber surge factor >1.8×, or driver is pre-positioned at airport (Uber pays more per km on long runs).</div></div>
     <div class="cl-item"><div class="cl-num">3</div><div><strong style="color:var(--t1)">Both apps always active.</strong> Drivers must never close one platform app. If Uber idle also >8 min → reposition to nearest high D/S zone, switch back to Bolt on arrival.</div></div>
-    <div class="cl-item" style="border:none"><div class="cl-num">4</div><div><strong style="color:var(--t1)">Uber for airports:</strong> Airport trips average €36 vs city €25.77. On the airport queue, Uber's higher fare-per-km outweighs the commission disadvantage on individual runs.</div></div>
+    <div class="cl-item" style="border:none"><div class="cl-num">4</div><div><strong style="color:var(--t1)">Uber for airports:</strong> Airport trips average <span class="cur" data-nok="415">415 kr</span> vs city <span class="cur" data-nok="296">296 kr</span>. On the airport queue, Uber's higher fare-per-km outweighs the commission disadvantage on individual runs.</div></div>
   </div>
 </div>
 
@@ -1814,12 +1844,12 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
     <div class="tbl-wrap"><table>
       <thead><tr><th>Zone</th><th>Trips</th><th>Revenue</th><th>Rev/Trip</th><th>Peak Hours</th><th>D/S Ratio</th><th>Priority</th><th>Repositioning Action</th></tr></thead>
       <tbody>
-        <tr><td><strong>City Centre</strong></td><td>68</td><td style="color:var(--green)">€1,842</td><td>€27.09</td><td>08–10, 17–20</td><td style="color:var(--green);font-weight:600">1.4×</td><td><span class="badge b-green">P1</span></td><td>Hold — highest revenue density</td></tr>
-        <tr><td><strong>Airport</strong></td><td>31</td><td style="color:var(--green)">€1,116</td><td>€36.00</td><td>06–09, 14–18</td><td style="color:var(--green);font-weight:600">2.1×</td><td><span class="badge b-green">P1</span></td><td>Pre-position 3–4 drivers before waves</td></tr>
-        <tr><td><strong>Business Park</strong></td><td>42</td><td>€987</td><td>€23.50</td><td>07–09, 16–19</td><td style="color:var(--teal);font-weight:600">1.2×</td><td><span class="badge b-teal">P2</span></td><td>Commuter window only; exit by 10:00</td></tr>
-        <tr><td><strong>Suburbs North</strong></td><td>24</td><td>€492</td><td>€20.50</td><td>07–09, 17–18</td><td style="color:var(--amber)">0.9×</td><td><span class="badge b-amber">P3</span></td><td>Max 2 drivers; oversupplied midday</td></tr>
-        <tr><td><strong>Shopping Mall</strong></td><td>18</td><td>€342</td><td>€19.00</td><td>12–15, 18–20</td><td style="color:var(--amber)">0.8×</td><td><span class="badge b-amber">P3</span></td><td>Avoid off-peak; short trips hurt util%</td></tr>
-        <tr class="tr-red"><td><strong>Hospital / Uni</strong></td><td>4</td><td>€41</td><td>€10.25</td><td>None consistent</td><td>0.3×</td><td><span class="badge b-red">Avoid</span></td><td>Exit entirely — lowest rev/trip in fleet</td></tr>
+        <tr><td><strong>City Centre</strong></td><td>68</td><td style="color:var(--green)"><span class="cur" data-nok="21185">21 185 kr</span></td><td><span class="cur" data-nok="311">311 kr</span></td><td>08–10, 17–20</td><td style="color:var(--green);font-weight:600">1.4×</td><td><span class="badge b-green">P1</span></td><td>Hold — highest revenue density</td></tr>
+        <tr><td><strong>Airport</strong></td><td>31</td><td style="color:var(--green)"><span class="cur" data-nok="12835">12 835 kr</span></td><td><span class="cur" data-nok="415">415 kr</span></td><td>06–09, 14–18</td><td style="color:var(--green);font-weight:600">2.1×</td><td><span class="badge b-green">P1</span></td><td>Pre-position 3–4 drivers before waves</td></tr>
+        <tr><td><strong>Business Park</strong></td><td>42</td><td><span class="cur" data-nok="11350">11 350 kr</span></td><td><span class="cur" data-nok="270">270 kr</span></td><td>07–09, 16–19</td><td style="color:var(--teal);font-weight:600">1.2×</td><td><span class="badge b-teal">P2</span></td><td>Commuter window only; exit by 10:00</td></tr>
+        <tr><td><strong>Suburbs North</strong></td><td>24</td><td><span class="cur" data-nok="5660">5 660 kr</span></td><td><span class="cur" data-nok="236">236 kr</span></td><td>07–09, 17–18</td><td style="color:var(--amber)">0.9×</td><td><span class="badge b-amber">P3</span></td><td>Max 2 drivers; oversupplied midday</td></tr>
+        <tr><td><strong>Shopping Mall</strong></td><td>18</td><td><span class="cur" data-nok="3935">3 935 kr</span></td><td><span class="cur" data-nok="218">218 kr</span></td><td>12–15, 18–20</td><td style="color:var(--amber)">0.8×</td><td><span class="badge b-amber">P3</span></td><td>Avoid off-peak; short trips hurt util%</td></tr>
+        <tr class="tr-red"><td><strong>Hospital / Uni</strong></td><td>4</td><td><span class="cur" data-nok="470">470 kr</span></td><td><span class="cur" data-nok="118">118 kr</span></td><td>None consistent</td><td>0.3×</td><td><span class="badge b-red">Avoid</span></td><td>Exit entirely — lowest rev/trip in fleet</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -1846,7 +1876,7 @@ Weekend rule: City Centre +30% allocation Friday–Saturday 18:00+</div>
   </div>
   <div class="slabel">Critical — Immediate Action Required</div>
   <div class="alert a-red"><div class="adot" style="background:var(--red)"></div><div><div class="alert-title">T. Błaszczyk — Acceptance rate 58% (threshold: 70%)</div><div class="alert-body">Platform deactivation risk. Call driver immediately. Check zone, app status, and refusal pattern. Escalate if 3rd consecutive day below threshold. Issue formal written warning.</div></div></div>
-  <div class="alert a-red"><div class="adot" style="background:var(--red)"></div><div><div class="alert-title">VH-14 (BMW 3 Series) — Negative profit 3 consecutive days: −€23/day</div><div class="alert-body">Vehicle is a liability. Full audit: lease allocation €89/day, fuel €0.61/km vs fleet avg €0.42. Recommend replacement with Skoda Octavia class. Escalate to management for disposal assessment.</div></div></div>
+  <div class="alert a-red"><div class="adot" style="background:var(--red)"></div><div><div class="alert-title">VH-14 (BMW 3 Series) — Negative profit 3 consecutive days: <span class="cur" data-nok="-265">−265 kr</span>/day</div><div class="alert-body">Vehicle is a liability. Full audit: lease allocation <span class="cur" data-nok="1025">1 025 kr</span>/day, fuel <span class="cur" data-nok="7.00">7.00 kr</span>/km vs fleet avg <span class="cur" data-nok="4.80">4.80 kr</span>. Recommend replacement with Skoda Octavia class. Escalate to management for disposal assessment.</div></div></div>
   <div class="slabel">Warnings — Action Within 4 Hours</div>
   <div class="alert a-amber"><div class="adot" style="background:var(--amber)"></div><div><div class="alert-title">C. Popescu — Idle time 55% (threshold: 40%)</div><div class="alert-body">Driver stationary >40 minutes in Suburbs North. D/S ratio 0.9× — oversupplied zone. Push City Centre reposition notification. If no movement within 15 min, initiate direct call.</div></div></div>
   <div class="alert a-amber"><div class="adot" style="background:var(--amber)"></div><div><div class="alert-title">Fleet revenue 11% below yesterday at 13:00 window</div><div class="alert-body">Lunch slump detected. 3 drivers idling in low-demand zones. Push Shopping Mall repositioning for 12:00–15:00 window. Activate Uber on idle Bolt drivers.</div></div></div>
@@ -1860,7 +1890,7 @@ Weekend rule: City Centre +30% allocation Friday–Saturday 18:00+</div>
         <tr><td>Vehicle profit</td><td>< 0 for 2+ days</td><td><span class="badge b-red">Critical</span></td><td>Email + Dashboard</td><td>Flag for management review</td></tr>
         <tr><td>Driver score</td><td>< 40</td><td><span class="badge b-red">Critical</span></td><td>Email + SMS</td><td>Auto-create improvement plan</td></tr>
         <tr><td>Idle time</td><td>> 40%</td><td><span class="badge b-amber">Warning</span></td><td>App push</td><td>Push zone reposition notification</td></tr>
-        <tr><td>Revenue/hour</td><td>< €15</td><td><span class="badge b-amber">Warning</span></td><td>App push</td><td>Platform/zone check prompt</td></tr>
+        <tr><td>Revenue/hour</td><td>&lt; <span class="cur" data-nok="175">175 kr</span></td><td><span class="badge b-amber">Warning</span></td><td>App push</td><td>Platform/zone check prompt</td></tr>
         <tr><td>Active drivers</td><td>< 80% scheduled</td><td><span class="badge b-amber">Warning</span></td><td>SMS</td><td>Activate on-call list</td></tr>
         <tr><td>Vehicle maintenance due</td><td>< 500km</td><td><span class="badge b-blue">Info</span></td><td>Email</td><td>Create maintenance booking</td></tr>
         <tr><td>Daily revenue</td><td>> 15% below target</td><td><span class="badge b-blue">Info</span></td><td>Dashboard flag</td><td>None — manual review</td></tr>
@@ -1901,16 +1931,16 @@ Weekend rule: City Centre +30% allocation Friday–Saturday 18:00+</div>
     <div class="kc"><div class="kc-label">Open Incidents</div><div class="kc-value" style="color:var(--red)">1</div></div>
     <div class="kc"><div class="kc-label">MTD Total Incidents</div><div class="kc-value">3</div></div>
     <div class="kc"><div class="kc-label">Insurance Claims MTD</div><div class="kc-value" style="color:var(--amber)">1</div></div>
-    <div class="kc"><div class="kc-label">Claim Value (open)</div><div class="kc-value">€2,400</div></div>
+    <div class="kc"><div class="kc-label">Claim Value (open)</div><div class="kc-value"><span class="cur" data-nok="27600">27 600 kr</span></div></div>
     <div class="kc"><div class="kc-label">At-Fault Incidents MTD</div><div class="kc-value" style="color:var(--red)">1</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Incident Log</div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>ID</th><th>Date</th><th>Driver</th><th>Vehicle</th><th>Type</th><th>At Fault</th><th>Injuries</th><th>Claim Value</th><th>Status</th></tr></thead>
       <tbody>
-        <tr class="tr-red"><td>INC-003</td><td>2024-01-07</td><td>W. Hoffmann</td><td>VH-16</td><td>Collision (rear-end)</td><td><span class="badge b-red">Driver</span></td><td>None</td><td>€2,400</td><td><span class="badge b-red">Open — claim filed</span></td></tr>
-        <tr><td>INC-002</td><td>2024-01-03</td><td>T. Błaszczyk</td><td>VH-11</td><td>Minor scrape (parking)</td><td><span class="badge b-amber">Disputed</span></td><td>None</td><td>€380</td><td><span class="badge b-amber">Under review</span></td></tr>
-        <tr><td>INC-001</td><td>2023-12-28</td><td>C. Popescu</td><td>VH-22</td><td>Tyre blowout (road debris)</td><td><span class="badge b-green">Not driver</span></td><td>None</td><td>€0</td><td><span class="badge b-green">Closed</span></td></tr>
+        <tr class="tr-red"><td>INC-003</td><td>2024-01-07</td><td>W. Hoffmann</td><td>VH-16</td><td>Collision (rear-end)</td><td><span class="badge b-red">Driver</span></td><td>None</td><td><span class="cur" data-nok="27600">27 600 kr</span></td><td><span class="badge b-red">Open — claim filed</span></td></tr>
+        <tr><td>INC-002</td><td>2024-01-03</td><td>T. Błaszczyk</td><td>VH-11</td><td>Minor scrape (parking)</td><td><span class="badge b-amber">Disputed</span></td><td>None</td><td><span class="cur" data-nok="4370">4 370 kr</span></td><td><span class="badge b-amber">Under review</span></td></tr>
+        <tr><td>INC-001</td><td>2023-12-28</td><td>C. Popescu</td><td>VH-22</td><td>Tyre blowout (road debris)</td><td><span class="badge b-green">Not driver</span></td><td>None</td><td><span class="cur" data-nok="0">0 kr</span></td><td><span class="badge b-green">Closed</span></td></tr>
       </tbody>
     </table></div>
   </div>
@@ -1945,7 +1975,7 @@ Weekend rule: City Centre +30% allocation Friday–Saturday 18:00+</div>
     <div class="kc"><div class="kc-label">Open Complaints</div><div class="kc-value" style="color:var(--amber)">3</div></div>
     <div class="kc"><div class="kc-label">Resolved MTD</div><div class="kc-value" style="color:var(--green)">11</div></div>
     <div class="kc"><div class="kc-label">Avg Resolution Time</div><div class="kc-value">1.8 days</div></div>
-    <div class="kc"><div class="kc-label">Refunds Issued MTD</div><div class="kc-value">€142</div></div>
+    <div class="kc"><div class="kc-label">Refunds Issued MTD</div><div class="kc-value"><span class="cur" data-nok="1635">1 635 kr</span></div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Open Complaints</div></div>
     <div class="tbl-wrap"><table>
@@ -2020,7 +2050,7 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
       <div class="cl-item"><div class="cl-num">→</div><div>Driver Performance Report (Excel)</div></div>
       <div class="cl-item"><div class="cl-num">→</div><div>Vehicle Profit Ranking (Excel)</div></div>
       <div class="cl-item"><div class="cl-num">→</div><div>Alert & Action Log (PDF)</div></div>
-      <div class="cl-item" style="border:none"><div class="cl-num">→</div><div>Trip Log Export (CSV)</div></div>
+      <div class="cl-item" style="border:none;cursor:pointer" onclick="exportTableToCSV('#trip-log-table','trips-'+new Date().toISOString().slice(0,10)+'.csv')"><div class="cl-num">→</div><div>Trip Log Export (CSV)</div></div>
     </div>
     <div class="card"><div class="card-header"><div class="card-title">Weekly Reports</div></div>
       <div class="cl-item"><div class="cl-num">→</div><div>Weekly P&L with trend (PDF)</div></div>
@@ -2391,7 +2421,7 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     </div>
     <div class="ph-right">
       <select class="tb-btn" style="cursor:pointer"><option>Today</option><option>Yesterday</option><option>Last 7 days</option></select>
-      <button class="tb-btn primary">⬇ Export</button>
+      <button class="tb-btn primary" onclick="exportNearestTable(this,'activity-log')" aria-label="Export activity log">⬇ Export</button>
     </div>
   </div>
 
@@ -2459,7 +2489,7 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
       <div class="ph-title">Norway Cost Structure</div>
       <div class="ph-sub">Full cost breakdown from taxi_costs_and_employees_payslips_info — Norway-specific items included</div>
     </div>
-    <div class="ph-right"><button class="tb-btn primary">⬇ Export P&L Template</button></div>
+    <div class="ph-right"><button class="tb-btn primary" onclick="exportNearestTable(this,'norway-pnl')" aria-label="Export P&amp;L template">⬇ Export P&L Template</button></div>
   </div>
 
   <div class="kpi-grid g4">
@@ -2554,10 +2584,10 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
 <div class="page" id="page-bonus">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Operational Intelligence</div><div class="ph-sub">The 5 critical mistakes, daily checklist, and +20% profit roadmap</div></div></div>
   <div class="card"><div class="card-header"><div class="card-title">Top 5 Mistakes Fleet Owners Make</div></div>
-    <div class="cl-item"><div class="cl-num">1</div><div><strong style="color:var(--t1)">Managing by revenue, not profit per vehicle.</strong><br><span style="color:var(--t2)">VH-14 generates €187/day yet loses €23/day net. Revenue hides the loss. Track cost/km for every vehicle every single day without exception.</span></div></div>
-    <div class="cl-item"><div class="cl-num">2</div><div><strong style="color:var(--t1)">Ignoring idle time until it becomes a permanent habit.</strong><br><span style="color:var(--t2)">A driver at 45% idle vs 25% target loses ~€180/month in potential output. Five drivers at that level = €900/month in invisible lost revenue.</span></div></div>
-    <div class="cl-item"><div class="cl-num">3</div><div><strong style="color:var(--t1)">Single-platform dependency.</strong><br><span style="color:var(--t2)">The 10% commission difference between Bolt and Uber compounds: at 187 trips/day that's €438/day or €13,140/month in margin left on the table by defaulting to Uber.</span></div></div>
-    <div class="cl-item"><div class="cl-num">4</div><div><strong style="color:var(--t1)">Reactive maintenance instead of scheduled.</strong><br><span style="color:var(--t2)">Emergency repair = 3.1× the cost of scheduled service, plus 1–3 days lost revenue (~€280–840). One breakdown event erases 3 months of saved maintenance budget.</span></div></div>
+    <div class="cl-item"><div class="cl-num">1</div><div><strong style="color:var(--t1)">Managing by revenue, not profit per vehicle.</strong><br><span style="color:var(--t2)">VH-14 generates <span class="cur" data-nok="2150">2 150 kr</span>/day yet loses <span class="cur" data-nok="265">265 kr</span>/day net. Revenue hides the loss. Track cost/km for every vehicle every single day without exception.</span></div></div>
+    <div class="cl-item"><div class="cl-num">2</div><div><strong style="color:var(--t1)">Ignoring idle time until it becomes a permanent habit.</strong><br><span style="color:var(--t2)">A driver at 45% idle vs 25% target loses ~<span class="cur" data-nok="2070">2 070 kr</span>/month in potential output. Five drivers at that level = <span class="cur" data-nok="10350">10 350 kr</span>/month in invisible lost revenue.</span></div></div>
+    <div class="cl-item"><div class="cl-num">3</div><div><strong style="color:var(--t1)">Single-platform dependency.</strong><br><span style="color:var(--t2)">The 10% commission difference between Bolt and Uber compounds: at 187 trips/day that's <span class="cur" data-nok="5035">5 035 kr</span>/day or <span class="cur" data-nok="151110">151 110 kr</span>/month in margin left on the table by defaulting to Uber.</span></div></div>
+    <div class="cl-item"><div class="cl-num">4</div><div><strong style="color:var(--t1)">Reactive maintenance instead of scheduled.</strong><br><span style="color:var(--t2)">Emergency repair = 3.1× the cost of scheduled service, plus 1–3 days lost revenue (~<span class="cur" data-nok="3220">3 220 kr</span>–<span class="cur" data-nok="9660">9 660 kr</span>). One breakdown event erases 3 months of saved maintenance budget.</span></div></div>
     <div class="cl-item" style="border:none"><div class="cl-num">5</div><div><strong style="color:var(--t1)">No formal driver accountability system.</strong><br><span style="color:var(--t2)">Bottom 20% of drivers generate 8% of revenue but consume 25% of operational support time. A scored ranking makes performance visible and consequences clear.</span></div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Daily Operational Checklist — 06:00</div></div>
@@ -2571,12 +2601,12 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     <div class="cl-item" style="border:none"><div class="cl-num">8</div><div>Confirm next-day maintenance slots booked. Notify impacted drivers of vehicle swaps with 12+ hours notice.</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">6 Levers to +20% Profit — With Numbers</div></div>
-    <div class="cl-item"><div class="cl-num" style="background:var(--greenbg);border-color:var(--green);color:var(--green)">+</div><div><strong style="color:var(--t1)">Reduce idle time: 24% → 18%</strong><br><span style="color:var(--t2)">Active repositioning for idle >10 min. +6–8% revenue zero new cost. At €4,820/day: +€289–386/day = <strong style="color:var(--green)">+€8,700–11,600/month</strong>.</span></div></div>
-    <div class="cl-item"><div class="cl-num" style="background:var(--greenbg);border-color:var(--green);color:var(--green)">+</div><div><strong style="color:var(--t1)">Shift 15% more trips from Uber to Bolt</strong><br><span style="color:var(--t2)">+€2.34 net per shifted trip × 28 trips/day = +€65/day = <strong style="color:var(--green)">+€1,950/month</strong> with zero behaviour change.</span></div></div>
-    <div class="cl-item"><div class="cl-num" style="background:var(--greenbg);border-color:var(--green);color:var(--green)">+</div><div><strong style="color:var(--t1)">Replace top-2 loss vehicles (BMW/Audi → Skoda/Toyota class)</strong><br><span style="color:var(--t2)">VH-14 loses €23/day. Octavia equivalent would earn €182/day. Delta: <strong style="color:var(--green)">+€205/day or +€6,150/month per swap</strong>.</span></div></div>
-    <div class="cl-item"><div class="cl-num" style="background:var(--greenbg);border-color:var(--green);color:var(--green)">+</div><div><strong style="color:var(--t1)">Airport pre-positioning 3× daily (AM/midday/PM)</strong><br><span style="color:var(--t2)">Airport avg €36 vs €25.77 city. +6 airport trips/day = +€61.38 net revenue = <strong style="color:var(--green)">+€1,841/month</strong>.</span></div></div>
+    <div class="cl-item"><div class="cl-num" style="background:var(--greenbg);border-color:var(--green);color:var(--green)">+</div><div><strong style="color:var(--t1)">Reduce idle time: 24% → 18%</strong><br><span style="color:var(--t2)">Active repositioning for idle &gt;10 min. +6–8% revenue zero new cost. At <span class="cur" data-nok="55430">55 430 kr</span>/day: +<span class="cur" data-nok="3325">3 325 kr</span>–<span class="cur" data-nok="4440">4 440 kr</span>/day = <strong style="color:var(--green)">+<span class="cur" data-nok="100050">100 050 kr</span>–<span class="cur" data-nok="133400">133 400 kr</span>/month</strong>.</span></div></div>
+    <div class="cl-item"><div class="cl-num" style="background:var(--greenbg);border-color:var(--green);color:var(--green)">+</div><div><strong style="color:var(--t1)">Shift 15% more trips from Uber to Bolt</strong><br><span style="color:var(--t2)">+<span class="cur" data-nok="27">27 kr</span> net per shifted trip × 28 trips/day = +<span class="cur" data-nok="750">750 kr</span>/day = <strong style="color:var(--green)">+<span class="cur" data-nok="22425">22 425 kr</span>/month</strong> with zero behaviour change.</span></div></div>
+    <div class="cl-item"><div class="cl-num" style="background:var(--greenbg);border-color:var(--green);color:var(--green)">+</div><div><strong style="color:var(--t1)">Replace top-2 loss vehicles (BMW/Audi → Skoda/Toyota class)</strong><br><span style="color:var(--t2)">VH-14 loses <span class="cur" data-nok="265">265 kr</span>/day. Octavia equivalent would earn <span class="cur" data-nok="2095">2 095 kr</span>/day. Delta: <strong style="color:var(--green)">+<span class="cur" data-nok="2360">2 360 kr</span>/day or +<span class="cur" data-nok="70725">70 725 kr</span>/month per swap</strong>.</span></div></div>
+    <div class="cl-item"><div class="cl-num" style="background:var(--greenbg);border-color:var(--green);color:var(--green)">+</div><div><strong style="color:var(--t1)">Airport pre-positioning 3× daily (AM/midday/PM)</strong><br><span style="color:var(--t2)">Airport avg <span class="cur" data-nok="415">415 kr</span> vs <span class="cur" data-nok="296">296 kr</span> city. +6 airport trips/day = +<span class="cur" data-nok="706">706 kr</span> net revenue = <strong style="color:var(--green)">+<span class="cur" data-nok="21170">21 170 kr</span>/month</strong>.</span></div></div>
     <div class="cl-item"><div class="cl-num" style="background:var(--greenbg);border-color:var(--green);color:var(--green)">+</div><div><strong style="color:var(--t1)">Driver performance tiering with incentives</strong><br><span style="color:var(--t2)">Top performers +2% bonus. Bottom 20% on formal improvement plans. Avg fleet score improvement 8–12 points. Reduces support overhead 3+ hrs/week.</span></div></div>
-    <div class="cl-item" style="border:none"><div class="cl-num" style="background:var(--greenbg);border-color:var(--green);color:var(--green)">+</div><div><strong style="color:var(--t1)">Schedule 90%+ drivers for peak windows (07:30–09:30 and 17:00–20:00)</strong><br><span style="color:var(--t2)">These 5 hours generate 34% more rev/hr than daily average. Full peak coverage potential: <strong style="color:var(--green)">+€400–600/day</strong> zero new cost.</span></div></div>
+    <div class="cl-item" style="border:none"><div class="cl-num" style="background:var(--greenbg);border-color:var(--green);color:var(--green)">+</div><div><strong style="color:var(--t1)">Schedule 90%+ drivers for peak windows (07:30–09:30 and 17:00–20:00)</strong><br><span style="color:var(--t2)">These 5 hours generate 34% more rev/hr than daily average. Full peak coverage potential: <strong style="color:var(--green)">+<span class="cur" data-nok="4600">4 600 kr</span>–<span class="cur" data-nok="6900">6 900 kr</span>/day</strong> zero new cost.</span></div></div>
   </div>
 </div>
 
@@ -2593,15 +2623,15 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
 <div class="page" id="page-finance-weekly"><div class="page-header"><div class="ph-left"><div class="ph-title">Weekly Summary</div></div></div></div>
 <div class="page" id="page-finance-monthly"><div class="page-header"><div class="ph-left"><div class="ph-title">Monthly Report</div></div></div></div>
 <div class="page" id="page-finance-breakeven"><div class="page-header"><div class="ph-left"><div class="ph-title">Break-Even Analysis</div></div></div><div class="card" style="max-width:600px"><div class="card-header"><div class="card-title">Break-Even Formula</div></div><div class="fbox">Break-even daily revenue = Fixed costs / (1 − Variable cost ratio)
-Fixed costs (daily)   = Lease + Insurance + Admin = €896
+Fixed costs (daily)   = Lease + Insurance + Admin = <span class="cur" data-nok="10305">10 305 kr</span>
 Variable cost ratio   = Driver payout% + Fuel% = 0.65 + 0.07 = 0.72
-Break-even            = €896 / 0.28 = €3,200/day
-Safety buffer target  = Break-even × 1.40 = €4,480/day
-Current performance   = €4,820 → 6.7% above safety buffer ✓</div></div></div>
+Break-even            = <span class="cur" data-nok="10305">10 305 kr</span> / 0.28 = <span class="cur" data-nok="36800">36 800 kr</span>/day
+Safety buffer target  = Break-even × 1.40 = <span class="cur" data-nok="51520">51 520 kr</span>/day
+Current performance   = <span class="cur" data-nok="55430">55 430 kr</span> → 6.7% above safety buffer ✓</div></div></div>
 <div class="page" id="page-costs"><div class="page-header"><div class="ph-left"><div class="ph-title">Cost Management</div><div class="ph-sub">Select a cost category from the sidebar</div></div></div></div>
 <div class="page" id="page-cost-fuel"><div class="page-header"><div class="ph-left"><div class="ph-title">Fuel Cost Tracker</div><div class="ph-sub">See Vehicle → Fuel Management for full fuel data</div></div></div></div>
 <div class="page" id="page-cost-maintenance"><div class="page-header"><div class="ph-left"><div class="ph-title">Maintenance Costs</div><div class="ph-sub">See Vehicle → Maintenance Tracker for full data</div></div></div></div>
-<div class="page" id="page-cost-fixed"><div class="page-header"><div class="ph-left"><div class="ph-title">Fixed Overheads</div></div></div><div class="card" style="max-width:500px"><div class="card-header"><div class="card-title">Daily Fixed Cost Breakdown</div></div><div class="pl-row"><span style="color:var(--t2)">Fleet lease total (daily)</span><span>€125</span></div><div class="pl-row"><span style="color:var(--t2)">Fleet insurance (daily)</span><span>€62</span></div><div class="pl-row"><span style="color:var(--t2)">Office / admin</span><span>€22</span></div><div class="pl-row"><span style="color:var(--t2)">Software / tools</span><span>€8</span></div><div class="pl-row"><span style="color:var(--t2)">Accountant (amortized)</span><span>€7</span></div><div class="pl-row pl-total"><span>Total fixed</span><span>€224/day</span></div></div></div>
+<div class="page" id="page-cost-fixed"><div class="page-header"><div class="ph-left"><div class="ph-title">Fixed Overheads</div></div></div><div class="card" style="max-width:500px"><div class="card-header"><div class="card-title">Daily Fixed Cost Breakdown</div></div><div class="pl-row"><span style="color:var(--t2)">Fleet lease total (daily)</span><span><span class="cur" data-nok="1440">1 440 kr</span></span></div><div class="pl-row"><span style="color:var(--t2)">Fleet insurance (daily)</span><span><span class="cur" data-nok="715">715 kr</span></span></div><div class="pl-row"><span style="color:var(--t2)">Office / admin</span><span><span class="cur" data-nok="255">255 kr</span></span></div><div class="pl-row"><span style="color:var(--t2)">Software / tools</span><span><span class="cur" data-nok="95">95 kr</span></span></div><div class="pl-row"><span style="color:var(--t2)">Accountant (amortized)</span><span><span class="cur" data-nok="80">80 kr</span></span></div><div class="pl-row pl-total"><span>Total fixed</span><span><span class="cur" data-nok="2575">2 575 kr</span>/day</span></div></div></div>
 <div class="page" id="page-cost-penalties"><div class="page-header"><div class="ph-left"><div class="ph-title">Fines & Penalties</div></div></div></div>
 <div class="page" id="page-payments"><div class="page-header"><div class="ph-left"><div class="ph-title">Payments & Settlements</div><div class="ph-sub">Platform settlement tracking and payment reconciliation</div></div></div></div>
 <div class="page" id="page-invoicing"><div class="page-header"><div class="ph-left"><div class="ph-title">Invoicing & VAT</div><div class="ph-sub">B2B invoicing, corporate account billing, and VAT management</div></div></div></div>
@@ -2727,7 +2757,8 @@ drivers.forEach(d=>{
   const shiftBadge=d.shift==='AM'?'<span class="badge b-blue">AM</span>':'<span class="badge b-purple">PM</span>';
   const sharedCar=drivers.filter(x=>x.car===d.car).length>1;
   const carCell=sharedCar?`<span style="color:var(--amber);font-weight:600">${d.car}</span>`:`${d.car}`;
-  tr.innerHTML=`<td>${d.r}</td><td>${d.n}</td><td>${carCell}</td><td>${shiftBadge}</td><td>€${d.rev}</td><td>€${d.revhr.toFixed(1)}</td><td>${d.triphr.toFixed(1)}</td><td>${d.acc}%</td><td>${d.can}%</td><td>${d.idle}%</td><td>${d.util}%</td>
+  const drev=Math.round(d.rev*11.5);const drevhr=Math.round(d.revhr*11.5);
+  tr.innerHTML=`<td>${d.r}</td><td>${d.n}</td><td>${carCell}</td><td>${shiftBadge}</td><td><span class="cur" data-nok="${drev}">${FleetCurrency.format(drev)}</span></td><td><span class="cur" data-nok="${drevhr}">${FleetCurrency.format(drevhr)}</span></td><td>${d.triphr.toFixed(1)}</td><td>${d.acc}%</td><td>${d.can}%</td><td>${d.idle}%</td><td>${d.util}%</td>
   <td><div class="sbar-wrap"><span class="sbar-num">${s}</span><div class="sbar"><div class="sbar-fill" style="width:${s}%;background:${scColor(s)}"></div></div></div></td>
   <td><span class="badge ${tc}">${t}</span></td><td style="color:${trend==='↑'?'var(--green)':trend==='→'?'var(--amber)':'var(--red)'}">${trend}</td>`;
   perfTbody.appendChild(tr);
@@ -2740,11 +2771,12 @@ if(vehPerfTbody){vehicles.forEach(v=>{
   const tr=document.createElement('tr');
   if(v.status==='no-driver'||v.status==='workshop')tr.classList.add('tr-red');
   else if(v.profit<0)tr.classList.add('tr-red');
-  const ps=v.profit>=0?`<span style="color:var(--green)">€${v.profit}</span>`:`<span style="color:var(--red)">−€${Math.abs(v.profit)}</span>`;
+  const vrev=Math.round(v.rev*11.5);const vprof=Math.round(v.profit*11.5);const vcpkm=Math.round(v.cpkm*11.5*100)/100;
+  const ps=v.profit>=0?`<span style="color:var(--green)"><span class="cur" data-nok="${vprof}">${FleetCurrency.format(vprof)}</span></span>`:`<span style="color:var(--red)"><span class="cur" data-nok="${vprof}">${FleetCurrency.format(vprof)}</span></span>`;
   const shiftBadge=v.shifts===2?'<span class="badge b-amber">2-shift</span>':v.shifts===0?'<span class="badge b-red">Idle</span>':'<span class="badge b-gray">1-shift</span>';
   const driverCell=v.drivers.join('<br>');
   const kmCell=v.status==='no-driver'||v.status==='workshop'?'<span style="color:var(--t3)">—</span>':'';
-  tr.innerHTML=`<td><strong>${v.id}</strong></td><td>${v.make} ${v.model}</td><td>${v.fuel}</td><td>${shiftBadge}</td><td style="font-size:11px">${driverCell}</td><td>€${v.rev}</td><td>${ps}</td><td>${v.cpkm>0?'€'+v.cpkm.toFixed(2):'—'}</td><td>${v.tkm>0?v.tkm+'km':'—'}</td><td>${v.down}%</td><td><span class="badge ${sc}">${st}</span></td>`;
+  tr.innerHTML=`<td><strong>${v.id}</strong></td><td>${v.make} ${v.model}</td><td>${v.fuel}</td><td>${shiftBadge}</td><td style="font-size:11px">${driverCell}</td><td><span class="cur" data-nok="${vrev}">${FleetCurrency.format(vrev)}</span></td><td>${ps}</td><td>${v.cpkm>0?'<span class="cur" data-nok="'+vcpkm+'">'+FleetCurrency.format(vcpkm)+'</span>':'—'}</td><td>${v.tkm>0?v.tkm+'km':'—'}</td><td>${v.down}%</td><td><span class="badge ${sc}">${st}</span></td>`;
   vehPerfTbody.appendChild(tr);
 });}
 
@@ -2757,7 +2789,8 @@ if(fleetRegTbody){vehicles.forEach(v=>{
   const driverCell=v.drivers.join(' / ');
   const shiftBadge=v.shifts===2?'<span class="badge b-amber">2-shift</span>':v.shifts===0?'<span class="badge b-red">Unassigned</span>':'<span class="badge b-gray">1-shift</span>';
   const statusBadge=v.status==='active'?'<span class="badge b-green">Active</span>':v.status==='shared'?'<span class="badge b-amber">2-shift</span>':v.status==='workshop'?'<span class="badge b-amber">Workshop</span>':'<span class="badge b-red">No Driver</span>';
-  tr.innerHTML=`<td><strong>${v.id}</strong></td><td>${v.make} ${v.model}</td><td>${v.fuel}</td><td>${shiftBadge}</td><td style="font-size:11px">${driverCell}</td><td>${v.rev>0?'€'+v.rev:'—'}</td><td>${v.profit>=0?'<span style="color:var(--green)">€'+v.profit+'</span>':'<span style="color:var(--red)">−€'+Math.abs(v.profit)+'</span>'}</td><td>${statusBadge}</td>`;
+  const vrev2=Math.round(v.rev*11.5);const vprof2=Math.round(v.profit*11.5);
+  tr.innerHTML=`<td><strong>${v.id}</strong></td><td>${v.make} ${v.model}</td><td>${v.fuel}</td><td>${shiftBadge}</td><td style="font-size:11px">${driverCell}</td><td>${v.rev>0?'<span class="cur" data-nok="'+vrev2+'">'+FleetCurrency.format(vrev2)+'</span>':'—'}</td><td>${v.profit>=0?'<span style="color:var(--green)"><span class="cur" data-nok="'+vprof2+'">'+FleetCurrency.format(vprof2)+'</span></span>':'<span style="color:var(--red)"><span class="cur" data-nok="'+vprof2+'">'+FleetCurrency.format(vprof2)+'</span></span>'}</td><td>${statusBadge}</td>`;
   fleetRegTbody.appendChild(tr);
 });}
 
@@ -2775,7 +2808,8 @@ if(tripLogTbody){
     const tip=(Math.random()>0.6?(Math.random()*3).toFixed(2):'0.00');
     const hr=6+i;const mn=Math.floor(Math.random()*60);
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td style="font-family:var(--mono);font-size:11px">TRP-${1000+i}</td><td>${drv.n}</td><td>${veh.id}</td><td><span class="badge ${plat==='Bolt'?'b-purple':'b-blue'}">${plat}</span></td><td>${String(hr%24).padStart(2,'0')}:${String(mn).padStart(2,'0')}</td><td>${pz}</td><td>${dz}</td><td>${km}km</td><td style="color:var(--green)">€${fare}</td><td>€${tip}</td><td><span class="badge b-green">Done</span></td>`;
+    const fareNok=Math.round(parseFloat(fare)*11.5);const tipNok=Math.round(parseFloat(tip)*11.5);
+    tr.innerHTML=`<td style="font-family:var(--mono);font-size:11px">TRP-${1000+i}</td><td>${drv.n}</td><td>${veh.id}</td><td><span class="badge ${plat==='Bolt'?'b-purple':'b-blue'}">${plat}</span></td><td>${String(hr%24).padStart(2,'0')}:${String(mn).padStart(2,'0')}</td><td>${pz}</td><td>${dz}</td><td>${km}km</td><td style="color:var(--green)"><span class="cur" data-nok="${fareNok}">${FleetCurrency.format(fareNok)}</span></td><td><span class="cur" data-nok="${tipNok}">${FleetCurrency.format(tipNok)}</span></td><td><span class="badge b-green">Done</span></td>`;
     tripLogTbody.appendChild(tr);
   }
 }
@@ -2821,9 +2855,9 @@ function mc(id,type,labels,datasets,opts){
 
 const hrs=['06','07','08','09','10','11','12','13','14','15','16','17','18','19','20'];
 mc('c-rev-hourly','line',hrs,[
-  {label:'Revenue',data:[82,180,412,498,310,280,260,190,170,180,290,480,520,420,348],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.06)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:'#3b82f6',borderWidth:2},
-  {label:'Target',data:hrs.map(()=>300),borderColor:'rgba(245,158,11,0.5)',borderDash:[5,4],fill:false,pointRadius:0,borderWidth:1.5}
-],{scales:{x:{ticks:{color:DK,font:{size:10},maxRotation:0},grid:{color:GR}},y:{ticks:{color:DK,font:{size:10},callback:v=>'€'+v},grid:{color:GR}}}});
+  {label:'Revenue',data:[82,180,412,498,310,280,260,190,170,180,290,480,520,420,348].map(v=>Math.round(v*11.5)),borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.06)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:'#3b82f6',borderWidth:2},
+  {label:'Target',data:hrs.map(()=>3450),borderColor:'rgba(245,158,11,0.5)',borderDash:[5,4],fill:false,pointRadius:0,borderWidth:1.5}
+],{scales:{x:{ticks:{color:DK,font:{size:10},maxRotation:0},grid:{color:GR}},y:{ticks:{color:DK,font:{size:10},callback:v=>FleetCurrency.formatCompact(v)},grid:{color:GR}}}});
 
 mc('c-trips-hourly','bar',hrs,[
   {label:'Trips',data:[3,7,18,22,13,12,11,8,7,8,12,21,24,19,16],backgroundColor:'rgba(59,130,246,0.35)',borderColor:'#3b82f6',borderWidth:1,borderRadius:3}
@@ -2841,18 +2875,18 @@ mc('c-score-dist','bar',bins.map(b=>b.l),[{data:bins.map(b=>b.c),backgroundColor
 // Vehicle revenue (top 10)
 const top10=vehicles.slice(0,10);
 const vrEl=document.getElementById('c-veh-rev');
-if(vrEl)new Chart(vrEl,{type:'bar',data:{labels:top10.map(v=>v.id),datasets:[{label:'Rev',data:top10.map(v=>v.rev),backgroundColor:'rgba(59,130,246,0.35)',borderColor:'#3b82f6',borderWidth:1,borderRadius:3},{label:'Profit',data:top10.map(v=>v.profit),backgroundColor:'rgba(16,185,129,0.35)',borderColor:'#10b981',borderWidth:1,borderRadius:3}]},options:{...base,plugins:{legend:{display:true,position:'bottom',labels:{color:DK,font:{size:10},padding:12,boxWidth:8}}},scales:{x:{ticks:{color:DK,font:{size:10}},grid:{color:GR}},y:{ticks:{color:DK,font:{size:10},callback:v=>'€'+v},grid:{color:GR}}}}});
+if(vrEl)new Chart(vrEl,{type:'bar',data:{labels:top10.map(v=>v.id),datasets:[{label:'Rev',data:top10.map(v=>Math.round(v.rev*11.5)),backgroundColor:'rgba(59,130,246,0.35)',borderColor:'#3b82f6',borderWidth:1,borderRadius:3},{label:'Profit',data:top10.map(v=>Math.round(v.profit*11.5)),backgroundColor:'rgba(16,185,129,0.35)',borderColor:'#10b981',borderWidth:1,borderRadius:3}]},options:{...base,plugins:{legend:{display:true,position:'bottom',labels:{color:DK,font:{size:10},padding:12,boxWidth:8}}},scales:{x:{ticks:{color:DK,font:{size:10}},grid:{color:GR}},y:{ticks:{color:DK,font:{size:10},callback:v=>FleetCurrency.formatCompact(v)},grid:{color:GR}}}}});
 
 // Zone revenue
 const zrEl=document.getElementById('c-zone-rev');
-if(zrEl)new Chart(zrEl,{type:'bar',data:{labels:['City Ctr','Airport','Bus Park','Suburbs','S.Mall','Hosp'],datasets:[{label:'Revenue',data:[1842,1116,987,492,342,41],backgroundColor:['rgba(16,185,129,0.5)','rgba(16,185,129,0.4)','rgba(59,130,246,0.4)','rgba(245,158,11,0.4)','rgba(245,158,11,0.3)','rgba(239,68,68,0.4)'],borderColor:['#10b981','#10b981','#3b82f6','#f59e0b','#f59e0b','#ef4444'],borderWidth:1,borderRadius:3}]},options:{...base,indexAxis:'y',scales:{x:{ticks:{color:DK,font:{size:10},callback:v=>'€'+v},grid:{color:GR}},y:{ticks:{color:DK,font:{size:10}},grid:{color:GR}}}}});
+if(zrEl)new Chart(zrEl,{type:'bar',data:{labels:['City Ctr','Airport','Bus Park','Suburbs','S.Mall','Hosp'],datasets:[{label:'Revenue',data:[1842,1116,987,492,342,41].map(v=>Math.round(v*11.5)),backgroundColor:['rgba(16,185,129,0.5)','rgba(16,185,129,0.4)','rgba(59,130,246,0.4)','rgba(245,158,11,0.4)','rgba(245,158,11,0.3)','rgba(239,68,68,0.4)'],borderColor:['#10b981','#10b981','#3b82f6','#f59e0b','#f59e0b','#ef4444'],borderWidth:1,borderRadius:3}]},options:{...base,indexAxis:'y',scales:{x:{ticks:{color:DK,font:{size:10},callback:v=>FleetCurrency.formatCompact(v)},grid:{color:GR}},y:{ticks:{color:DK,font:{size:10}},grid:{color:GR}}}}});
 
 // Weekly P&L
 const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 mc('c-weekly-pl','bar',days,[
-  {label:'Revenue',data:[4210,4580,4750,4820,5100,5480,4320],backgroundColor:'rgba(59,130,246,0.3)',borderColor:'#3b82f6',borderWidth:1,borderRadius:3},
-  {label:'Profit', data:[620,710,760,800,890,980,640],backgroundColor:'rgba(16,185,129,0.3)',borderColor:'#10b981',borderWidth:1,borderRadius:3}
-],{plugins:{legend:{display:true,position:'bottom',labels:{color:DK,font:{size:10},padding:12,boxWidth:8}}},scales:{x:{ticks:{color:DK,font:{size:10}},grid:{color:GR}},y:{ticks:{color:DK,font:{size:10},callback:v=>'€'+v.toLocaleString()},grid:{color:GR}}}});
+  {label:'Revenue',data:[4210,4580,4750,4820,5100,5480,4320].map(v=>Math.round(v*11.5)),backgroundColor:'rgba(59,130,246,0.3)',borderColor:'#3b82f6',borderWidth:1,borderRadius:3},
+  {label:'Profit', data:[620,710,760,800,890,980,640].map(v=>Math.round(v*11.5)),backgroundColor:'rgba(16,185,129,0.3)',borderColor:'#10b981',borderWidth:1,borderRadius:3}
+],{plugins:{legend:{display:true,position:'bottom',labels:{color:DK,font:{size:10},padding:12,boxWidth:8}}},scales:{x:{ticks:{color:DK,font:{size:10}},grid:{color:GR}},y:{ticks:{color:DK,font:{size:10},callback:v=>FleetCurrency.formatCompact(v)},grid:{color:GR}}}});
 
 // ═══════════════════════════════════════════════════════════════
 // UNIVERSAL TABLE SORT ENGINE
@@ -2873,13 +2907,13 @@ mc('c-weekly-pl','bar',days,[
   }
 
   function isNumeric(val){
-    // strip €, %, km, −, whitespace then check
-    return !isNaN(parseFloat(val.replace(/[€%km,\s−\-]/g,'')));
+    // strip currency symbols, %, km, kr, −, whitespace then check
+    return !isNaN(parseFloat(val.replace(/[€%,\s−\-]/g,'').replace(/kr|km|NOK/gi,'')));
   }
 
   function normalise(val){
     // numbers: strip decoration, handle negative (−)
-    const stripped = val.replace(/[€%,\s]/g,'').replace('km','').replace('−','-');
+    const stripped = val.replace(/[€%,\s]/g,'').replace(/kr|km|NOK/gi,'').replace('−','-');
     const n = parseFloat(stripped);
     return isNaN(n) ? val.toLowerCase() : n;
   }
@@ -2964,12 +2998,18 @@ mc('c-weekly-pl','bar',days,[
 
   function syncBar(bar, table){
     const st = sortState.get(table);
+    let activeName = null, activeDir = 0;
     bar.querySelectorAll('.tbl-sort-btn').forEach(btn=>{
       btn.classList.remove('active');
       const col = parseInt(btn.dataset.col);
       const dir = parseInt(btn.dataset.dir);
-      if(st && st.col===col && st.dir===dir) btn.classList.add('active');
+      if(st && st.col===col && st.dir===dir){ btn.classList.add('active'); activeName = btn.dataset.colname; activeDir = dir; }
     });
+    const badge = bar.querySelector('.tbl-sort-active-badge');
+    if(badge){
+      if(activeName){ badge.style.display=''; badge.textContent = 'sorted by '+activeName+' '+(activeDir>0?'↑':'↓'); }
+      else { badge.style.display='none'; badge.textContent=''; }
+    }
   }
 
   function injectSortBar(table){
@@ -2984,10 +3024,33 @@ mc('c-weekly-pl','bar',days,[
     const bar = document.createElement('div');
     bar.className = 'tbl-sort-bar';
 
+    // Persist open/closed state per table
+    const tableKey = table.id || (table.closest('.page')?.id || 'tbl') + '-' + (Array.from(table.parentElement.children).indexOf(table));
+    const storageKey = 'ft_sort_open_' + tableKey;
+    let isOpen = false;
+    try { isOpen = localStorage.getItem(storageKey) === '1'; } catch(e) {}
+
+    // Header row: toggle + active badge
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'tbl-sort-toggle';
+    toggle.innerHTML = '<span class="chev">▸</span> Sort &amp; Filter';
+    bar.appendChild(toggle);
+
+    const activeBadge = document.createElement('span');
+    activeBadge.className = 'tbl-sort-active-badge';
+    activeBadge.style.display = 'none';
+    bar.appendChild(activeBadge);
+
+    // Collapsible body
+    const body = document.createElement('div');
+    body.className = 'tbl-sort-items';
+    bar.appendChild(body);
+
     const label = document.createElement('span');
     label.className = 'tbl-sort-label';
     label.textContent = 'Sort by:';
-    bar.appendChild(label);
+    body.appendChild(label);
 
     // create a button for each column (A→Z and Z→A pair, compacted)
     ths.forEach((th, i)=>{
@@ -3000,10 +3063,11 @@ mc('c-weekly-pl','bar',days,[
       const btnAZ = document.createElement('button');
       btnAZ.className='tbl-sort-btn';
       btnAZ.dataset.col=i; btnAZ.dataset.dir=1;
+      btnAZ.dataset.colname=colName;
       btnAZ.title=`Sort by ${colName} A → Z`;
       btnAZ.innerHTML=`${colName} <span style="opacity:0.5">↑</span>`;
       btnAZ.addEventListener('click',()=>{
-        sortState.set(table,{col:i,dir:1});
+        sortState.set(table,{col:i,dir:1,name:colName});
         sortTable(table,i,1);
         updateHeaderIndicators(table,i,1);
         syncBar(bar,table);
@@ -3012,10 +3076,11 @@ mc('c-weekly-pl','bar',days,[
       const btnZA = document.createElement('button');
       btnZA.className='tbl-sort-btn';
       btnZA.dataset.col=i; btnZA.dataset.dir=-1;
+      btnZA.dataset.colname=colName;
       btnZA.title=`Sort by ${colName} Z → A`;
       btnZA.innerHTML=`<span style="opacity:0.5">↓</span>`;
       btnZA.addEventListener('click',()=>{
-        sortState.set(table,{col:i,dir:-1});
+        sortState.set(table,{col:i,dir:-1,name:colName});
         sortTable(table,i,-1);
         updateHeaderIndicators(table,i,-1);
         syncBar(bar,table);
@@ -3023,7 +3088,7 @@ mc('c-weekly-pl','bar',days,[
 
       grp.appendChild(btnAZ);
       grp.appendChild(btnZA);
-      bar.appendChild(grp);
+      body.appendChild(grp);
     });
 
     // reset button
@@ -3037,7 +3102,15 @@ mc('c-weekly-pl','bar',days,[
       updateHeaderIndicators(table,-1,0);
       syncBar(bar,table);
     });
-    bar.appendChild(resetBtn);
+    body.appendChild(resetBtn);
+
+    // Toggle collapse
+    function applyOpen(open){
+      bar.classList.toggle('open', open);
+      try { localStorage.setItem(storageKey, open ? '1' : '0'); } catch(e) {}
+    }
+    toggle.addEventListener('click', ()=> applyOpen(!bar.classList.contains('open')));
+    applyOpen(isOpen);
 
     wrap.parentElement.insertBefore(bar, wrap);
     syncBar(bar, table);
@@ -3055,15 +3128,15 @@ mc('c-weekly-pl','bar',days,[
   window.go = function(id, el, title, root){
     _origGo(id, el, title, root);
     // small delay so the DOM paint completes before we measure
-    setTimeout(initAllVisibleTables, 60);
+    setTimeout(()=>{ initAllVisibleTables(); if(typeof FleetCurrency!=='undefined') FleetCurrency.rerender(); }, 60);
   };
 
   // Init on first load
   document.addEventListener('DOMContentLoaded', ()=>{
-    setTimeout(initAllVisibleTables, 100);
+    setTimeout(()=>{ initAllVisibleTables(); if(typeof FleetCurrency!=='undefined'){ FleetCurrency.rerender(); FleetCurrency.injectToggle(); } }, 100);
   });
   // Also fire immediately in case DOMContentLoaded already fired
-  setTimeout(initAllVisibleTables, 150);
+  setTimeout(()=>{ initAllVisibleTables(); if(typeof FleetCurrency!=='undefined'){ FleetCurrency.rerender(); FleetCurrency.injectToggle(); } }, 150);
 
 
 // ══════════════════════════════════════════════════════════════════
