@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FleetTrack — Access Management</title>
+<link rel="stylesheet" href="./design-system.css">
+<style>
+body { padding: var(--s5); max-width: 1200px; margin: 0 auto; }
+.page-header { margin-bottom: var(--s6); }
+.ph-title { font-size: 22px; font-weight: 700; color: var(--t1); margin-bottom: 3px; }
+.ph-sub { font-size: 13px; color: var(--t2); }
+.back-btn { display:inline-flex; align-items:center; gap:var(--s2); color:var(--blue2); font-size:13px; margin-bottom:var(--s4); cursor:pointer; text-decoration:none; }
+.user-card { background:var(--bg2); border:1px solid var(--b1); border-radius:var(--r4); padding:var(--s5); margin-bottom:var(--s3); transition:border-color var(--fast); }
+.user-card:hover { border-color:var(--b2); }
+.user-card-header { display:flex; align-items:center; gap:var(--s4); margin-bottom:var(--s4); flex-wrap:wrap; }
+.user-avatar { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex-shrink:0; }
+.user-info { flex:1; min-width:0; }
+.user-name  { font-size:14px; font-weight:600; color:var(--t1); }
+.user-email { font-size:12px; color:var(--t3); font-family:var(--mono); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.perm-grid  { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:var(--s2); }
+.perm-toggle { display:flex; align-items:center; justify-content:space-between; background:var(--bg3); border:1px solid var(--b1); border-radius:var(--r2); padding:var(--s2) var(--s3); cursor:pointer; transition:all var(--fast); }
+.perm-toggle:hover { border-color:var(--b2); }
+.perm-toggle.granted { background:var(--greenbg); border-color:var(--greenborder); }
+.perm-label { font-size:11.5px; color:var(--t2); font-family:var(--mono); }
+.perm-toggle.granted .perm-label { color:var(--green); }
+.toggle-sw { width:28px; height:16px; border-radius:8px; background:var(--bg5); position:relative; transition:background var(--mid); flex-shrink:0; }
+.toggle-sw::after { content:''; position:absolute; top:2px; left:2px; width:12px; height:12px; border-radius:50%; background:var(--t3); transition:transform var(--mid), background var(--mid); }
+.perm-toggle.granted .toggle-sw { background:var(--green); }
+.perm-toggle.granted .toggle-sw::after { transform:translateX(12px); background:#fff; }
+.section-title { font-size:13px; font-weight:600; color:var(--t2); margin:var(--s5) 0 var(--s3); padding-bottom:var(--s2); border-bottom:1px solid var(--b1); font-family:var(--mono); text-transform:uppercase; letter-spacing:0.07em; }
+.save-bar { position:sticky; bottom:var(--s4); background:var(--bg3); border:1px solid var(--b2); border-radius:var(--r3); padding:var(--s3) var(--s4); display:flex; align-items:center; justify-content:space-between; box-shadow:var(--shadow-md); gap:var(--s3); flex-wrap:wrap; margin-top:var(--s4); }
+@media(max-width:640px) { body { padding:var(--s4); } .perm-grid { grid-template-columns:1fr 1fr; } }
+</style>
+</head>
+<body>
+<a class="back-btn" href="dashboard.html">← Back to Admin Dashboard</a>
+
+<div class="page-header">
+  <div class="ph-title">Access Management</div>
+  <div class="ph-sub">Grant or revoke permissions for each employee. Changes take effect on next login.</div>
+</div>
+
+<div class="alert alert-info" style="margin-bottom:var(--s5)">
+  ℹ In production, permission changes are saved to your database via API. Currently stored in localStorage for demo purposes.
+</div>
+
+<div class="section-title">Employees</div>
+<div id="employee-list"></div>
+
+<div class="section-title">Drivers (view-only reference)</div>
+<div class="card">
+  <p style="font-size:13px;color:var(--t2)">Drivers have fixed access — they can only see their own data in the Driver Portal. No additional permissions can be granted to drivers. To add a driver, update the user database in <code style="font-family:var(--mono);font-size:12px;color:var(--blue2)">shared/js/auth.js</code>.</p>
+  <div style="margin-top:var(--s4)" id="driver-list"></div>
+</div>
+
+<div class="save-bar">
+  <div style="font-size:13px;color:var(--t2)" id="save-status">All changes are saved automatically.</div>
+  <div style="display:flex;gap:var(--s2)">
+    <button class="btn" onclick="resetAll()">Reset All</button>
+    <button class="btn btn-primary" onclick="saveAll()">Save All Changes</button>
+  </div>
+</div>
+
+<div class="toast-container"></div>
+<script src="./auth.js"></script>
+<script>
+// Guard — admin only
+const session = FleetAuth.requireAuth(['admin'], './login.html?error=unauthorized');
+
+const ALL_PERMISSIONS = [
+  'view:drivers', 'view:trips', 'view:vehicles', 'view:alerts',
+  'view:financial', 'view:payroll', 'view:zones',
+  'manage:dispatch', 'manage:maintenance', 'export:reports',
+];
+
+// Load saved overrides from localStorage
+function loadPerms(userId) {
+  try {
+    const saved = JSON.parse(localStorage.getItem('ft_perms_' + userId) || 'null');
+    return saved;
+  } catch(e) { return null; }
+}
+function savePerms(userId, perms) {
+  try { localStorage.setItem('ft_perms_' + userId, JSON.stringify(perms)); } catch(e) {}
+}
+
+function buildUserCard(user, editable) {
+  const savedPerms = loadPerms(user.id);
+  const currentPerms = savedPerms || user.permissions || [];
+  const avatarColors = { employee:'var(--purplebg),var(--purpleborder),var(--purple)', driver:'var(--greenbg),var(--greenborder),var(--green)', admin:'var(--bluebg),var(--blueborder),var(--blue2)' };
+  const [bg, border, color] = avatarColors[user.role]?.split(',') || ['var(--bg4)','var(--b2)','var(--t2)'];
+
+  const permToggles = editable ? ALL_PERMISSIONS.map(p => {
+    const has = currentPerms.includes(p) || currentPerms.includes('all');
+    return `<div class="perm-toggle ${has?'granted':''}" onclick="togglePerm(this,'${user.id}','${p}')" title="${has?'Click to revoke':'Click to grant'}">
+      <span class="perm-label">${p}</span>
+      <div class="toggle-sw"></div>
+    </div>`;
+  }).join('') : '<p style="font-size:12px;color:var(--t3)">Fixed driver access — can only view own data.</p>';
+
+  return `<div class="user-card" id="card-${user.id}">
+    <div class="user-card-header">
+      <div class="user-avatar" style="background:${bg};border:1px solid ${border};color:${color}">${user.avatar}</div>
+      <div class="user-info">
+        <div class="user-name">${user.name}</div>
+        <div class="user-email">${user.email}</div>
+      </div>
+      <span class="badge ${user.role==='employee'?'b-purple':user.role==='driver'?'b-green':'b-blue'}">${user.role}</span>
+      ${editable ? `<button class="btn btn-sm" onclick="grantAll('${user.id}')">Grant All</button>
+      <button class="btn btn-sm" onclick="revokeAll('${user.id}')">Revoke All</button>` : ''}
+    </div>
+    <div class="perm-grid">${permToggles}</div>
+  </div>`;
+}
+
+// Render employees
+const empList = document.getElementById('employee-list');
+FleetAuth.getUsersByRole('employee').forEach(u => {
+  empList.innerHTML += buildUserCard(u, true);
+});
+
+// Render drivers (read-only reference)
+const drvList = document.getElementById('driver-list');
+drvList.innerHTML = `<div class="tbl-wrap"><table>
+  <thead><tr><th>Driver</th><th>Email</th><th>Car ID</th><th>Brand</th><th>Shift</th><th>Access</th></tr></thead>
+  <tbody>${FleetAuth.getUsersByRole('driver').map(d=>`<tr>
+    <td><strong>${d.name}</strong></td>
+    <td style="font-family:var(--mono);font-size:11.5px;color:var(--t2)">${d.email}</td>
+    <td style="font-family:var(--mono)">${d.carId||'—'}</td>
+    <td>${d.brand||'—'}</td>
+    <td><span class="badge ${d.shift==='AM'?'b-blue':'b-purple'}">${d.shift||'—'}</span></td>
+    <td><span class="badge b-gray">Own data only</span></td>
+  </tr>`).join('')}</tbody>
+</table></div>`;
+
+// Toggle permission
+function togglePerm(el, userId, perm) {
+  el.classList.toggle('granted');
+  markUnsaved();
+}
+
+function grantAll(userId) {
+  const card = document.getElementById('card-' + userId);
+  card.querySelectorAll('.perm-toggle').forEach(t => t.classList.add('granted'));
+  markUnsaved();
+}
+function revokeAll(userId) {
+  const card = document.getElementById('card-' + userId);
+  card.querySelectorAll('.perm-toggle').forEach(t => t.classList.remove('granted'));
+  markUnsaved();
+}
+
+function markUnsaved() {
+  document.getElementById('save-status').textContent = '● Unsaved changes — click Save All Changes';
+  document.getElementById('save-status').style.color = 'var(--amber)';
+}
+
+function saveAll() {
+  FleetAuth.getUsersByRole('employee').forEach(user => {
+    const card = document.getElementById('card-' + user.id);
+    if (!card) return;
+    const perms = [];
+    card.querySelectorAll('.perm-toggle.granted').forEach(t => {
+      const p = t.querySelector('.perm-label')?.textContent?.trim();
+      if(p) perms.push(p);
+    });
+    savePerms(user.id, perms);
+  });
+  document.getElementById('save-status').textContent = '✓ All changes saved successfully.';
+  document.getElementById('save-status').style.color = 'var(--green)';
+  Toast.success('Access permissions saved! Changes take effect on next employee login.');
+}
+
+function resetAll() {
+  if(!confirm('Reset all permissions to defaults?')) return;
+  FleetAuth.getUsersByRole('employee').forEach(u => {
+    try { localStorage.removeItem('ft_perms_' + u.id); } catch(e) {}
+  });
+  Toast.info('Permissions reset to defaults. Reload to see changes.');
+  setTimeout(() => location.reload(), 1200);
+}
+</script>
+</body>
+</html>
