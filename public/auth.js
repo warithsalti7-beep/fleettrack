@@ -234,3 +234,21 @@ function exportNearestTable(btn, prefix){
   const date = new Date().toISOString().slice(0,10);
   exportTableToCSV(table, (prefix||'export')+'-'+date+'.csv');
 }
+
+// Download a specific report as CSV (used from the Reports & Exports page).
+// Handles the currency-format spans so exported numbers match the on-screen currency.
+function reportDownload(tableSelector, filenamePrefix){
+  const table = document.querySelector(tableSelector);
+  if(!table){
+    if(typeof Toast!=='undefined') Toast.error('Report source not found: '+tableSelector);
+    else alert('Report not available');
+    return;
+  }
+  // Force FleetCurrency to re-render any .cur spans inside the hidden table so the
+  // CSV reflects the user's currently selected currency.
+  if(typeof FleetCurrency!=='undefined' && typeof FleetCurrency.rerender==='function'){
+    try{ FleetCurrency.rerender(); } catch(e){}
+  }
+  const date = new Date().toISOString().slice(0,10);
+  exportTableToCSV(table, (filenamePrefix||'report')+'-'+date+'.csv');
+}
