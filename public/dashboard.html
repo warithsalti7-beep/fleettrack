@@ -1364,7 +1364,7 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
 <div class="page active" id="page-overview">
   <div class="page-header">
     <div class="ph-left"><div class="ph-title">FleetTrack — Live Overview</div><div class="ph-sub">Real-time snapshot — auto-refreshes every 5 minutes in production</div></div>
-    <div class="ph-right"><button class="tb-btn primary">⟳ Refresh</button></div>
+    <div class="ph-right"><button class="tb-btn primary" onclick="Toast.success('Dashboard refreshed')">⟳ Refresh</button></div>
   </div>
   <div class="kpi-grid g6">
     <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">Revenue Today</div><div class="kc-value"><span class="cur" data-nok="55430">55 430 kr</span></div><div class="kc-delta up">↑ 8.3% vs yesterday</div><div class="kc-sub">Target: <span class="cur" data-nok="51750">51 750 kr</span></div></div>
@@ -1412,7 +1412,7 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
       <div class="info-row"><div class="ir-label">Available / waiting</div><div class="ir-val" style="color:var(--blue2)">10 drivers</div></div>
       <div class="info-row"><div class="ir-label">In workshop</div><div class="ir-val" style="color:var(--amber)">2 drivers</div></div>
       <div class="info-row"><div class="ir-label">Scheduled (next shift)</div><div class="ir-val">3 drivers</div></div>
-      <div class="info-row"><div class="ir-label">Offline / no-show</div><div class="ir-val" style="color:var(--red)">4 drivers</div></div>
+      <div class="info-row"><div class="ir-label">Offline / no-show</div><div class="ir-val" style="color:var(--red)">2 drivers</div></div>
     </div>
     <div class="card"><div class="card-header"><div class="card-title">Vehicle Status Board</div></div>
       <div class="info-row"><div class="ir-label">In active service (incl. 5 shared)</div><div class="ir-val" style="color:var(--green)">14 cars</div></div>
@@ -1433,7 +1433,7 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
 
 <!-- ═══ PAGE: DRIVER ROSTER ═══ -->
 <div class="page" id="page-driver-roster">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Driver Roster & Profiles</div><div class="ph-sub">Complete driver database — 25 registered drivers</div></div><div class="ph-right"><button class="tb-btn primary">+ Add Driver</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Driver Roster & Profiles</div><div class="ph-sub">Complete driver database — 25 registered drivers</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Add Driver — not implemented yet')">+ Add Driver</button></div></div>
   <div class="kpi-grid g4">
     <div class="kc"><div class="kc-label">Total Registered</div><div class="kc-value">25</div></div>
     <div class="kc"><div class="kc-label">Active Today</div><div class="kc-value" style="color:var(--green)">21</div></div>
@@ -1486,7 +1486,7 @@ Tier: Top ≥80 · Average 60–79 · Low <60</div>
 
 <!-- ═══ PAGE: DRIVER SHIFTS ═══ -->
 <div class="page" id="page-driver-shifts">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Shifts & Scheduling</div><div class="ph-sub">Shift allocation, attendance, and demand-aligned scheduling</div></div><div class="ph-right"><button class="tb-btn primary">+ New Shift</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Shifts & Scheduling</div><div class="ph-sub">Shift allocation, attendance, and demand-aligned scheduling</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('New Shift — not implemented yet')">+ New Shift</button></div></div>
   <div class="kpi-grid g5">
     <div class="kc"><div class="kc-label">Today's Scheduled</div><div class="kc-value">25</div></div>
     <div class="kc"><div class="kc-label">Confirmed Present</div><div class="kc-value" style="color:var(--green)">21</div></div>
@@ -1581,7 +1581,7 @@ Tier: Top ≥80 · Average 60–79 · Low <60</div>
 
 <!-- ═══ PAGE: VEHICLES ═══ -->
 <div class="page" id="page-vehicle-fleet">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Fleet Register</div><div class="ph-sub">All 25 vehicles — specs, assignment, and operational status</div></div><div class="ph-right"><button class="tb-btn primary">+ Add Vehicle</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Fleet Register</div><div class="ph-sub">All 25 vehicles — specs, assignment, and operational status</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Add Vehicle — not implemented yet')">+ Add Vehicle</button></div></div>
   <div class="kpi-grid g5">
     <div class="kc"><div class="kc-label">Total Fleet</div><div class="kc-value">25</div></div>
     <div class="kc"><div class="kc-label">In Service</div><div class="kc-value" style="color:var(--green)">21</div></div>
@@ -1632,7 +1632,7 @@ Cost/km = (fuel + maintenance + depreciation) / total_km</div>
 
 <!-- ═══ PAGE: VEHICLE MAINTENANCE ═══ -->
 <div class="page" id="page-vehicle-maintenance">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Maintenance Tracker</div><div class="ph-sub">Scheduled, active, and historical maintenance — zero unplanned downtime goal</div></div><div class="ph-right"><button class="tb-btn primary">+ Log Service</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Maintenance Tracker</div><div class="ph-sub">Scheduled, active, and historical maintenance — zero unplanned downtime goal</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Log Service — not implemented yet')">+ Log Service</button></div></div>
   <div class="kpi-grid g5">
     <div class="kc"><div class="kc-label">Currently in Workshop</div><div class="kc-value" style="color:var(--amber)">2</div></div>
     <div class="kc"><div class="kc-label">Due Within 500km</div><div class="kc-value" style="color:var(--amber)">3</div></div>
@@ -1926,7 +1926,7 @@ Weekend rule: City Centre +30% allocation Friday–Saturday 18:00+</div>
 
 <!-- ═══ PAGE: INCIDENTS ═══ -->
 <div class="page" id="page-incidents">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Incidents & Accidents</div><div class="ph-sub">Accident reporting, claims management, and safety audit trail</div></div><div class="ph-right"><button class="tb-btn primary">+ Report Incident</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Incidents & Accidents</div><div class="ph-sub">Accident reporting, claims management, and safety audit trail</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Report Incident — not implemented yet')">+ Report Incident</button></div></div>
   <div class="kpi-grid g5">
     <div class="kc"><div class="kc-label">Open Incidents</div><div class="kc-value" style="color:var(--red)">1</div></div>
     <div class="kc"><div class="kc-label">MTD Total Incidents</div><div class="kc-value">3</div></div>
@@ -1970,7 +1970,7 @@ Weekend rule: City Centre +30% allocation Friday–Saturday 18:00+</div>
 
 <!-- ═══ PAGE: COMPLAINTS ═══ -->
 <div class="page" id="page-complaints">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Complaints & Resolution</div><div class="ph-sub">Customer complaints, investigation status, and resolution tracking</div></div><div class="ph-right"><button class="tb-btn primary">+ Log Complaint</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Complaints & Resolution</div><div class="ph-sub">Customer complaints, investigation status, and resolution tracking</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Log Complaint — not implemented yet')">+ Log Complaint</button></div></div>
   <div class="kpi-grid g4">
     <div class="kc"><div class="kc-label">Open Complaints</div><div class="kc-value" style="color:var(--amber)">3</div></div>
     <div class="kc"><div class="kc-label">Resolved MTD</div><div class="kc-value" style="color:var(--green)">11</div></div>
@@ -2148,7 +2148,7 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
 
 <!-- ═══ PAGE: SETTINGS ═══ -->
 <div class="page" id="page-settings">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">General Settings</div><div class="ph-sub">Configure KPI targets, alert thresholds, commissions, and cost rates</div></div><div class="ph-right"><button class="tb-btn primary" onclick="alert('Settings saved!')">💾 Save Settings</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">General Settings</div><div class="ph-sub">Configure KPI targets, alert thresholds, commissions, and cost rates</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.success('Settings saved')">💾 Save Settings</button></div></div>
   <div class="two-col">
     <div class="card"><div class="card-header"><div class="card-title">KPI Targets</div></div>
       <div class="form-row" style="grid-template-columns:1fr 1fr">
@@ -2475,7 +2475,7 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
 
 <!-- ═══ PAGE: USERS & PERMISSIONS ═══ -->
 <div class="page" id="page-settings-users">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Users & Permissions</div><div class="ph-sub">Control who can see and edit what in the dashboard</div></div><div class="ph-right"><button class="tb-btn primary">+ Add User</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Users & Permissions</div><div class="ph-sub">Control who can see and edit what in the dashboard</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Add User — not implemented yet')">+ Add User</button></div></div>
   <div class="card"><div class="card-header"><div class="card-title">User Roles</div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Access Level</th><th>Last Login</th><th>Status</th></tr></thead>
