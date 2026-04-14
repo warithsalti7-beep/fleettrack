@@ -283,8 +283,8 @@ const errorParam = urlParams.get('error');
 if (errorParam === 'unauthorized') {
   // Clear stale session so the user can sign in fresh — otherwise the
   // "already logged in" block below would redirect them straight back
-  // into the page that just rejected them (infinite loop).
-  try { FleetAuth.logout && localStorage.removeItem('ft_session'); } catch(e){}
+  // into the page that just rejected them.
+  try { localStorage.removeItem('ft_session'); } catch(e){}
   const banner = document.getElementById('error-banner');
   banner.textContent = 'You do not have permission to access that page. Please sign in again.';
   banner.classList.add('visible');
@@ -293,14 +293,48 @@ if (errorParam === 'unauthorized') {
 const portalParam = urlParams.get('portal');
 if (['admin','driver','employee'].includes(portalParam)) setPortal(portalParam);
 
-// If already logged in AND no error is being shown, redirect to the correct portal.
-if (errorParam !== 'unauthorized') {
-  const existingSession = FleetAuth.getSession();
-  if (existingSession) {
-    const dest = portalConfig[existingSession.role]?.dest;
-    if (dest) window.location.href = dest;
+// Loop breaker: if login->portal->login happens within 5 seconds MORE than
+// twice in a row, force-clear everything and stay on login with a banner.
+(function loopGuard(){
+  const NOW = Date.now();
+  const KEY = 'ft_login_visits';
+  let visits = [];
+  try { visits = JSON.parse(sessionStorage.getItem(KEY) || '[]'); } catch(e){}
+  visits = visits.filter(t => NOW - t < 5000);
+  visits.push(NOW);
+  try { sessionStorage.setItem(KEY, JSON.stringify(visits)); } catch(e){}
+  if (visits.length >= 3) {
+    // Definite loop — nuke everything that could cause a bounce and halt.
+    try {
+      localStorage.removeItem('ft_session');
+      localStorage.removeItem('ft_preview_as');
+    } catch(e){}
+    const banner = document.getElementById('error-banner');
+    banner.textContent = 'We detected a redirect loop and cleared your session to break it. Please sign in again.';
+    banner.classList.add('visible');
+    try { sessionStorage.removeItem(KEY); } catch(e){}
+    return; // do NOT auto-redirect below
   }
-}
+
+  // If already logged in AND no error is being shown, redirect to the correct portal.
+  if (errorParam !== 'unauthorized') {
+    const existingSession = FleetAuth.getSession();
+    if (existingSession) {
+      const dest = portalConfig[existingSession.role]?.dest;
+      // Don't redirect to where we just came from (same-tab ping-pong)
+      const ref = document.referrer || '';
+      const comingFromDest = ref && dest && ref.indexOf('/' + dest.replace('.html','')) > -1;
+      if (dest && !comingFromDest) {
+        window.location.href = dest;
+      } else if (comingFromDest){
+        const banner = document.getElementById('error-banner');
+        banner.textContent = 'Your session was rejected by the previous page. Please sign in again.';
+        banner.classList.add('visible');
+        try { localStorage.removeItem('ft_session'); } catch(e){}
+      }
+    }
+  }
+})();
 </script>
 </body>
 </html>
