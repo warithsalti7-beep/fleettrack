@@ -1316,6 +1316,7 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
         <div class="subnav-item" onclick="go('settings-api',this,'API Integrations','System / Settings')"><span class="subnav-dot"></span>API Integrations <span class="nav-badge blue" style="margin-left:auto">4</span></div>
         <div class="subnav-item" onclick="go('settings-notifications',this,'Notifications','System / Settings')"><span class="subnav-dot"></span>Notifications</div>
         <div class="subnav-item" onclick="go('settings-users',this,'Users & Permissions','System / Settings')"><span class="subnav-dot"></span>Users & Permissions</div>
+        <div class="subnav-item" onclick="go('data-import',this,'Data Import','System / Settings')"><span class="subnav-dot"></span>Data Import <span class="nav-badge" style="margin-left:auto;background:var(--greenbg);color:var(--green);border:1px solid var(--greenborder);font-size:9px;padding:1px 6px;border-radius:10px">CSV</span></div>
       </div>
     </div>
 
@@ -2485,6 +2486,249 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     </div>
   </div>
 </div>
+
+<!-- ═══ PAGE: DATA IMPORT ═══ -->
+<div class="page" id="page-data-import">
+  <div class="page-header">
+    <div class="ph-left">
+      <div class="ph-title">Data Import</div>
+      <div class="ph-sub">Drag-drop or click to upload CSV files. Data flows straight to the Neon database and every dashboard updates automatically.</div>
+    </div>
+    <div class="ph-right">
+      <a href="/templates/drivers.csv" class="tb-btn" download>⬇ drivers template</a>
+      <a href="/templates/vehicles.csv" class="tb-btn" download>⬇ vehicles</a>
+      <a href="/templates/trips.csv" class="tb-btn" download>⬇ trips</a>
+      <a href="/templates/fuel_logs.csv" class="tb-btn" download>⬇ fuel</a>
+      <a href="/templates/maintenance.csv" class="tb-btn" download>⬇ maintenance</a>
+      <a href="/templates/shifts.csv" class="tb-btn" download>⬇ shifts</a>
+    </div>
+  </div>
+
+  <style>
+    .ing-card { background:var(--bg2); border:1px solid var(--b1); border-radius:var(--r3); padding:var(--s4); margin-bottom:var(--s3); }
+    .ing-head { display:flex; align-items:center; gap:var(--s3); margin-bottom:var(--s3); flex-wrap:wrap }
+    .ing-title { font-size:13px; font-weight:600; color:var(--t1); }
+    .ing-sub   { font-size:11.5px; color:var(--t3); font-family:var(--mono); }
+    .ing-drop  { border:2px dashed var(--b2); border-radius:var(--r3); padding:var(--s5); text-align:center; color:var(--t3); cursor:pointer; transition:all var(--fast); font-size:12.5px }
+    .ing-drop:hover { border-color:var(--blue); color:var(--blue2); background:var(--bluebg) }
+    .ing-drop.dragover { border-color:var(--green); background:var(--greenbg); color:var(--green) }
+    .ing-preview { margin-top:var(--s3); font-size:11.5px; font-family:var(--mono); max-height:260px; overflow:auto; background:var(--bg3); border:1px solid var(--b1); border-radius:var(--r2); padding:var(--s3) }
+    .ing-preview table { width:100%; border-collapse:collapse; font-size:11px }
+    .ing-preview th { background:var(--bg4); padding:5px 8px; text-align:left; font-weight:600; color:var(--t2); position:sticky; top:0 }
+    .ing-preview td { padding:4px 8px; border-bottom:1px solid var(--b1); color:var(--t2) }
+    .ing-actions { display:flex; gap:var(--s2); margin-top:var(--s3); align-items:center; flex-wrap:wrap }
+    .ing-result { padding:var(--s3); border-radius:var(--r2); font-size:12.5px; font-family:var(--mono) }
+    .ing-result.ok { background:var(--greenbg); border:1px solid var(--greenborder); color:var(--green) }
+    .ing-result.warn { background:var(--amberbg); border:1px solid var(--amberborder); color:var(--amber) }
+    .ing-result.err { background:var(--redbg); border:1px solid var(--redborder); color:var(--red) }
+    .ing-errlist { max-height:140px; overflow:auto; margin-top:var(--s2); font-size:11px; background:var(--bg3); padding:var(--s2); border-radius:var(--r2); border:1px solid var(--b1) }
+  </style>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">Admin token</div><div class="card-sub">Required for every import — same SEED_TOKEN env var</div></div>
+    <div style="display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap">
+      <input type="password" id="import-token" placeholder="Paste your SEED_TOKEN" class="form-input" style="flex:1;min-width:240px;font-family:var(--mono)">
+      <button class="btn" onclick="importToken('remember')">Remember in this session</button>
+      <span id="import-token-status" style="font-size:11.5px;color:var(--t3)"></span>
+    </div>
+  </div>
+
+  <div id="import-cards"></div>
+</div>
+
+<script>
+(function(){
+  const ENTITIES = [
+    { key:'drivers',      title:'Drivers',      sub:'name, email, license_number required',                order:1 },
+    { key:'vehicles',     title:'Vehicles',     sub:'car_id or plate_number, model, year required',        order:2 },
+    { key:'shifts',       title:'Shifts',       sub:'shift_date, driver_email, car_id, times required',    order:3 },
+    { key:'trips',        title:'Trips',        sub:'trip_date, driver_email, car_id required (big table)',order:4 },
+    { key:'fuel_logs',    title:'Fuel Logs',    sub:'fill_date, car_id, liters_or_kwh, price required',    order:5 },
+    { key:'maintenance',  title:'Maintenance',  sub:'service_date, car_id, type, description required',    order:6 },
+  ];
+
+  function render(){
+    const host = document.getElementById('import-cards');
+    if (!host) return;
+    host.innerHTML = ENTITIES.map(e => `
+      <div class="ing-card" id="ing-${e.key}">
+        <div class="ing-head">
+          <span class="badge b-blue">${e.order}</span>
+          <div style="flex:1">
+            <div class="ing-title">${e.title}</div>
+            <div class="ing-sub">${e.sub}</div>
+          </div>
+          <a class="tb-btn" href="/templates/${e.key}.csv" download>⬇ template</a>
+        </div>
+        <label class="ing-drop" id="ing-drop-${e.key}">
+          Drop your <strong>${e.key}.csv</strong> file here or click to choose
+          <input type="file" accept=".csv,text/csv" style="display:none" id="ing-file-${e.key}">
+        </label>
+        <div class="ing-preview" id="ing-preview-${e.key}" style="display:none"></div>
+        <div class="ing-actions" id="ing-actions-${e.key}" style="display:none">
+          <button class="btn btn-primary" onclick="importSubmit('${e.key}')">Import to database</button>
+          <button class="btn" onclick="importReset('${e.key}')">Cancel</button>
+          <span id="ing-count-${e.key}" style="font-size:11.5px;color:var(--t3);margin-left:auto"></span>
+        </div>
+        <div id="ing-result-${e.key}" style="margin-top:var(--s3)"></div>
+      </div>
+    `).join('');
+
+    ENTITIES.forEach(e => {
+      const drop = document.getElementById('ing-drop-'+e.key);
+      const file = document.getElementById('ing-file-'+e.key);
+      drop.addEventListener('click', () => file.click());
+      drop.addEventListener('dragover',  ev => { ev.preventDefault(); drop.classList.add('dragover'); });
+      drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+      drop.addEventListener('drop', ev => {
+        ev.preventDefault(); drop.classList.remove('dragover');
+        const f = ev.dataTransfer.files[0]; if (f) loadFile(e.key, f);
+      });
+      file.addEventListener('change', () => { if (file.files[0]) loadFile(e.key, file.files[0]); });
+    });
+  }
+
+  const CACHE = {};
+
+  function loadFile(key, file){
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      Toast.error('Please upload a .csv file'); return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const csv = reader.result;
+      CACHE[key] = csv;
+      const rows = parseCsvLocal(csv);
+      showPreview(key, rows);
+      document.getElementById('ing-actions-'+key).style.display = 'flex';
+      document.getElementById('ing-count-'+key).textContent = rows.length + ' rows ready';
+    };
+    reader.readAsText(file);
+  }
+
+  function parseCsvLocal(text){
+    // Tiny CSV parser mirrored from src/lib/csv.ts — keeps the preview honest.
+    const rows = []; let i = 0, f = '', row = [], q = false;
+    while (i < text.length){
+      const c = text[i];
+      if (q){
+        if (c === '"'){ if (text[i+1] === '"'){ f += '"'; i += 2; continue; } q = false; i++; continue; }
+        f += c; i++; continue;
+      }
+      if (c === '"'){ q = true; i++; continue; }
+      if (c === ','){ row.push(f); f = ''; i++; continue; }
+      if (c === '\r'){ i++; continue; }
+      if (c === '\n'){ row.push(f); f = ''; rows.push(row); row = []; i++; continue; }
+      f += c; i++;
+    }
+    if (f.length || row.length){ row.push(f); rows.push(row); }
+    if (!rows.length) return [];
+    const hdr = rows[0].map(h => h.trim());
+    return rows.slice(1)
+      .filter(r => r.some(c => c.trim().length))
+      .map(r => { const o = {}; hdr.forEach((h, i) => o[h] = (r[i] ?? '').trim()); return o; });
+  }
+
+  function showPreview(key, rows){
+    const el = document.getElementById('ing-preview-'+key);
+    if (!rows.length){ el.style.display = 'none'; return; }
+    const cols = Object.keys(rows[0]);
+    const sample = rows.slice(0, 20);
+    el.innerHTML = `<table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+      <tbody>${sample.map(r => `<tr>${cols.map(c=>`<td>${escapeHtml(r[c]||'')}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table>${rows.length>20?'<div style="color:var(--t3);padding:6px 0">… showing first 20 of '+rows.length+' rows</div>':''}`;
+    el.style.display = 'block';
+  }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+  window.importReset = function(key){
+    delete CACHE[key];
+    document.getElementById('ing-actions-'+key).style.display = 'none';
+    document.getElementById('ing-preview-'+key).style.display = 'none';
+    document.getElementById('ing-result-'+key).innerHTML = '';
+    document.getElementById('ing-file-'+key).value = '';
+  };
+
+  window.importToken = function(action){
+    const input = document.getElementById('import-token');
+    const status = document.getElementById('import-token-status');
+    if (action === 'remember'){
+      if (!input.value.trim()){ Toast.error('Token is empty'); return; }
+      sessionStorage.setItem('ft_import_token', input.value.trim());
+      status.textContent = '✓ Saved for this browser session';
+      status.style.color = 'var(--green)';
+      Toast.success('Token stored until you close the tab');
+    }
+  };
+  function getToken(){
+    const input = document.getElementById('import-token');
+    return (input && input.value.trim()) || sessionStorage.getItem('ft_import_token') || '';
+  }
+
+  window.importSubmit = async function(key){
+    const csv = CACHE[key];
+    if (!csv){ Toast.error('Choose a file first'); return; }
+    const token = getToken();
+    if (!token){ Toast.error('Paste your admin token above first'); return; }
+
+    const btn = document.querySelector('#ing-actions-'+key+' .btn-primary');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loader"></span> Importing…';
+    const resultEl = document.getElementById('ing-result-'+key);
+    resultEl.innerHTML = '';
+
+    try {
+      const res = await fetch('/api/import/'+key, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/csv', 'X-Admin-Token': token },
+        body: csv,
+      });
+      const data = await res.json();
+      const cls = data.ok ? 'ok' : (data.errors?.length ? 'warn' : 'err');
+      const msg = data.ok
+        ? `✓ ${data.inserted} inserted, ${data.updated} updated, ${data.skipped} skipped · ${data.durationMs}ms`
+        : `⚠ ${data.inserted} inserted, ${data.updated} updated · ${data.errors?.length || 0} errors`;
+      const errList = (data.errors||[]).slice(0, 50)
+        .map(e => `<div>Row ${e.row}${e.email_or_id?' ('+e.email_or_id+')':''}: ${escapeHtml(e.message)}</div>`)
+        .join('') || '';
+      resultEl.innerHTML = `<div class="ing-result ${cls}">${msg}</div>${errList?`<div class="ing-errlist">${errList}</div>`:''}`;
+      if (data.ok){
+        Toast.success(key + ': import complete');
+        if (window.FleetData && window.FleetData.load){ try { await window.FleetData.load(); } catch(e){} }
+      } else {
+        Toast.warning(key + ': import finished with errors');
+      }
+    } catch (err) {
+      resultEl.innerHTML = `<div class="ing-result err">Failed: ${escapeHtml(err.message || err)}</div>`;
+      Toast.error('Import failed: ' + (err.message || err));
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Import to database';
+    }
+  };
+
+  // Init on page-activate
+  let ready = false;
+  function init(){
+    if (ready) return; ready = true;
+    render();
+    const saved = sessionStorage.getItem('ft_import_token');
+    if (saved){
+      document.getElementById('import-token').value = saved;
+      document.getElementById('import-token-status').textContent = '✓ Loaded from this session';
+      document.getElementById('import-token-status').style.color = 'var(--green)';
+    }
+  }
+  document.addEventListener('click', ev => {
+    if (ev.target.closest('[onclick*="data-import"]')) setTimeout(init, 50);
+  });
+  if (location.hash === '#data-import' || document.getElementById('page-data-import')?.classList.contains('active')) init();
+  const origGo2 = window.go;
+  if (origGo2){
+    window.go = function(id){ const r = origGo2.apply(this, arguments); if (id === 'data-import') init(); return r; };
+  }
+})();
+</script>
 
 <!-- ═══ PAGE: USERS & PERMISSIONS ═══ -->
 <div class="page" id="page-settings-users">
@@ -3799,6 +4043,7 @@ function _applyRoleFilter(){
     'settings-api': null,
     'settings-notifications': null,
     'settings-users': null,
+    'data-import': null,
   };
 
   document.querySelectorAll('.nav-item, .subnav-item').forEach(item => {

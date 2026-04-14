@@ -32,29 +32,54 @@ model Driver {
   updatedAt     DateTime        @updatedAt
   trips         Trip[]
   vehicles      DriverVehicle[]
+  shifts        Shift[]
 }
 
 model Vehicle {
-  id           String          @id @default(cuid())
-  plateNumber  String          @unique
-  make         String
-  model        String
-  year         Int
-  color        String
-  status       String          @default("AVAILABLE")
-  fuelType     String          @default("PETROL")
-  fuelLevel    Float           @default(100.0)
-  mileage      Int             @default(0)
-  lastService  DateTime?
-  nextService  DateTime?
-  latitude     Float?
-  longitude    Float?
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  trips        Trip[]
-  drivers      DriverVehicle[]
-  maintenance  Maintenance[]
-  fuelLogs     FuelLog[]
+  id                   String          @id @default(cuid())
+  carId                String?         @unique   // Internal fleet tag e.g. TR2518
+  plateNumber          String          @unique
+  make                 String
+  model                String
+  year                 Int
+  color                String
+  status               String          @default("AVAILABLE")
+  fuelType             String          @default("PETROL")
+  fuelLevel            Float           @default(100.0)
+  mileage              Int             @default(0)
+  purchaseDate         DateTime?
+  purchasePriceNok     Int?
+  leaseMonthlyNok      Int?
+  insuranceMonthlyNok  Int?
+  lastService          DateTime?
+  nextService          DateTime?
+  latitude             Float?
+  longitude            Float?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  trips                Trip[]
+  drivers              DriverVehicle[]
+  maintenance          Maintenance[]
+  fuelLogs             FuelLog[]
+  shifts               Shift[]
+}
+
+model Shift {
+  id              String   @id @default(cuid())
+  driverId        String
+  vehicleId       String
+  shiftDate       DateTime
+  startTime       String   // "HH:MM"
+  endTime         String   // "HH:MM"
+  hoursOnline     Float?
+  zone            String?
+  platformPrimary String?
+  status          String   @default("completed")
+  createdAt       DateTime @default(now())
+  driver          Driver   @relation(fields: [driverId], references: [id])
+  vehicle         Vehicle  @relation(fields: [vehicleId], references: [id])
+
+  @@index([shiftDate, driverId])
 }
 
 model DriverVehicle {
