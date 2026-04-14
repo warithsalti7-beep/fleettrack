@@ -11,6 +11,8 @@ model User {
   email     String   @unique
   name      String?
   role      String   @default("DISPATCHER")
+  // Plain-text for demo parity; migrate to bcrypt in Deploy 3.
+  password  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

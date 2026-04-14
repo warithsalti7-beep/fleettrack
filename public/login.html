@@ -249,15 +249,33 @@ async function handleLogin(e) {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Signing in…';
 
-  // Simulate network delay (remove in production — real fetch() goes here)
-  await new Promise(r => setTimeout(r, 700));
+  // Server cookie — primary source of truth for the API layer.
+  // Falls back to client validation if the server is unreachable
+  // (first-load offline, Vercel cold-start timeout, etc.).
+  let serverOk = false;
+  let serverError = null;
+  try {
+    const res = await fetch('/api/auth/session', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    serverOk = res.ok;
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      serverError = j.error || ('HTTP ' + res.status);
+    }
+  } catch (err) {
+    console.warn('[login] server auth unreachable, falling back to local:', err);
+  }
 
   const result = FleetAuth.login(email, password);
 
   if (!result.ok) {
     btn.disabled = false;
     btn.textContent = portalConfig[currentPortal].btnText;
-    banner.textContent = result.error;
+    banner.textContent = serverError || result.error;
     banner.classList.add('visible');
     return;
   }
@@ -271,6 +289,13 @@ async function handleLogin(e) {
     banner.textContent = `This account doesn't have access to the ${currentPortal} portal. Please select the correct portal.`;
     banner.classList.add('visible');
     return;
+  }
+
+  // If local auth accepted but server rejected (e.g. user only exists in
+  // localStorage custom-users, not in the DB), warn but allow — API calls
+  // will 401 until the user is also added server-side.
+  if (!serverOk) {
+    console.warn('[login] server session NOT issued — API calls will 401 until this user is added server-side.');
   }
 
   // Success — redirect

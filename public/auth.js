@@ -201,6 +201,13 @@ const FleetAuth = (() => {
 
   function logout(redirectTo) {
     clearSession();
+    // Clear preview-as mode so the next admin doesn't inherit it
+    try { localStorage.removeItem('ft_preview_as'); } catch(e){}
+    // Clear server-side session cookie (fire-and-forget)
+    try {
+      fetch('/api/auth/session', { method: 'DELETE', credentials: 'include', keepalive: true })
+        .catch(() => {});
+    } catch(e){}
     window.location.href = redirectTo || '../login.html';
   }
 
