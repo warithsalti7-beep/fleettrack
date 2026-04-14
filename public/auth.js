@@ -118,9 +118,64 @@ const FleetAuth = (() => {
     try { localStorage.removeItem(SESSION_KEY); } catch(e) {}
   }
 
+  // ── Custom users (created by admin at runtime) ────────────────────
+  // Stored in localStorage under 'ft_custom_users'. Merged with DEMO_USERS
+  // on every read so newly-created users can log in without a rebuild.
+  const CUSTOM_USERS_KEY = 'ft_custom_users';
+  function loadCustomUsers(){
+    try { return JSON.parse(localStorage.getItem(CUSTOM_USERS_KEY) || '[]') || []; }
+    catch(e){ return []; }
+  }
+  function saveCustomUsers(list){
+    try { localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify(list)); } catch(e){}
+  }
+  function allUsersRaw(){
+    return [...DEMO_USERS, ...loadCustomUsers()];
+  }
+  function addCustomUser(u){
+    // u: { name, email, password, role, avatar?, permissions? }
+    if (!u || !u.email || !u.password) return { ok:false, error:'Email and password are required.' };
+    if (!u.name) return { ok:false, error:'Name is required.' };
+    if (!['admin','employee','driver'].includes(u.role)) return { ok:false, error:'Invalid role.' };
+    if (allUsersRaw().find(x => x.email.toLowerCase() === u.email.toLowerCase())){
+      return { ok:false, error:'A user with that email already exists.' };
+    }
+    const id = 'usr-' + Date.now().toString(36);
+    const avatar = (u.name.split(/\s+/).map(p=>p[0]).join('').substring(0,2) || 'US').toUpperCase();
+    const defaultPerms = u.role==='admin'?['all']:u.role==='employee'?[]:[];
+    const rec = {
+      id,
+      name: u.name.trim(),
+      email: u.email.trim().toLowerCase(),
+      password: u.password,
+      role: u.role,
+      avatar: u.avatar || avatar,
+      permissions: u.permissions || defaultPerms,
+      carId: u.carId || null,
+      brand: u.brand || null,
+      shift: u.shift || null,
+      createdAt: Date.now(),
+      createdByAdmin: true,
+    };
+    const list = loadCustomUsers();
+    list.push(rec);
+    saveCustomUsers(list);
+    return { ok:true, user: rec };
+  }
+  function removeCustomUser(userId){
+    const list = loadCustomUsers().filter(u => u.id !== userId);
+    saveCustomUsers(list);
+    // Clean up any role / perm overrides for this user
+    try {
+      localStorage.removeItem('ft_perms_' + userId);
+      localStorage.removeItem('ft_role_' + userId);
+    } catch(e){}
+    return { ok:true };
+  }
+
   // ── Core auth functions ────────────────────────────────────────────
   function login(email, password) {
-    const user = DEMO_USERS.find(u =>
+    const user = allUsersRaw().find(u =>
       u.email.toLowerCase() === email.toLowerCase() && u.password === password
     );
     if (!user) return { ok: false, error: 'Invalid email or password.' };
@@ -163,7 +218,7 @@ const FleetAuth = (() => {
 
   // ── Get all users (admin only) — role overrides applied ───────────
   function getAllUsers() {
-    return DEMO_USERS.map(u => {
+    return allUsersRaw().map(u => {
       const effective = applyRoleOverride(u);
       return { ...effective, password: '••••••••' };
     });
@@ -171,7 +226,7 @@ const FleetAuth = (() => {
   function getUsersByRole(role) { return getAllUsers().filter(u => u.role === role); }
 
   // ── Public API ─────────────────────────────────────────────────────
-  return { login, logout, requireAuth, getSession, hasPermission, validatePassword, getAllUsers, getUsersByRole, setRoleOverride, getRoleOverride };
+  return { login, logout, requireAuth, getSession, hasPermission, validatePassword, getAllUsers, getUsersByRole, setRoleOverride, getRoleOverride, addCustomUser, removeCustomUser };
 
 })();
 

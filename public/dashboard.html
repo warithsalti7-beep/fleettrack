@@ -2477,7 +2477,7 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
 <div class="page" id="page-settings-users">
   <div class="page-header">
     <div class="ph-left"><div class="ph-title">Users &amp; Permissions</div><div class="ph-sub">Grant or revoke access per employee. Changes take effect on their next page load.</div></div>
-    <div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Invite user — email backend not connected yet. You can add users manually in public/auth.js DEMO_USERS for now.')">+ Invite User</button></div>
+    <div class="ph-right"><button class="tb-btn primary" onclick="openAddUserModal()">+ Add User</button></div>
   </div>
 
   <style>
@@ -2581,10 +2581,12 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
       </div>`;
     }).join('');
 
+    const delBtn = u.createdByAdmin ? `<button class="btn btn-sm" style="color:var(--red);border-color:var(--redborder)" onclick="deleteUser('${u.id}','${u.email}')" title="Delete this custom user">Delete</button>` : '';
     const actionBtns = editable ? `
       <button class="btn btn-sm" onclick="permsGrantAll('${u.id}')">Grant all</button>
       <button class="btn btn-sm" onclick="permsRevokeAll('${u.id}')">Revoke all</button>
-    ` : '<span style="font-size:11px;color:var(--t3);font-family:var(--mono)">full access (admin)</span>';
+      ${delBtn}
+    ` : (u.createdByAdmin ? delBtn : '<span style="font-size:11px;color:var(--t3);font-family:var(--mono)">full access (admin)</span>');
 
     // Role selector (only rendered on the Employees + Drivers sections; not for self-admin)
     const roleSelect = (u.role !== 'admin' || editable) ? `
@@ -2706,6 +2708,104 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
       }
     }
     setTimeout(renderAll, 50);
+  };
+
+  // Add / delete user (local-only, no email — admin sets the password directly)
+  window.openAddUserModal = function(){
+    if (document.getElementById('add-user-modal')) return; // already open
+    const modal = document.createElement('div');
+    modal.id = 'add-user-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;padding:var(--s4)';
+    modal.innerHTML = `
+      <div style="background:var(--bg2);border:1px solid var(--b2);border-radius:var(--r4);padding:var(--s6);max-width:460px;width:100%;box-shadow:var(--shadow-lg)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s5)">
+          <div>
+            <div style="font-size:16px;font-weight:700;color:var(--t1)">Add new user</div>
+            <div style="font-size:12px;color:var(--t3);margin-top:3px">Admin creates credentials — user can log in immediately.</div>
+          </div>
+          <button type="button" onclick="closeAddUserModal()" aria-label="Close" style="background:none;border:none;color:var(--t3);font-size:20px;cursor:pointer;padding:4px">×</button>
+        </div>
+        <div class="form-group"><label class="form-label" for="au-name">Full name</label>
+          <input id="au-name" class="form-input" type="text" placeholder="Firstname Lastname" required></div>
+        <div class="form-group"><label class="form-label" for="au-email">Email</label>
+          <input id="au-email" class="form-input" type="email" placeholder="person@fleettrack.no" autocomplete="off" required></div>
+        <div class="form-group"><label class="form-label" for="au-password">Password</label>
+          <div style="display:flex;gap:var(--s2)">
+            <input id="au-password" class="form-input" type="text" style="flex:1" placeholder="At least 8 chars, 1 number, 1 uppercase" required>
+            <button type="button" class="btn" onclick="au_generatePw()" title="Generate random password">🎲</button>
+          </div>
+          <div id="au-pw-hint" style="font-size:11px;color:var(--t3);margin-top:4px">Tip: the generator creates a strong random password the user can change later.</div>
+        </div>
+        <div class="form-group"><label class="form-label" for="au-role">Role</label>
+          <select id="au-role" class="form-input">
+            <option value="employee" selected>Employee — customizable access</option>
+            <option value="admin">Admin — full access</option>
+            <option value="driver">Driver — own data only</option>
+          </select>
+        </div>
+        <div id="au-driver-fields" style="display:none">
+          <div class="form-group"><label class="form-label" for="au-carid">Car ID</label>
+            <input id="au-carid" class="form-input" type="text" placeholder="e.g. TR2518"></div>
+          <div class="form-group"><label class="form-label" for="au-shift">Shift</label>
+            <select id="au-shift" class="form-input">
+              <option value="AM">AM (day)</option>
+              <option value="PM">PM (evening)</option>
+            </select>
+          </div>
+        </div>
+        <div id="au-error" style="display:none;background:var(--redbg);border:1px solid var(--redborder);color:var(--red);padding:var(--s3) var(--s4);border-radius:var(--r2);font-size:13px;margin-bottom:var(--s3)"></div>
+        <div style="display:flex;gap:var(--s2);justify-content:flex-end;margin-top:var(--s5)">
+          <button type="button" class="btn" onclick="closeAddUserModal()">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="submitAddUser()">Create user</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeAddUserModal(); });
+    document.getElementById('au-role').addEventListener('change', e => {
+      document.getElementById('au-driver-fields').style.display = e.target.value === 'driver' ? 'block' : 'none';
+    });
+    setTimeout(() => document.getElementById('au-name').focus(), 50);
+  };
+  window.closeAddUserModal = function(){
+    const m = document.getElementById('add-user-modal');
+    if (m) m.remove();
+  };
+  window.au_generatePw = function(){
+    const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let pw = '';
+    for(let i=0;i<12;i++) pw += chars[Math.floor(Math.random()*chars.length)];
+    // Ensure at least one number + one uppercase
+    if (!/[A-Z]/.test(pw)) pw = 'X' + pw.slice(1);
+    if (!/[0-9]/.test(pw)) pw = pw.slice(0,-1) + '7';
+    document.getElementById('au-password').value = pw;
+  };
+  window.submitAddUser = function(){
+    const name = document.getElementById('au-name').value.trim();
+    const email = document.getElementById('au-email').value.trim();
+    const password = document.getElementById('au-password').value;
+    const role = document.getElementById('au-role').value;
+    const err = document.getElementById('au-error');
+    const showErr = (m) => { err.textContent = m; err.style.display='block'; };
+    err.style.display = 'none';
+    if (!name || !email || !password){ showErr('Name, email and password are all required.'); return; }
+    if (password.length < 8){ showErr('Password must be at least 8 characters.'); return; }
+    if (!/[A-Z]/.test(password)){ showErr('Password must contain an uppercase letter.'); return; }
+    if (!/[0-9]/.test(password)){ showErr('Password must contain a number.'); return; }
+    const payload = { name, email, password, role };
+    if (role === 'driver'){
+      payload.carId = document.getElementById('au-carid').value.trim() || null;
+      payload.shift = document.getElementById('au-shift').value;
+    }
+    const res = FleetAuth.addCustomUser(payload);
+    if (!res.ok){ showErr(res.error || 'Could not create user.'); return; }
+    Toast.success('User created: ' + res.user.email + '. They can sign in now.');
+    closeAddUserModal();
+    renderAll();
+  };
+  window.deleteUser = function(userId, email){
+    if (!confirm('Delete user ' + email + '? This removes them + any permission overrides. This cannot be undone.')) return;
+    const res = FleetAuth.removeCustomUser(userId);
+    if (res.ok){ Toast.warning('User deleted: ' + email); renderAll(); }
   };
 
   // Preview as — swap the active session's perms+role for viewing
