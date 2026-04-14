@@ -56,6 +56,26 @@ export async function POST(req: NextRequest) {
         const completedAt = duration
           ? new Date(startedAt.getTime() + duration * 60_000)
           : null;
+
+        // Idempotency: skip if an identical trip already exists. Identity
+        // tuple = driverId + vehicleId + startedAt (to the minute). Lets
+        // safe re-uploads of the same CSV be no-ops rather than duplicating.
+        const dupe = await prisma.trip.findFirst({
+          where: {
+            driverId,
+            vehicleId,
+            startedAt: {
+              gte: new Date(startedAt.getTime() - 60_000),
+              lte: new Date(startedAt.getTime() + 60_000),
+            },
+          },
+          select: { id: true },
+        });
+        if (dupe) {
+          report.skipped++;
+          continue;
+        }
+
         await prisma.trip.create({
           data: {
             driverId,

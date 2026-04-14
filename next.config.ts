@@ -7,7 +7,6 @@ const ROUTES: Array<{ slug: string; file: string }> = [
   { slug: "login",             file: "login.html" },
   { slug: "dashboard",         file: "dashboard.html" },
   { slug: "access-management", file: "access-management.html" },
-  { slug: "employee",          file: "employee.html" },
   { slug: "driver",            file: "driver.html" },
 ];
 
@@ -19,10 +18,12 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
-    // Legacy-path safety net: if anyone still links /index.html (very old
-    // deploys used this for the driver portal) redirect them to /driver.
+    // Legacy-path safety net.
     return [
       { source: "/index.html", destination: "/driver", permanent: true },
+      // Employees now use the main /dashboard (filtered by their perms).
+      { source: "/employee",      destination: "/dashboard", permanent: true },
+      { source: "/employee.html", destination: "/dashboard", permanent: true },
     ];
   },
   // Future: poweredByHeader false, compress true, etc.
