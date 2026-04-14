@@ -2533,18 +2533,39 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     </div>
   </div>
 
+  <!-- One-shot bundle drop: accepts multiple CSVs at once, routes each by filename -->
+  <div class="card" style="border:1px solid var(--blueborder);background:linear-gradient(180deg,var(--bluebg),var(--bg2))">
+    <div class="card-header">
+      <div class="card-title">🚀 One-Shot Bundle Upload</div>
+      <div class="card-sub">Fastest way — drop ALL your CSVs at once and we'll import them in the correct order</div>
+    </div>
+    <div class="ing-drop" id="bundle-drop" style="min-height:100px;padding:var(--s5) var(--s4)">
+      Drop <strong>users.csv, drivers.csv, vehicles.csv, shifts.csv, trips.csv, fuel_logs.csv, maintenance.csv</strong> here (any subset, in any order — we'll sequence them)<br>
+      <span style="color:var(--t3);font-size:11px">Or click to pick multiple files</span>
+      <input type="file" accept=".csv,text/csv" multiple style="display:none" id="bundle-files">
+    </div>
+    <div id="bundle-report" style="display:none;margin-top:var(--s3)"></div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:var(--s3);margin:var(--s4) 0;color:var(--t3);font-size:12px">
+    <hr style="flex:1;border:none;border-top:1px solid var(--b1)">
+    <span>or import entity-by-entity below</span>
+    <hr style="flex:1;border:none;border-top:1px solid var(--b1)">
+  </div>
+
   <div id="import-cards"></div>
 </div>
 
 <script>
 (function(){
   const ENTITIES = [
-    { key:'drivers',      title:'Drivers',      sub:'name, email, license_number required',                order:1 },
-    { key:'vehicles',     title:'Vehicles',     sub:'car_id or plate_number, model, year required',        order:2 },
-    { key:'shifts',       title:'Shifts',       sub:'shift_date, driver_email, car_id, times required',    order:3 },
-    { key:'trips',        title:'Trips',        sub:'trip_date, driver_email, car_id required (big table)',order:4 },
-    { key:'fuel_logs',    title:'Fuel Logs',    sub:'fill_date, car_id, liters_or_kwh, price required',    order:5 },
-    { key:'maintenance',  title:'Maintenance',  sub:'service_date, car_id, type, description required',    order:6 },
+    { key:'users',        title:'Users',        sub:'name, email, role — admin/employee login accounts',   order:1 },
+    { key:'drivers',      title:'Drivers',      sub:'name, email, license_number required',                order:2 },
+    { key:'vehicles',     title:'Vehicles',     sub:'car_id or plate_number, model, year required',        order:3 },
+    { key:'shifts',       title:'Shifts',       sub:'shift_date, driver_email, car_id, times required',    order:4 },
+    { key:'trips',        title:'Trips',        sub:'trip_date, driver_email, car_id required (big table)',order:5 },
+    { key:'fuel_logs',    title:'Fuel Logs',    sub:'fill_date, car_id, liters_or_kwh, price required',    order:6 },
+    { key:'maintenance',  title:'Maintenance',  sub:'service_date, car_id, type, description required',    order:7 },
   ];
 
   function render(){
@@ -2727,6 +2748,111 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
   if (origGo2){
     window.go = function(id){ const r = origGo2.apply(this, arguments); if (id === 'data-import') init(); return r; };
   }
+
+  // ── One-shot bundle upload — accepts multi-file drop, routes by filename ──
+  function setupBundle(){
+    const drop = document.getElementById('bundle-drop');
+    const input = document.getElementById('bundle-files');
+    if (!drop || !input || drop.dataset.wired) return;
+    drop.dataset.wired = '1';
+
+    drop.addEventListener('click', () => input.click());
+    drop.addEventListener('dragover',  ev => { ev.preventDefault(); drop.classList.add('dragover'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+    drop.addEventListener('drop', ev => {
+      ev.preventDefault(); drop.classList.remove('dragover');
+      if (ev.dataTransfer.files.length) handleBundle(ev.dataTransfer.files);
+    });
+    input.addEventListener('change', () => { if (input.files.length) handleBundle(input.files); });
+  }
+
+  async function handleBundle(fileList){
+    const token = getToken();
+    if (!token){ Toast.error('Paste your admin token above first'); return; }
+
+    const files = [...fileList].filter(f => f.name.toLowerCase().endsWith('.csv'));
+    if (!files.length){ Toast.error('No .csv files in drop'); return; }
+
+    // Map each file to an entity by filename; anything unknown is skipped
+    const KNOWN = ENTITIES.map(e => e.key);
+    const matched = []; const unknown = [];
+    files.forEach(f => {
+      const base = f.name.toLowerCase().replace(/\.csv$/, '').replace(/[^a-z_]/g,'');
+      const hit = KNOWN.find(k => base === k || base.includes(k));
+      if (hit) matched.push({ key: hit, file: f });
+      else unknown.push(f.name);
+    });
+
+    // De-dupe: if user drops 2 files mapping to same entity, take the bigger one
+    const byKey = new Map();
+    matched.forEach(m => {
+      const cur = byKey.get(m.key);
+      if (!cur || m.file.size > cur.file.size) byKey.set(m.key, m);
+    });
+    // Sort by dependency order
+    const ordered = ENTITIES
+      .filter(e => byKey.has(e.key))
+      .map(e => byKey.get(e.key));
+
+    const report = document.getElementById('bundle-report');
+    report.style.display = 'block';
+    report.innerHTML = `
+      <div class="ing-result ok">Found ${ordered.length} valid file(s): ${ordered.map(o=>o.key).join(', ')}${unknown.length?` · ignored: ${unknown.join(', ')}`:''}</div>
+      <div id="bundle-progress" style="margin-top:var(--s3)"></div>`;
+    const prog = document.getElementById('bundle-progress');
+
+    const totals = { inserted:0, updated:0, errors:0 };
+    for (const step of ordered){
+      const line = document.createElement('div');
+      line.style.cssText = 'display:flex;gap:var(--s3);align-items:center;padding:6px 10px;background:var(--bg3);border:1px solid var(--b1);border-radius:var(--r2);margin-bottom:4px;font-size:12.5px;font-family:var(--mono)';
+      line.innerHTML = `<span class="loader"></span><strong style="min-width:120px">${step.key}</strong><span style="color:var(--t3)">${step.file.name} (${Math.ceil(step.file.size/1024)} KB)</span>`;
+      prog.appendChild(line);
+
+      const csv = await step.file.text();
+      try {
+        const res = await fetch('/api/import/'+step.key, {
+          method: 'POST',
+          headers: { 'Content-Type':'text/csv', 'X-Admin-Token':token },
+          body: csv,
+        });
+        const data = await res.json();
+        totals.inserted += data.inserted || 0;
+        totals.updated  += data.updated  || 0;
+        totals.errors   += (data.errors?.length) || 0;
+        const icon  = data.ok ? '✓' : (data.errors?.length ? '⚠' : '✗');
+        const color = data.ok ? 'var(--green)' : (data.errors?.length ? 'var(--amber)' : 'var(--red)');
+        line.innerHTML = `<span style="color:${color};font-weight:700">${icon}</span><strong style="min-width:120px">${step.key}</strong><span style="color:var(--t2)">${data.inserted||0} in · ${data.updated||0} upd · ${(data.errors?.length)||0} err · ${data.durationMs||0}ms</span>`;
+        if (data.errors?.length){
+          const ul = document.createElement('div');
+          ul.className = 'ing-errlist';
+          ul.innerHTML = data.errors.slice(0,20).map(e=>`<div>Row ${e.row}: ${escapeHtml(e.message)}</div>`).join('');
+          line.appendChild(ul);
+        }
+      } catch (err) {
+        totals.errors++;
+        line.innerHTML = `<span style="color:var(--red);font-weight:700">✗</span><strong style="min-width:120px">${step.key}</strong><span style="color:var(--red)">${escapeHtml(err.message||String(err))}</span>`;
+      }
+    }
+
+    const cls = totals.errors === 0 ? 'ok' : (totals.inserted + totals.updated > 0 ? 'warn' : 'err');
+    const summary = document.createElement('div');
+    summary.className = 'ing-result ' + cls;
+    summary.style.marginTop = 'var(--s3)';
+    summary.innerHTML = `Bundle complete — ${totals.inserted} inserted, ${totals.updated} updated, ${totals.errors} errors. Refresh the dashboard to see live data.`;
+    prog.appendChild(summary);
+    if (totals.errors === 0) {
+      Toast.success('Bundle import complete');
+      if (window.FleetData && window.FleetData.load){ try { await window.FleetData.load(); } catch(e){} }
+    } else {
+      Toast.warning('Bundle finished with errors — check details above');
+    }
+  }
+
+  // Wire the bundle drop when the Data Import page is opened
+  if (document.getElementById('bundle-drop')) setupBundle();
+  document.addEventListener('click', ev => {
+    if (ev.target.closest('[onclick*="data-import"]')) setTimeout(setupBundle, 80);
+  });
 })();
 </script>
 

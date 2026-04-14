@@ -1,0 +1,5 @@
+name,email,password,role,permissions
+Stefan Owner,stefan@fleettrack.no,OwnerPass2024!,admin,all
+Dispatch Manager,dispatch@fleettrack.no,DispatchPass2024!,employee,"view:drivers,view:trips,view:vehicles,view:alerts,manage:dispatch,view:zones"
+Anne Accountant,accountant@fleettrack.no,FinancePass2024!,employee,"view:financial,view:payroll,export:reports"
+Ops Staff,ops@fleettrack.no,OpsPass2024!,employee,"view:drivers,view:vehicles,view:trips,manage:maintenance,view:alerts"
