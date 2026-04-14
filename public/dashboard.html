@@ -2688,33 +2688,399 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
 </div>
 
 <!-- empty placeholders for remaining pages -->
-<div class="page" id="page-drivers"><div class="page-header"><div class="ph-left"><div class="ph-title">Drivers</div><div class="ph-sub">Select a sub-section from the sidebar</div></div></div></div>
-<div class="page" id="page-vehicles"><div class="page-header"><div class="ph-left"><div class="ph-title">Vehicles</div><div class="ph-sub">Select a sub-section from the sidebar</div></div></div></div>
-<div class="page" id="page-trips"><div class="page-header"><div class="ph-left"><div class="ph-title">Trips</div><div class="ph-sub">Select a sub-section from the sidebar</div></div></div></div>
-<div class="page" id="page-dispatch"><div class="page-header"><div class="ph-left"><div class="ph-title">Dispatch</div><div class="ph-sub">Select a sub-section from the sidebar</div></div></div></div>
+<div class="page" id="page-drivers"><div class="page-header"><div class="ph-left"><div class="ph-title">Drivers</div><div class="ph-sub">Select a sub-section from the sidebar</div></div></div>
+  <div class="three-col">
+    <div class="card" style="cursor:pointer" onclick="go('driver-roster',null,'Driver Roster','Operations / Drivers')"><div class="card-header"><div class="card-title">Roster & Profiles</div><div class="card-sub">19 active drivers across 14 vehicles</div></div><div class="kc-value" style="font-size:22px">19</div><div class="kc-sub">Full roster, contact details, shift tags</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('driver-performance',null,'Driver Performance','Operations / Drivers')"><div class="card-header"><div class="card-title">Performance Scores</div><div class="card-sub">Acceptance, utilisation, revenue/hr</div></div><div class="kc-value" style="font-size:22px">82<span style="font-size:14px;color:var(--t2)">/100</span></div><div class="kc-sub">Fleet average score</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('driver-shifts',null,'Shifts & Scheduling','Operations / Drivers')"><div class="card-header"><div class="card-title">Shifts & Scheduling</div><div class="card-sub">AM / PM rotation, coverage gaps</div></div><div class="kc-value" style="font-size:22px">13<span style="font-size:14px;color:var(--t2)"> / 6</span></div><div class="kc-sub">AM shift / PM shift drivers</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('driver-compliance',null,'Compliance','Operations / Drivers')"><div class="card-header"><div class="card-title">Compliance & Docs</div><div class="card-sub">Kjøreseddel, NO licence, ID</div></div><div class="kc-value" style="font-size:22px;color:var(--amber)">2</div><div class="kc-sub">Documents expiring in 60 days</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('driver-payroll',null,'Payroll','Operations / Drivers')"><div class="card-header"><div class="card-title">Payroll & Payouts</div><div class="card-sub">Weekly settlements, commission splits</div></div><div class="kc-value" style="font-size:22px"><span class="cur" data-nok="918840">918 840 kr</span></div><div class="kc-sub">MTD driver payouts</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('driver-coaching',null,'Coaching','Operations / Drivers')"><div class="card-header"><div class="card-title">Coaching & Flags <span class="badge b-red">3</span></div><div class="card-sub">Harsh events, low ratings</div></div><div class="kc-value" style="font-size:22px;color:var(--red)">3</div><div class="kc-sub">Drivers flagged for review</div></div>
+  </div>
+</div>
+<div class="page" id="page-vehicles"><div class="page-header"><div class="ph-left"><div class="ph-title">Vehicles</div><div class="ph-sub">Select a sub-section from the sidebar</div></div></div>
+  <div class="three-col">
+    <div class="card" style="cursor:pointer" onclick="go('vehicle-fleet',null,'Fleet Register','Operations / Vehicles')"><div class="card-header"><div class="card-title">Fleet Register</div><div class="card-sub">All vehicles, specs, assignment</div></div><div class="kc-value" style="font-size:22px">14</div><div class="kc-sub">12 active, 1 workshop, 1 idle</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('vehicle-performance',null,'Vehicle Performance','Operations / Vehicles')"><div class="card-header"><div class="card-title">Performance & P&L</div><div class="card-sub">Revenue, profit, cost-per-km</div></div><div class="kc-value" style="font-size:22px"><span class="cur" data-nok="3960">3 960 kr</span></div><div class="kc-sub">Avg vehicle daily revenue</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('vehicle-maintenance',null,'Maintenance','Operations / Vehicles')"><div class="card-header"><div class="card-title">Maintenance Tracker</div><div class="card-sub">Scheduled, active, historical</div></div><div class="kc-value" style="font-size:22px;color:var(--amber)">2</div><div class="kc-sub">Currently in workshop</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('vehicle-fuel',null,'Fuel Management','Operations / Vehicles')"><div class="card-header"><div class="card-title">Fuel / Charging</div><div class="card-sub">kWh &amp; litres, card usage</div></div><div class="kc-value" style="font-size:22px"><span class="cur" data-nok="3590">3 590 kr</span></div><div class="kc-sub">Fuel cost today</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('vehicle-insurance',null,'Insurance','Operations / Vehicles')"><div class="card-header"><div class="card-title">Insurance &amp; Docs</div><div class="card-sub">Policies, MOT, løyve</div></div><div class="kc-value" style="font-size:22px">14<span style="font-size:14px;color:var(--green)"> ✓</span></div><div class="kc-sub">All insured &amp; certified</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('vehicle-telematics',null,'Telematics','Operations / Vehicles')"><div class="card-header"><div class="card-title">Telematics &amp; GPS</div><div class="card-sub">Live location, behaviour, routes</div></div><div class="kc-value" style="font-size:22px;color:var(--green)">12/14</div><div class="kc-sub">GPS active</div></div>
+  </div>
+</div>
+<div class="page" id="page-trips"><div class="page-header"><div class="ph-left"><div class="ph-title">Trips</div><div class="ph-sub">Select a sub-section from the sidebar</div></div></div>
+  <div class="three-col">
+    <div class="card" style="cursor:pointer" onclick="go('trip-log',null,'Trip Log','Operations / Trips')"><div class="card-header"><div class="card-title">Live Trip Log</div><div class="card-sub">Real-time feed from Bolt &amp; Uber</div></div><div class="kc-value" style="font-size:22px">187</div><div class="kc-sub">Trips today so far</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('trip-history',null,'Trip History','Operations / Trips')"><div class="card-header"><div class="card-title">Trip History</div><div class="card-sub">Full searchable database</div></div><div class="kc-value" style="font-size:22px">5 462</div><div class="kc-sub">Trips MTD</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('trip-cancellations',null,'Cancellations','Operations / Trips')"><div class="card-header"><div class="card-title">Cancellations &amp; No-shows</div><div class="card-sub">Platform &amp; driver cancels</div></div><div class="kc-value" style="font-size:22px;color:var(--amber)">4.2%</div><div class="kc-sub">Cancellation rate</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('trip-disputes',null,'Disputes','Operations / Trips')"><div class="card-header"><div class="card-title">Disputes &amp; Claims <span class="badge b-red">2</span></div><div class="card-sub">Rider disputes, chargebacks</div></div><div class="kc-value" style="font-size:22px;color:var(--red)">2</div><div class="kc-sub">Open disputes</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('trip-receipts',null,'Receipts','Operations / Trips')"><div class="card-header"><div class="card-title">Receipts &amp; Invoices</div><div class="card-sub">Customer-facing receipts</div></div><div class="kc-value" style="font-size:22px">5 248</div><div class="kc-sub">Receipts issued MTD</div></div>
+    <div class="card"><div class="card-header"><div class="card-title">Avg Fare</div><div class="card-sub">All platforms combined</div></div><div class="kc-value" style="font-size:22px"><span class="cur" data-nok="296">296 kr</span></div><div class="kc-sub">52 kr tip avg</div></div>
+  </div>
+</div>
+<div class="page" id="page-dispatch"><div class="page-header"><div class="ph-left"><div class="ph-title">Dispatch</div><div class="ph-sub">Select a sub-section from the sidebar</div></div></div>
+  <div class="three-col">
+    <div class="card" style="cursor:pointer" onclick="go('dispatch-live',null,'Live Dispatch','Operations / Dispatch')"><div class="card-header"><div class="card-title">Live Map &amp; Dispatch</div><div class="card-sub">Real-time GPS view</div></div><div class="kc-value" style="font-size:22px;color:var(--green)">12</div><div class="kc-sub">Drivers on road</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('dispatch-zones',null,'Zone Management','Operations / Dispatch')"><div class="card-header"><div class="card-title">Zone Management</div><div class="card-sub">Define &amp; edit demand zones</div></div><div class="kc-value" style="font-size:22px">8</div><div class="kc-sub">Active zones tracked</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('dispatch-repositioning',null,'Repositioning','Operations / Dispatch')"><div class="card-header"><div class="card-title">Repositioning Engine</div><div class="card-sub">Auto zone-push rules</div></div><div class="kc-value" style="font-size:22px">4</div><div class="kc-sub">Active repositioning rules</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('dispatch-queue',null,'Queue','Operations / Dispatch')"><div class="card-header"><div class="card-title">Airport / Hub Queue</div><div class="card-sub">Pre-positioned at OSL &amp; Oslo S</div></div><div class="kc-value" style="font-size:22px">3</div><div class="kc-sub">Drivers in airport queue</div></div>
+  </div>
+</div>
 <div class="page" id="page-dispatch-live"><div class="page-header"><div class="ph-left"><div class="ph-title">Live Map & Dispatch</div><div class="ph-sub">Requires live GPS integration. Connect your telematics API to activate this view.</div></div></div><div class="alert a-blue" style="max-width:500px"><div class="adot" style="background:var(--blue)"></div><div><div class="alert-title">GPS integration required</div><div class="alert-body">Connect your Bolt Fleet API or Uber Fleet API, or a third-party telematics provider (Samsara, Geotab, Webfleet) to populate live map data.</div></div></div></div>
-<div class="page" id="page-dispatch-zones"><div class="page-header"><div class="ph-left"><div class="ph-title">Zone Management</div><div class="ph-sub">Define and edit geographic zones for repositioning and demand tracking</div></div></div></div>
-<div class="page" id="page-dispatch-repositioning"><div class="page-header"><div class="ph-left"><div class="ph-title">Repositioning Engine</div><div class="ph-sub">Automated zone push rules and manual repositioning controls</div></div></div></div>
-<div class="page" id="page-dispatch-queue"><div class="page-header"><div class="ph-left"><div class="ph-title">Airport / Hub Queue</div><div class="ph-sub">Manage pre-positioned drivers at high-value locations</div></div></div></div>
-<div class="page" id="page-finance-daily"><div class="page-header"><div class="ph-left"><div class="ph-title">Daily P&L</div><div class="ph-sub">See the P&L Dashboard tab for full daily breakdown</div></div></div></div>
-<div class="page" id="page-finance-weekly"><div class="page-header"><div class="ph-left"><div class="ph-title">Weekly Summary</div></div></div></div>
-<div class="page" id="page-finance-monthly"><div class="page-header"><div class="ph-left"><div class="ph-title">Monthly Report</div></div></div></div>
-<div class="page" id="page-finance-breakeven"><div class="page-header"><div class="ph-left"><div class="ph-title">Break-Even Analysis</div></div></div><div class="card" style="max-width:600px"><div class="card-header"><div class="card-title">Break-Even Formula</div></div><div class="fbox">Break-even daily revenue = Fixed costs / (1 − Variable cost ratio)
+<div class="page" id="page-dispatch-zones"><div class="page-header"><div class="ph-left"><div class="ph-title">Zone Management</div><div class="ph-sub">Define and edit geographic zones for repositioning and demand tracking</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Active Zones</div><div class="kc-value">8</div></div>
+    <div class="kc"><div class="kc-label">Top Zone (rev)</div><div class="kc-value">Sentrum</div><div class="kc-sub"><span class="cur" data-nok="21183">21 183 kr</span> today</div></div>
+    <div class="kc"><div class="kc-label">Lowest Demand</div><div class="kc-value" style="color:var(--red)">Nordstrand</div><div class="kc-sub">1.2 trips/hr</div></div>
+    <div class="kc"><div class="kc-label">Avg Wait (riders)</div><div class="kc-value">4.3 min</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Zone Demand &amp; Supply</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Zone</th><th>Drivers in zone</th><th>Open requests</th><th>Avg wait</th><th>Trips/hr</th><th>Revenue today</th><th>Heat</th></tr></thead>
+      <tbody>
+        <tr><td>Sentrum / City Ctr</td><td>5</td><td>3</td><td>2.8 min</td><td>18.4</td><td><span class="cur" data-nok="21183">21 183 kr</span></td><td><span class="badge b-red">Hot</span></td></tr>
+        <tr><td>OSL Gardermoen</td><td>2</td><td>1</td><td>6.1 min</td><td>7.2</td><td><span class="cur" data-nok="12834">12 834 kr</span></td><td><span class="badge b-amber">Warm</span></td></tr>
+        <tr><td>Oslo S / Bjørvika</td><td>2</td><td>2</td><td>3.4 min</td><td>10.6</td><td><span class="cur" data-nok="11350">11 350 kr</span></td><td><span class="badge b-red">Hot</span></td></tr>
+        <tr><td>Grünerløkka</td><td>1</td><td>0</td><td>5.7 min</td><td>4.1</td><td><span class="cur" data-nok="5658">5 658 kr</span></td><td><span class="badge b-blue">Normal</span></td></tr>
+        <tr><td>Frogner</td><td>1</td><td>1</td><td>4.9 min</td><td>5.8</td><td><span class="cur" data-nok="3933">3 933 kr</span></td><td><span class="badge b-blue">Normal</span></td></tr>
+        <tr><td>Majorstuen</td><td>1</td><td>0</td><td>6.4 min</td><td>3.2</td><td><span class="cur" data-nok="2415">2 415 kr</span></td><td><span class="badge b-gray">Cool</span></td></tr>
+        <tr><td>Nydalen</td><td>0</td><td>0</td><td>—</td><td>1.8</td><td><span class="cur" data-nok="1840">1 840 kr</span></td><td><span class="badge b-gray">Cool</span></td></tr>
+        <tr><td>Nordstrand</td><td>0</td><td>0</td><td>—</td><td>1.2</td><td><span class="cur" data-nok="471">471 kr</span></td><td><span class="badge b-gray">Cold</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+<div class="page" id="page-dispatch-repositioning"><div class="page-header"><div class="ph-left"><div class="ph-title">Repositioning Engine</div><div class="ph-sub">Automated zone push rules and manual repositioning controls</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Active Rules</div><div class="kc-value">4</div></div>
+    <div class="kc"><div class="kc-label">Repositions Today</div><div class="kc-value">22</div></div>
+    <div class="kc"><div class="kc-label">Avg Response</div><div class="kc-value">3.9 min</div></div>
+    <div class="kc"><div class="kc-label">Rev uplift (est)</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="4830">4 830 kr</span></div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Active Repositioning Rules</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Rule</th><th>Trigger</th><th>Action</th><th>Active window</th><th>Fired today</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Airport refill</td><td>OSL queue &lt; 3 drivers</td><td>Push nearest idle driver to Gardermoen</td><td>06:00–23:30</td><td>8</td><td><span class="badge b-green">Active</span></td></tr>
+        <tr><td>City surge</td><td>Sentrum wait &gt; 4 min</td><td>Notify drivers within 2 km</td><td>All day</td><td>11</td><td><span class="badge b-green">Active</span></td></tr>
+        <tr><td>Night ferry</td><td>Oslo S 22:00–01:00</td><td>Pre-stage 2 drivers Bjørvika</td><td>22:00–01:00</td><td>2</td><td><span class="badge b-green">Active</span></td></tr>
+        <tr><td>Frogner event</td><td>Calendar: event tagged</td><td>Redirect up to 4 drivers</td><td>Event-driven</td><td>1</td><td><span class="badge b-amber">Armed</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Recent Repositionings</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Time</th><th>Driver</th><th>Car</th><th>From</th><th>To</th><th>Accepted</th></tr></thead>
+      <tbody>
+        <tr><td>13:42</td><td>Piotr Nowak</td><td>TR732</td><td>Majorstuen</td><td>Sentrum</td><td><span class="badge b-green">Yes</span></td></tr>
+        <tr><td>13:28</td><td>Faniel Tsegay Weldetnase</td><td>TR2519</td><td>Nydalen</td><td>OSL Gardermoen</td><td><span class="badge b-green">Yes</span></td></tr>
+        <tr><td>12:51</td><td>Aram Khalandy</td><td>TR2520</td><td>Grünerløkka</td><td>Oslo S</td><td><span class="badge b-green">Yes</span></td></tr>
+        <tr><td>12:17</td><td>Hokam Ali</td><td>TR3319</td><td>Nordstrand</td><td>Sentrum</td><td><span class="badge b-amber">Declined</span></td></tr>
+        <tr><td>11:44</td><td>Mateusz Kamil Golik</td><td>TR2516</td><td>Frogner</td><td>OSL Gardermoen</td><td><span class="badge b-green">Yes</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+<div class="page" id="page-dispatch-queue"><div class="page-header"><div class="ph-left"><div class="ph-title">Airport / Hub Queue</div><div class="ph-sub">Manage pre-positioned drivers at high-value locations</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">OSL Queue</div><div class="kc-value">3</div><div class="kc-sub">Avg wait 18 min</div></div>
+    <div class="kc"><div class="kc-label">Oslo S Queue</div><div class="kc-value">2</div><div class="kc-sub">Avg wait 9 min</div></div>
+    <div class="kc"><div class="kc-label">Avg Airport Fare</div><div class="kc-value"><span class="cur" data-nok="742">742 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Queue Pickups Today</div><div class="kc-value">41</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Current Queue Order — OSL Gardermoen</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>Driver</th><th>Car</th><th>Arrived</th><th>Wait</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Olsztynski Mariusz Zbigniew</td><td>TR2518</td><td>13:22</td><td>22 min</td><td><span class="badge b-green">Next up</span></td></tr>
+        <tr><td>2</td><td>Abdulqadir Abukar Ali</td><td>TR709</td><td>13:31</td><td>13 min</td><td><span class="badge b-blue">Waiting</span></td></tr>
+        <tr><td>3</td><td>Radoslaw Stefan Brozek</td><td>TR2536</td><td>13:36</td><td>8 min</td><td><span class="badge b-blue">Waiting</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Current Queue Order — Oslo S</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>Driver</th><th>Car</th><th>Arrived</th><th>Wait</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Szymon Silay Khassany</td><td>TR2540</td><td>13:35</td><td>9 min</td><td><span class="badge b-green">Next up</span></td></tr>
+        <tr><td>2</td><td>Alaa Haithem Alnaeb</td><td>TR2597</td><td>13:41</td><td>3 min</td><td><span class="badge b-blue">Waiting</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+<div class="page" id="page-finance-daily"><div class="page-header"><div class="ph-left"><div class="ph-title">Daily P&L</div><div class="ph-sub">See the P&L Dashboard tab for full daily breakdown</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Gross Revenue</div><div class="kc-value"><span class="cur" data-nok="55430">55 430 kr</span></div><div class="kc-sub">Today, 13 Apr</div></div>
+    <div class="kc"><div class="kc-label">Net Revenue</div><div class="kc-value"><span class="cur" data-nok="47115">47 115 kr</span></div><div class="kc-sub">After platform fees</div></div>
+    <div class="kc"><div class="kc-label">Net Profit</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="9200">9 200 kr</span></div><div class="kc-sub">16.6% margin</div></div>
+    <div class="kc"><div class="kc-label">vs. Yesterday</div><div class="kc-value" style="color:var(--green)">+4.1%</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Last 7 Days — Daily P&L</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Trips</th><th>Gross</th><th>Platform fee</th><th>Driver payouts</th><th>Fuel</th><th>Fixed+Maint</th><th>Net profit</th><th>Margin</th></tr></thead>
+      <tbody>
+        <tr><td>2026-04-13</td><td>187</td><td><span class="cur" data-nok="55430">55 430 kr</span></td><td><span class="cur" data-nok="-8315">−8 315 kr</span></td><td><span class="cur" data-nok="-30625">−30 625 kr</span></td><td><span class="cur" data-nok="-3590">−3 590 kr</span></td><td><span class="cur" data-nok="-3700">−3 700 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="9200">9 200 kr</span></td><td>16.6%</td></tr>
+        <tr><td>2026-04-12</td><td>172</td><td><span class="cur" data-nok="51840">51 840 kr</span></td><td><span class="cur" data-nok="-7776">−7 776 kr</span></td><td><span class="cur" data-nok="-28641">−28 641 kr</span></td><td><span class="cur" data-nok="-3210">−3 210 kr</span></td><td><span class="cur" data-nok="-3700">−3 700 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="8513">8 513 kr</span></td><td>16.4%</td></tr>
+        <tr><td>2026-04-11</td><td>203</td><td><span class="cur" data-nok="60480">60 480 kr</span></td><td><span class="cur" data-nok="-9072">−9 072 kr</span></td><td><span class="cur" data-nok="-33415">−33 415 kr</span></td><td><span class="cur" data-nok="-3915">−3 915 kr</span></td><td><span class="cur" data-nok="-3700">−3 700 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="10378">10 378 kr</span></td><td>17.2%</td></tr>
+        <tr><td>2026-04-10</td><td>164</td><td><span class="cur" data-nok="48920">48 920 kr</span></td><td><span class="cur" data-nok="-7338">−7 338 kr</span></td><td><span class="cur" data-nok="-27028">−27 028 kr</span></td><td><span class="cur" data-nok="-3010">−3 010 kr</span></td><td><span class="cur" data-nok="-3700">−3 700 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="7544">7 544 kr</span></td><td>15.4%</td></tr>
+        <tr><td>2026-04-09</td><td>158</td><td><span class="cur" data-nok="46340">46 340 kr</span></td><td><span class="cur" data-nok="-6951">−6 951 kr</span></td><td><span class="cur" data-nok="-25598">−25 598 kr</span></td><td><span class="cur" data-nok="-2870">−2 870 kr</span></td><td><span class="cur" data-nok="-3700">−3 700 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="7011">7 011 kr</span></td><td>15.1%</td></tr>
+        <tr><td>2026-04-08</td><td>143</td><td><span class="cur" data-nok="42180">42 180 kr</span></td><td><span class="cur" data-nok="-6327">−6 327 kr</span></td><td><span class="cur" data-nok="-23304">−23 304 kr</span></td><td><span class="cur" data-nok="-2612">−2 612 kr</span></td><td><span class="cur" data-nok="-3700">−3 700 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="5934">5 934 kr</span></td><td>14.1%</td></tr>
+        <tr><td>2026-04-07</td><td>139</td><td><span class="cur" data-nok="41060">41 060 kr</span></td><td><span class="cur" data-nok="-6159">−6 159 kr</span></td><td><span class="cur" data-nok="-22685">−22 685 kr</span></td><td><span class="cur" data-nok="-2540">−2 540 kr</span></td><td><span class="cur" data-nok="-3700">−3 700 kr</span></td><td style="color:var(--amber)"><span class="cur" data-nok="5726">5 726 kr</span></td><td>13.9%</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+<div class="page" id="page-finance-weekly"><div class="page-header"><div class="ph-left"><div class="ph-title">Weekly Summary</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Week Gross</div><div class="kc-value"><span class="cur" data-nok="346250">346 250 kr</span></div><div class="kc-sub">W15 · 07–13 Apr</div></div>
+    <div class="kc"><div class="kc-label">Week Net Profit</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="54306">54 306 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Trips</div><div class="kc-value">1 166</div></div>
+    <div class="kc"><div class="kc-label">vs. Prior Week</div><div class="kc-value" style="color:var(--green)">+6.8%</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Weekly Totals — Last 6 Weeks</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Week</th><th>Trips</th><th>Gross</th><th>Driver payouts</th><th>Operating costs</th><th>Net profit</th><th>Margin</th></tr></thead>
+      <tbody>
+        <tr><td>W15 · 07–13 Apr</td><td>1 166</td><td><span class="cur" data-nok="346250">346 250 kr</span></td><td><span class="cur" data-nok="-191296">−191 296 kr</span></td><td><span class="cur" data-nok="-48725">−48 725 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="54306">54 306 kr</span></td><td>15.7%</td></tr>
+        <tr><td>W14 · 31 Mar–06 Apr</td><td>1 092</td><td><span class="cur" data-nok="324180">324 180 kr</span></td><td><span class="cur" data-nok="-179098">−179 098 kr</span></td><td><span class="cur" data-nok="-46402">−46 402 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="50053">50 053 kr</span></td><td>15.4%</td></tr>
+        <tr><td>W13 · 24–30 Mar</td><td>1 104</td><td><span class="cur" data-nok="328870">328 870 kr</span></td><td><span class="cur" data-nok="-181625">−181 625 kr</span></td><td><span class="cur" data-nok="-47019">−47 019 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="51395">51 395 kr</span></td><td>15.6%</td></tr>
+        <tr><td>W12 · 17–23 Mar</td><td>1 038</td><td><span class="cur" data-nok="309410">309 410 kr</span></td><td><span class="cur" data-nok="-170898">−170 898 kr</span></td><td><span class="cur" data-nok="-45250">−45 250 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="45884">45 884 kr</span></td><td>14.8%</td></tr>
+        <tr><td>W11 · 10–16 Mar</td><td>1 017</td><td><span class="cur" data-nok="302950">302 950 kr</span></td><td><span class="cur" data-nok="-167330">−167 330 kr</span></td><td><span class="cur" data-nok="-44870">−44 870 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="44306">44 306 kr</span></td><td>14.6%</td></tr>
+        <tr><td>W10 · 03–09 Mar</td><td>989</td><td><span class="cur" data-nok="293280">293 280 kr</span></td><td><span class="cur" data-nok="-161984">−161 984 kr</span></td><td><span class="cur" data-nok="-44215">−44 215 kr</span></td><td style="color:var(--amber)"><span class="cur" data-nok="41518">41 518 kr</span></td><td>14.2%</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+<div class="page" id="page-finance-monthly"><div class="page-header"><div class="ph-left"><div class="ph-title">Monthly Report</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">MTD Gross</div><div class="kc-value"><span class="cur" data-nok="664820">664 820 kr</span></div><div class="kc-sub">Apr 2026 · 13 days</div></div>
+    <div class="kc"><div class="kc-label">MTD Net Profit</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="104355">104 355 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Projected Full Month</div><div class="kc-value"><span class="cur" data-nok="1534200">1 534 200 kr</span></div></div>
+    <div class="kc"><div class="kc-label">vs. March</div><div class="kc-value" style="color:var(--green)">+3.9%</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Monthly Summary — Last 6 Months</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Month</th><th>Trips</th><th>Gross</th><th>Driver payouts</th><th>Operating costs</th><th>Net profit</th><th>Margin</th></tr></thead>
+      <tbody>
+        <tr><td>Apr 2026 (MTD)</td><td>2 241</td><td><span class="cur" data-nok="664820">664 820 kr</span></td><td><span class="cur" data-nok="-367113">−367 113 kr</span></td><td><span class="cur" data-nok="-193352">−193 352 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="104355">104 355 kr</span></td><td>15.7%</td></tr>
+        <tr><td>Mar 2026</td><td>4 927</td><td><span class="cur" data-nok="1467410">1 467 410 kr</span></td><td><span class="cur" data-nok="-810591">−810 591 kr</span></td><td><span class="cur" data-nok="-425960">−425 960 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="230859">230 859 kr</span></td><td>15.7%</td></tr>
+        <tr><td>Feb 2026</td><td>4 512</td><td><span class="cur" data-nok="1343820">1 343 820 kr</span></td><td><span class="cur" data-nok="-742268">−742 268 kr</span></td><td><span class="cur" data-nok="-402540">−402 540 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="199012">199 012 kr</span></td><td>14.8%</td></tr>
+        <tr><td>Jan 2026</td><td>4 318</td><td><span class="cur" data-nok="1286310">1 286 310 kr</span></td><td><span class="cur" data-nok="-710485">−710 485 kr</span></td><td><span class="cur" data-nok="-397840">−397 840 kr</span></td><td style="color:var(--amber)"><span class="cur" data-nok="177985">177 985 kr</span></td><td>13.8%</td></tr>
+        <tr><td>Dec 2025</td><td>4 892</td><td><span class="cur" data-nok="1456180">1 456 180 kr</span></td><td><span class="cur" data-nok="-804164">−804 164 kr</span></td><td><span class="cur" data-nok="-420110">−420 110 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="231906">231 906 kr</span></td><td>15.9%</td></tr>
+        <tr><td>Nov 2025</td><td>4 605</td><td><span class="cur" data-nok="1371690">1 371 690 kr</span></td><td><span class="cur" data-nok="-757483">−757 483 kr</span></td><td><span class="cur" data-nok="-408260">−408 260 kr</span></td><td style="color:var(--green)"><span class="cur" data-nok="205947">205 947 kr</span></td><td>15.0%</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+<div class="page" id="page-finance-breakeven"><div class="page-header"><div class="ph-left"><div class="ph-title">Break-Even Analysis</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Daily Break-Even</div><div class="kc-value"><span class="cur" data-nok="36800">36 800 kr</span></div><div class="kc-sub">Fleet-wide target</div></div>
+    <div class="kc"><div class="kc-label">Current Daily Avg</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="49460">49 460 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Days Above BE (30d)</div><div class="kc-value" style="color:var(--green)">27</div></div>
+    <div class="kc"><div class="kc-label">Days Below BE (30d)</div><div class="kc-value" style="color:var(--red)">3</div></div>
+  </div>
+  <div class="card" style="max-width:600px"><div class="card-header"><div class="card-title">Break-Even Formula</div></div><div class="fbox">Break-even daily revenue = Fixed costs / (1 − Variable cost ratio)
 Fixed costs (daily)   = Lease + Insurance + Admin = <span class="cur" data-nok="10305">10 305 kr</span>
 Variable cost ratio   = Driver payout% + Fuel% = 0.65 + 0.07 = 0.72
 Break-even            = <span class="cur" data-nok="10305">10 305 kr</span> / 0.28 = <span class="cur" data-nok="36800">36 800 kr</span>/day
 Safety buffer target  = Break-even × 1.40 = <span class="cur" data-nok="51520">51 520 kr</span>/day
-Current performance   = <span class="cur" data-nok="55430">55 430 kr</span> → 6.7% above safety buffer ✓</div></div></div>
-<div class="page" id="page-costs"><div class="page-header"><div class="ph-left"><div class="ph-title">Cost Management</div><div class="ph-sub">Select a cost category from the sidebar</div></div></div></div>
-<div class="page" id="page-cost-fuel"><div class="page-header"><div class="ph-left"><div class="ph-title">Fuel Cost Tracker</div><div class="ph-sub">See Vehicle → Fuel Management for full fuel data</div></div></div></div>
-<div class="page" id="page-cost-maintenance"><div class="page-header"><div class="ph-left"><div class="ph-title">Maintenance Costs</div><div class="ph-sub">See Vehicle → Maintenance Tracker for full data</div></div></div></div>
+Current performance   = <span class="cur" data-nok="55430">55 430 kr</span> → 6.7% above safety buffer ✓</div></div>
+  <div class="card"><div class="card-header"><div class="card-title">Per-Vehicle Break-Even</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Car</th><th>Model</th><th>Daily fixed</th><th>Variable %</th><th>Break-even revenue</th><th>Current daily</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>TR2518</td><td>NIO ET5</td><td><span class="cur" data-nok="690">690 kr</span></td><td>72%</td><td><span class="cur" data-nok="2464">2 464 kr</span></td><td><span class="cur" data-nok="4185">4 185 kr</span></td><td><span class="badge b-green">+70%</span></td></tr>
+        <tr><td>TR2537</td><td>NIO EL6</td><td><span class="cur" data-nok="725">725 kr</span></td><td>72%</td><td><span class="cur" data-nok="2589">2 589 kr</span></td><td><span class="cur" data-nok="3980">3 980 kr</span></td><td><span class="badge b-green">+54%</span></td></tr>
+        <tr><td>TR2540</td><td>NIO ET5</td><td><span class="cur" data-nok="690">690 kr</span></td><td>72%</td><td><span class="cur" data-nok="2464">2 464 kr</span></td><td><span class="cur" data-nok="4420">4 420 kr</span></td><td><span class="badge b-green">+79%</span></td></tr>
+        <tr><td>TR732</td><td>NIO EL6</td><td><span class="cur" data-nok="725">725 kr</span></td><td>72%</td><td><span class="cur" data-nok="2589">2 589 kr</span></td><td><span class="cur" data-nok="3150">3 150 kr</span></td><td><span class="badge b-amber">+22%</span></td></tr>
+        <tr><td>TR2519</td><td>Tesla Model Y</td><td><span class="cur" data-nok="805">805 kr</span></td><td>71%</td><td><span class="cur" data-nok="2776">2 776 kr</span></td><td><span class="cur" data-nok="4615">4 615 kr</span></td><td><span class="badge b-green">+66%</span></td></tr>
+        <tr><td>TR2520</td><td>NIO ET5</td><td><span class="cur" data-nok="690">690 kr</span></td><td>72%</td><td><span class="cur" data-nok="2464">2 464 kr</span></td><td><span class="cur" data-nok="3780">3 780 kr</span></td><td><span class="badge b-green">+53%</span></td></tr>
+        <tr><td>TR2539</td><td>NIO ET5 (2-shift)</td><td><span class="cur" data-nok="690">690 kr</span></td><td>72%</td><td><span class="cur" data-nok="2464">2 464 kr</span></td><td><span class="cur" data-nok="5840">5 840 kr</span></td><td><span class="badge b-green">+137%</span></td></tr>
+        <tr><td>TR2597</td><td>Tesla Model 3</td><td><span class="cur" data-nok="780">780 kr</span></td><td>71%</td><td><span class="cur" data-nok="2690">2 690 kr</span></td><td><span class="cur" data-nok="3420">3 420 kr</span></td><td><span class="badge b-amber">+27%</span></td></tr>
+        <tr><td>TR2516</td><td>NIO ET5 (2-shift)</td><td><span class="cur" data-nok="690">690 kr</span></td><td>72%</td><td><span class="cur" data-nok="2464">2 464 kr</span></td><td><span class="cur" data-nok="5620">5 620 kr</span></td><td><span class="badge b-green">+128%</span></td></tr>
+        <tr><td>TR2536</td><td>Tesla Model 3 (2-shift)</td><td><span class="cur" data-nok="780">780 kr</span></td><td>71%</td><td><span class="cur" data-nok="2690">2 690 kr</span></td><td><span class="cur" data-nok="6010">6 010 kr</span></td><td><span class="badge b-green">+123%</span></td></tr>
+        <tr><td>TR3319</td><td>Tesla Model 3</td><td><span class="cur" data-nok="780">780 kr</span></td><td>71%</td><td><span class="cur" data-nok="2690">2 690 kr</span></td><td><span class="cur" data-nok="2220">2 220 kr</span></td><td><span class="badge b-red">−17%</span></td></tr>
+        <tr><td>TR709</td><td>Tesla Model S</td><td><span class="cur" data-nok="920">920 kr</span></td><td>70%</td><td><span class="cur" data-nok="3067">3 067 kr</span></td><td><span class="cur" data-nok="4140">4 140 kr</span></td><td><span class="badge b-green">+35%</span></td></tr>
+        <tr><td>TR3323</td><td>KIA NIRO (2-shift)</td><td><span class="cur" data-nok="595">595 kr</span></td><td>72%</td><td><span class="cur" data-nok="2125">2 125 kr</span></td><td><span class="cur" data-nok="4290">4 290 kr</span></td><td><span class="badge b-green">+102%</span></td></tr>
+        <tr><td>TR3320</td><td>NIO EL6 (2-shift)</td><td><span class="cur" data-nok="725">725 kr</span></td><td>72%</td><td><span class="cur" data-nok="2589">2 589 kr</span></td><td><span class="cur" data-nok="5780">5 780 kr</span></td><td><span class="badge b-green">+123%</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+<div class="page" id="page-costs"><div class="page-header"><div class="ph-left"><div class="ph-title">Cost Management</div><div class="ph-sub">Select a cost category from the sidebar</div></div></div>
+  <div class="three-col">
+    <div class="card" style="cursor:pointer" onclick="go('cost-fuel',null,'Fuel Costs','Financial / Costs')"><div class="card-header"><div class="card-title">Fuel &amp; Charging</div><div class="card-sub">Daily fills, kWh, card usage</div></div><div class="kc-value" style="font-size:22px"><span class="cur" data-nok="107640">107 640 kr</span></div><div class="kc-sub">MTD spend</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('cost-maintenance',null,'Maintenance Costs','Financial / Costs')"><div class="card-header"><div class="card-title">Maintenance</div><div class="card-sub">Scheduled + emergency</div></div><div class="kc-value" style="font-size:22px"><span class="cur" data-nok="33810">33 810 kr</span></div><div class="kc-sub">MTD spend</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('cost-fixed',null,'Fixed Overheads','Financial / Costs')"><div class="card-header"><div class="card-title">Fixed Overheads</div><div class="card-sub">Lease, insurance, office</div></div><div class="kc-value" style="font-size:22px"><span class="cur" data-nok="77280">77 280 kr</span></div><div class="kc-sub">MTD allocation</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('cost-penalties',null,'Fines & Penalties','Financial / Costs')"><div class="card-header"><div class="card-title">Fines &amp; Penalties</div><div class="card-sub">Parking, traffic, tolls</div></div><div class="kc-value" style="font-size:22px;color:var(--amber)"><span class="cur" data-nok="4290">4 290 kr</span></div><div class="kc-sub">MTD</div></div>
+  </div>
+</div>
+<div class="page" id="page-cost-fuel"><div class="page-header"><div class="ph-left"><div class="ph-title">Fuel Cost Tracker</div><div class="ph-sub">See Vehicle → Fuel Management for full fuel data</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Today</div><div class="kc-value"><span class="cur" data-nok="3590">3 590 kr</span></div><div class="kc-sub">6.5% of gross</div></div>
+    <div class="kc"><div class="kc-label">MTD</div><div class="kc-value"><span class="cur" data-nok="38715">38 715 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Monthly Budget</div><div class="kc-value"><span class="cur" data-nok="107640">107 640 kr</span></div><div class="kc-sub">On track</div></div>
+    <div class="kc"><div class="kc-label">Avg Cost / km</div><div class="kc-value"><span class="cur" data-nok="1.60">1.60 kr</span></div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Recent Fuel &amp; Charging Transactions</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Car</th><th>Driver</th><th>Station</th><th>Type</th><th>Units</th><th>Amount</th><th>Running MTD</th></tr></thead>
+      <tbody>
+        <tr><td>13 Apr 08:24</td><td>TR2518</td><td>Olsztynski Mariusz Zbigniew</td><td>Circle K Ring 3</td><td>DC fast</td><td>58 kWh</td><td><span class="cur" data-nok="742">742 kr</span></td><td><span class="cur" data-nok="38715">38 715 kr</span></td></tr>
+        <tr><td>13 Apr 07:12</td><td>TR709</td><td>Abdulqadir Abukar Ali</td><td>Tesla SC Skøyen</td><td>Supercharger</td><td>64 kWh</td><td><span class="cur" data-nok="896">896 kr</span></td><td><span class="cur" data-nok="37973">37 973 kr</span></td></tr>
+        <tr><td>12 Apr 21:48</td><td>TR2539</td><td>Imran Shinwari</td><td>Mer Alnabru</td><td>DC fast</td><td>52 kWh</td><td><span class="cur" data-nok="676">676 kr</span></td><td><span class="cur" data-nok="37077">37 077 kr</span></td></tr>
+        <tr><td>12 Apr 14:06</td><td>TR3323</td><td>Petros Bampos</td><td>YX Majorstuen</td><td>Hybrid petrol</td><td>32.4 L</td><td><span class="cur" data-nok="714">714 kr</span></td><td><span class="cur" data-nok="36401">36 401 kr</span></td></tr>
+        <tr><td>12 Apr 09:15</td><td>TR2520</td><td>Aram Khalandy</td><td>Ionity Filipstad</td><td>DC fast</td><td>61 kWh</td><td><span class="cur" data-nok="854">854 kr</span></td><td><span class="cur" data-nok="35687">35 687 kr</span></td></tr>
+        <tr><td>11 Apr 22:34</td><td>TR3320</td><td>Radu Mihai Sandor</td><td>Recharge Ryen</td><td>DC fast</td><td>49 kWh</td><td><span class="cur" data-nok="637">637 kr</span></td><td><span class="cur" data-nok="34833">34 833 kr</span></td></tr>
+        <tr><td>11 Apr 11:02</td><td>TR2536</td><td>Radoslaw Stefan Brozek</td><td>Tesla SC Lørenskog</td><td>Supercharger</td><td>57 kWh</td><td><span class="cur" data-nok="798">798 kr</span></td><td><span class="cur" data-nok="34196">34 196 kr</span></td></tr>
+        <tr><td>10 Apr 18:55</td><td>TR2597</td><td>Alaa Haithem Alnaeb</td><td>Tesla SC Alnabru</td><td>Supercharger</td><td>54 kWh</td><td><span class="cur" data-nok="756">756 kr</span></td><td><span class="cur" data-nok="33398">33 398 kr</span></td></tr>
+        <tr><td>10 Apr 12:40</td><td>TR2540</td><td>Szymon Silay Khassany</td><td>Mer Sentrum</td><td>DC fast</td><td>46 kWh</td><td><span class="cur" data-nok="598">598 kr</span></td><td><span class="cur" data-nok="32642">32 642 kr</span></td></tr>
+        <tr><td>10 Apr 06:58</td><td>TR3319</td><td>Hokam Ali</td><td>Tesla SC Gardermoen</td><td>Supercharger</td><td>69 kWh</td><td><span class="cur" data-nok="966">966 kr</span></td><td><span class="cur" data-nok="32044">32 044 kr</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+<div class="page" id="page-cost-maintenance"><div class="page-header"><div class="ph-left"><div class="ph-title">Maintenance Costs</div><div class="ph-sub">See Vehicle → Maintenance Tracker for full data</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">MTD</div><div class="kc-value"><span class="cur" data-nok="33810">33 810 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Planned vs Emergency</div><div class="kc-value">5 / 2</div><div class="kc-sub">This month</div></div>
+    <div class="kc"><div class="kc-label">Avg Planned Cost</div><div class="kc-value"><span class="cur" data-nok="2300">2 300 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Avg Emergency</div><div class="kc-value" style="color:var(--red)"><span class="cur" data-nok="7130">7 130 kr</span></div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Maintenance Line Items</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Car</th><th>Workshop</th><th>Type</th><th>Description</th><th>Cost</th><th>Running MTD</th></tr></thead>
+      <tbody>
+        <tr><td>12 Apr</td><td>TR3319</td><td>Tesla Service Skøyen</td><td><span class="badge b-red">Emergency</span></td><td>Cabin fan replacement</td><td><span class="cur" data-nok="6210">6 210 kr</span></td><td><span class="cur" data-nok="33810">33 810 kr</span></td></tr>
+        <tr><td>09 Apr</td><td>TR709</td><td>Tesla Service Skøyen</td><td><span class="badge b-amber">Routine</span></td><td>Annual inspection + tyre rotation</td><td><span class="cur" data-nok="2870">2 870 kr</span></td><td><span class="cur" data-nok="27600">27 600 kr</span></td></tr>
+        <tr><td>07 Apr</td><td>TR2516</td><td>NIO House Oslo</td><td><span class="badge b-amber">Routine</span></td><td>20 000 km service</td><td><span class="cur" data-nok="2410">2 410 kr</span></td><td><span class="cur" data-nok="24730">24 730 kr</span></td></tr>
+        <tr><td>05 Apr</td><td>TR3323</td><td>KIA Verksted Alna</td><td><span class="badge b-amber">Routine</span></td><td>Oil service + filters</td><td><span class="cur" data-nok="2185">2 185 kr</span></td><td><span class="cur" data-nok="22320">22 320 kr</span></td></tr>
+        <tr><td>03 Apr</td><td>TR2537</td><td>NIO House Oslo</td><td><span class="badge b-red">Emergency</span></td><td>Suspension bushing replacement</td><td><span class="cur" data-nok="8050">8 050 kr</span></td><td><span class="cur" data-nok="20135">20 135 kr</span></td></tr>
+        <tr><td>02 Apr</td><td>TR2539</td><td>Dekk1 Ryen</td><td><span class="badge b-amber">Routine</span></td><td>Summer tyre swap</td><td><span class="cur" data-nok="1840">1 840 kr</span></td><td><span class="cur" data-nok="12085">12 085 kr</span></td></tr>
+        <tr><td>01 Apr</td><td>TR732</td><td>NIO House Oslo</td><td><span class="badge b-amber">Routine</span></td><td>Brake pad check + software update</td><td><span class="cur" data-nok="2395">2 395 kr</span></td><td><span class="cur" data-nok="10245">10 245 kr</span></td></tr>
+        <tr><td>31 Mar</td><td>TR3320</td><td>NIO House Oslo</td><td><span class="badge b-amber">Routine</span></td><td>20 000 km service</td><td><span class="cur" data-nok="2530">2 530 kr</span></td><td><span class="cur" data-nok="7850">7 850 kr</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
 <div class="page" id="page-cost-fixed"><div class="page-header"><div class="ph-left"><div class="ph-title">Fixed Overheads</div></div></div><div class="card" style="max-width:500px"><div class="card-header"><div class="card-title">Daily Fixed Cost Breakdown</div></div><div class="pl-row"><span style="color:var(--t2)">Fleet lease total (daily)</span><span><span class="cur" data-nok="1440">1 440 kr</span></span></div><div class="pl-row"><span style="color:var(--t2)">Fleet insurance (daily)</span><span><span class="cur" data-nok="715">715 kr</span></span></div><div class="pl-row"><span style="color:var(--t2)">Office / admin</span><span><span class="cur" data-nok="255">255 kr</span></span></div><div class="pl-row"><span style="color:var(--t2)">Software / tools</span><span><span class="cur" data-nok="95">95 kr</span></span></div><div class="pl-row"><span style="color:var(--t2)">Accountant (amortized)</span><span><span class="cur" data-nok="80">80 kr</span></span></div><div class="pl-row pl-total"><span>Total fixed</span><span><span class="cur" data-nok="2575">2 575 kr</span>/day</span></div></div></div>
-<div class="page" id="page-cost-penalties"><div class="page-header"><div class="ph-left"><div class="ph-title">Fines & Penalties</div></div></div></div>
-<div class="page" id="page-payments"><div class="page-header"><div class="ph-left"><div class="ph-title">Payments & Settlements</div><div class="ph-sub">Platform settlement tracking and payment reconciliation</div></div></div></div>
-<div class="page" id="page-invoicing"><div class="page-header"><div class="ph-left"><div class="ph-title">Invoicing & VAT</div><div class="ph-sub">B2B invoicing, corporate account billing, and VAT management</div></div></div></div>
-<div class="page" id="page-peak-hours"><div class="page-header"><div class="ph-left"><div class="ph-title">Peak Hour Analysis</div></div></div></div>
-<div class="page" id="page-revenue-analysis"><div class="page-header"><div class="ph-left"><div class="ph-title">Revenue Breakdown</div></div></div></div>
-<div class="page" id="page-forecasting"><div class="page-header"><div class="ph-left"><div class="ph-title">Forecasting & Trends</div></div></div></div>
+<div class="page" id="page-cost-penalties"><div class="page-header"><div class="ph-left"><div class="ph-title">Fines & Penalties</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">MTD Total</div><div class="kc-value" style="color:var(--amber)"><span class="cur" data-nok="4290">4 290 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Open Tickets</div><div class="kc-value">3</div></div>
+    <div class="kc"><div class="kc-label">Driver Liable</div><div class="kc-value"><span class="cur" data-nok="2760">2 760 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Fleet Absorbed</div><div class="kc-value"><span class="cur" data-nok="1530">1 530 kr</span></div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Recent Fines &amp; Toll Penalties</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Car</th><th>Driver</th><th>Type</th><th>Location</th><th>Amount</th><th>Liable</th><th>Running MTD</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>12 Apr</td><td>TR2520</td><td>Aram Khalandy</td><td>Parking</td><td>Karl Johans gt.</td><td><span class="cur" data-nok="900">900 kr</span></td><td>Driver</td><td><span class="cur" data-nok="4290">4 290 kr</span></td><td><span class="badge b-amber">Unpaid</span></td></tr>
+        <tr><td>10 Apr</td><td>TR2597</td><td>Alaa Haithem Alnaeb</td><td>Speed (52 in 40)</td><td>Mosseveien</td><td><span class="cur" data-nok="1380">1 380 kr</span></td><td>Driver</td><td><span class="cur" data-nok="3390">3 390 kr</span></td><td><span class="badge b-amber">Unpaid</span></td></tr>
+        <tr><td>08 Apr</td><td>TR2536</td><td>Don August Tomte Mendonca</td><td>Bompenger missed tag</td><td>Ring 3</td><td><span class="cur" data-nok="220">220 kr</span></td><td>Fleet</td><td><span class="cur" data-nok="2010">2 010 kr</span></td><td><span class="badge b-green">Paid</span></td></tr>
+        <tr><td>06 Apr</td><td>TR709</td><td>Abdulqadir Abukar Ali</td><td>Parking</td><td>OSL short-term</td><td><span class="cur" data-nok="480">480 kr</span></td><td>Driver</td><td><span class="cur" data-nok="1790">1 790 kr</span></td><td><span class="badge b-green">Paid</span></td></tr>
+        <tr><td>04 Apr</td><td>TR3319</td><td>Hokam Ali</td><td>Bus lane</td><td>Stortingsgata</td><td><span class="cur" data-nok="750">750 kr</span></td><td>Driver</td><td><span class="cur" data-nok="1310">1 310 kr</span></td><td><span class="badge b-amber">Appealed</span></td></tr>
+        <tr><td>02 Apr</td><td>TR2518</td><td>Olsztynski Mariusz Zbigniew</td><td>Parking</td><td>Grønland</td><td><span class="cur" data-nok="560">560 kr</span></td><td>Fleet</td><td><span class="cur" data-nok="560">560 kr</span></td><td><span class="badge b-green">Paid</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+<div class="page" id="page-payments"><div class="page-header"><div class="ph-left"><div class="ph-title">Payments & Settlements</div><div class="ph-sub">Platform settlement tracking and payment reconciliation</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Pending Settlement</div><div class="kc-value" style="color:var(--amber)"><span class="cur" data-nok="148920">148 920 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Settled MTD</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="515900">515 900 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Next Payout</div><div class="kc-value">Mon 15 Apr</div></div>
+    <div class="kc"><div class="kc-label">Disputes Open</div><div class="kc-value" style="color:var(--red)">1</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Platform Settlement Status</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Platform</th><th>Period</th><th>Gross</th><th>Platform fee</th><th>Payout due</th><th>Payout date</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge b-purple">Bolt</span></td><td>07–13 Apr</td><td><span class="cur" data-nok="201525">201 525 kr</span></td><td><span class="cur" data-nok="-30229">−30 229 kr</span></td><td><span class="cur" data-nok="171296">171 296 kr</span></td><td>15 Apr</td><td><span class="badge b-amber">Pending</span></td></tr>
+        <tr><td><span class="badge b-blue">Uber</span></td><td>07–13 Apr</td><td><span class="cur" data-nok="144725">144 725 kr</span></td><td><span class="cur" data-nok="-21709">−21 709 kr</span></td><td><span class="cur" data-nok="123016">123 016 kr</span></td><td>15 Apr</td><td><span class="badge b-amber">Pending</span></td></tr>
+        <tr><td><span class="badge b-purple">Bolt</span></td><td>31 Mar–06 Apr</td><td><span class="cur" data-nok="188595">188 595 kr</span></td><td><span class="cur" data-nok="-28289">−28 289 kr</span></td><td><span class="cur" data-nok="160306">160 306 kr</span></td><td>08 Apr</td><td><span class="badge b-green">Settled</span></td></tr>
+        <tr><td><span class="badge b-blue">Uber</span></td><td>31 Mar–06 Apr</td><td><span class="cur" data-nok="135585">135 585 kr</span></td><td><span class="cur" data-nok="-20338">−20 338 kr</span></td><td><span class="cur" data-nok="115247">115 247 kr</span></td><td>08 Apr</td><td><span class="badge b-green">Settled</span></td></tr>
+        <tr><td><span class="badge b-purple">Bolt</span></td><td>24–30 Mar</td><td><span class="cur" data-nok="192475">192 475 kr</span></td><td><span class="cur" data-nok="-28871">−28 871 kr</span></td><td><span class="cur" data-nok="163604">163 604 kr</span></td><td>01 Apr</td><td><span class="badge b-green">Settled</span></td></tr>
+        <tr><td><span class="badge b-blue">Uber</span></td><td>24–30 Mar</td><td><span class="cur" data-nok="136395">136 395 kr</span></td><td><span class="cur" data-nok="-20459">−20 459 kr</span></td><td><span class="cur" data-nok="115936">115 936 kr</span></td><td>01 Apr</td><td><span class="badge b-green">Settled</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+<div class="page" id="page-invoicing"><div class="page-header"><div class="ph-left"><div class="ph-title">Invoicing & VAT</div><div class="ph-sub">B2B invoicing, corporate account billing, and VAT management</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Open Invoices</div><div class="kc-value">6</div></div>
+    <div class="kc"><div class="kc-label">Outstanding</div><div class="kc-value" style="color:var(--amber)"><span class="cur" data-nok="182540">182 540 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Overdue</div><div class="kc-value" style="color:var(--red)"><span class="cur" data-nok="18720">18 720 kr</span></div></div>
+    <div class="kc"><div class="kc-label">VAT collected MTD</div><div class="kc-value"><span class="cur" data-nok="79780">79 780 kr</span></div><div class="kc-sub">12% passenger transport</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Recent Invoices</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Invoice</th><th>Customer</th><th>Issued</th><th>Due</th><th>Amount (ex VAT)</th><th>VAT (12%)</th><th>Total</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>INV-2026-0412</td><td>Statoil ASA</td><td>12 Apr</td><td>12 May</td><td><span class="cur" data-nok="47080">47 080 kr</span></td><td><span class="cur" data-nok="5650">5 650 kr</span></td><td><span class="cur" data-nok="52730">52 730 kr</span></td><td><span class="badge b-amber">Sent</span></td></tr>
+        <tr><td>INV-2026-0411</td><td>Norsk Hydro</td><td>11 Apr</td><td>11 May</td><td><span class="cur" data-nok="38240">38 240 kr</span></td><td><span class="cur" data-nok="4589">4 589 kr</span></td><td><span class="cur" data-nok="42829">42 829 kr</span></td><td><span class="badge b-amber">Sent</span></td></tr>
+        <tr><td>INV-2026-0410</td><td>DNV</td><td>10 Apr</td><td>10 May</td><td><span class="cur" data-nok="29650">29 650 kr</span></td><td><span class="cur" data-nok="3558">3 558 kr</span></td><td><span class="cur" data-nok="33208">33 208 kr</span></td><td><span class="badge b-amber">Sent</span></td></tr>
+        <tr><td>INV-2026-0408</td><td>Radisson Blu Scandinavia</td><td>08 Apr</td><td>08 May</td><td><span class="cur" data-nok="16735">16 735 kr</span></td><td><span class="cur" data-nok="2008">2 008 kr</span></td><td><span class="cur" data-nok="18743">18 743 kr</span></td><td><span class="badge b-amber">Sent</span></td></tr>
+        <tr><td>INV-2026-0405</td><td>Equinor (Fornebu)</td><td>05 Apr</td><td>05 May</td><td><span class="cur" data-nok="31295">31 295 kr</span></td><td><span class="cur" data-nok="3755">3 755 kr</span></td><td><span class="cur" data-nok="35050">35 050 kr</span></td><td><span class="badge b-amber">Sent</span></td></tr>
+        <tr><td>INV-2026-0321</td><td>Oslo Kommune (helse)</td><td>21 Mar</td><td>20 Apr</td><td><span class="cur" data-nok="16714">16 714 kr</span></td><td><span class="cur" data-nok="2006">2 006 kr</span></td><td><span class="cur" data-nok="18720">18 720 kr</span></td><td><span class="badge b-red">Overdue</span></td></tr>
+        <tr><td>INV-2026-0315</td><td>Statoil ASA</td><td>15 Mar</td><td>14 Apr</td><td><span class="cur" data-nok="44120">44 120 kr</span></td><td><span class="cur" data-nok="5294">5 294 kr</span></td><td><span class="cur" data-nok="49414">49 414 kr</span></td><td><span class="badge b-green">Paid</span></td></tr>
+        <tr><td>INV-2026-0301</td><td>Norsk Hydro</td><td>01 Mar</td><td>31 Mar</td><td><span class="cur" data-nok="36420">36 420 kr</span></td><td><span class="cur" data-nok="4370">4 370 kr</span></td><td><span class="cur" data-nok="40790">40 790 kr</span></td><td><span class="badge b-green">Paid</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+<div class="page" id="page-peak-hours"><div class="page-header"><div class="ph-left"><div class="ph-title">Peak Hour Analysis</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Top Peak</div><div class="kc-value">17:00–18:00</div><div class="kc-sub"><span class="cur" data-nok="5980">5 980 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Second Peak</div><div class="kc-value">08:00–09:00</div><div class="kc-sub"><span class="cur" data-nok="4738">4 738 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Quietest</div><div class="kc-value" style="color:var(--red)">03:00–04:00</div></div>
+    <div class="kc"><div class="kc-label">Peak Rev Share</div><div class="kc-value">38%</div><div class="kc-sub">3-hour rush captures</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Revenue by Hour — Today</div></div><div class="ch" style="height:260px"><canvas id="c-peak-hours"></canvas></div></div>
+  <script>
+    (function(){ if(typeof Chart==='undefined'||typeof mc==='undefined')return;
+      const hrs=['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23'];
+      const rev=[520,430,380,210,260,620,1180,3480,4738,3620,2890,2970,3240,3110,2760,2840,3520,5980,5120,3890,3260,2610,1940,980];
+      mc('c-peak-hours','bar',hrs,[{label:'Revenue (kr)',data:rev,backgroundColor:'rgba(59,127,245,0.45)',borderColor:'#3b7ff5',borderWidth:1}]);
+    })();
+  </script>
+</div>
+<div class="page" id="page-revenue-analysis"><div class="page-header"><div class="ph-left"><div class="ph-title">Revenue Breakdown</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Bolt Share</div><div class="kc-value">58%</div><div class="kc-sub"><span class="cur" data-nok="386228">386 228 kr</span> MTD</div></div>
+    <div class="kc"><div class="kc-label">Uber Share</div><div class="kc-value">42%</div><div class="kc-sub"><span class="cur" data-nok="278592">278 592 kr</span> MTD</div></div>
+    <div class="kc"><div class="kc-label">B2B Share</div><div class="kc-value">11%</div><div class="kc-sub">Corporate accounts</div></div>
+    <div class="kc"><div class="kc-label">Avg Fare</div><div class="kc-value"><span class="cur" data-nok="296">296 kr</span></div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Revenue by Source — Last 6 Weeks</div></div><div class="ch" style="height:260px"><canvas id="c-rev-breakdown"></canvas></div></div>
+  <script>
+    (function(){ if(typeof Chart==='undefined'||typeof mc==='undefined')return;
+      const wks=['W10','W11','W12','W13','W14','W15'];
+      mc('c-rev-breakdown','bar',wks,[
+        {label:'Bolt',data:[170102,175711,179458,190745,188055,200825],backgroundColor:'rgba(139,92,246,0.55)'},
+        {label:'Uber',data:[123178,127239,129952,138125,136125,145425],backgroundColor:'rgba(59,127,245,0.55)'}
+      ],{scales:{x:{stacked:true,ticks:{color:'#7d8fa8'}},y:{stacked:true,ticks:{color:'#7d8fa8'}}},plugins:{legend:{display:true,position:'bottom',labels:{color:'#7d8fa8'}}}});
+    })();
+  </script>
+</div>
+<div class="page" id="page-forecasting"><div class="page-header"><div class="ph-left"><div class="ph-title">Forecasting & Trends</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">April Forecast</div><div class="kc-value"><span class="cur" data-nok="1534200">1 534 200 kr</span></div><div class="kc-sub">+4.6% vs March</div></div>
+    <div class="kc"><div class="kc-label">Q2 Forecast</div><div class="kc-value"><span class="cur" data-nok="4820000">4 820 000 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Confidence</div><div class="kc-value" style="color:var(--green)">82%</div><div class="kc-sub">±6% band</div></div>
+    <div class="kc"><div class="kc-label">Model</div><div class="kc-value">ARIMA+seasonal</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Actual vs Forecast — Monthly Gross</div></div><div class="ch" style="height:260px"><canvas id="c-forecast"></canvas></div></div>
+  <script>
+    (function(){ if(typeof Chart==='undefined'||typeof mc==='undefined')return;
+      const mo=['Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26','Jun 26'];
+      mc('c-forecast','line',mo,[
+        {label:'Actual',data:[1371690,1456180,1286310,1343820,1467410,null,null,null],borderColor:'#3b7ff5',backgroundColor:'rgba(59,127,245,0.1)',fill:true,tension:0.3},
+        {label:'Forecast',data:[null,null,null,null,1467410,1534200,1612000,1698000],borderColor:'#f59e0b',borderDash:[6,4],fill:false,tension:0.3}
+      ],{plugins:{legend:{display:true,position:'bottom',labels:{color:'#7d8fa8'}}}});
+    })();
+  </script>
+</div>
 <div class="page" id="page-safety"><div class="page-header"><div class="ph-left"><div class="ph-title">Driver Safety Scores</div><div class="ph-sub">See Vehicles → Telematics for driving behaviour data</div></div></div></div>
 <div class="page" id="page-audits"><div class="page-header"><div class="ph-left"><div class="ph-title">Audit Logs</div><div class="ph-sub">Full system audit trail — all user actions, data changes, and alert history</div></div></div></div>
 <div class="page" id="page-customer-accounts"><div class="page-header"><div class="ph-left"><div class="ph-title">Corporate Accounts</div><div class="ph-sub">B2B clients, contract terms, and monthly billing</div></div></div></div>
