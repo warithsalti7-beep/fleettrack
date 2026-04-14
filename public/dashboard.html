@@ -1329,12 +1329,22 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
   </div><!-- end nav-scroll -->
 
   <div class="sidebar-footer">
-    <div class="user-row">
-      <div class="user-avatar">FM</div>
-      <div>
-        <div class="user-name">Fleet Manager</div>
-        <div class="user-role">Administrator</div>
+    <div class="user-row" id="sb-user-row" onclick="go('my-profile', null, 'My Profile', 'Account')" title="Open my profile" style="cursor:pointer">
+      <div class="user-avatar" id="sb-avatar">FM</div>
+      <div style="flex:1;min-width:0">
+        <div class="user-name" id="sb-name">Fleet Manager</div>
+        <div class="user-role" id="sb-role">Administrator</div>
       </div>
+      <button
+        type="button"
+        id="sb-signout"
+        title="Sign out"
+        aria-label="Sign out"
+        onclick="event.stopPropagation(); FleetAuth.logout('./login.html')"
+        style="background:none;border:1px solid var(--b1);color:var(--t3);font-size:14px;cursor:pointer;padding:6px 8px;border-radius:var(--r2);transition:all var(--fast);flex-shrink:0"
+        onmouseover="this.style.borderColor='var(--redborder)';this.style.color='var(--red)';this.style.background='var(--redbg)'"
+        onmouseout="this.style.borderColor='var(--b1)';this.style.color='var(--t3)';this.style.background='none'"
+      >⏻</button>
     </div>
   </div>
 </aside>
@@ -3905,9 +3915,19 @@ function _injectPreviewBanner(){
 
 document.addEventListener('DOMContentLoaded',()=>{
   if(_s){
-    const av=document.getElementById('sb-avatar'),nm=document.getElementById('sb-name');
-    if(av)av.textContent=(_ctx.role==='admin'&&!_ctx.previewFrom)?(_s.avatar||'AD'):(_ctx.role==='employee'?(_ctx.name||'EM').substring(0,2).toUpperCase():'PV');
-    if(nm)nm.textContent=_ctx.name||_s.name||'User';
+    const av=document.getElementById('sb-avatar'),nm=document.getElementById('sb-name'),rl=document.getElementById('sb-role');
+    const displayName = _ctx.name || _s.name || 'User';
+    const initials = (_ctx.role==='admin' && !_ctx.previewFrom)
+      ? (_s.avatar || 'AD')
+      : (displayName || 'US').split(/\s+/).map(p=>p[0]).join('').substring(0,2).toUpperCase();
+    if(av) av.textContent = initials;
+    if(nm) nm.textContent = displayName;
+    if(rl) rl.textContent = _ctx.previewFrom
+        ? 'Preview ' + _ctx.role
+        : _ctx.role === 'admin' ? 'Administrator'
+        : _ctx.role === 'employee' ? 'Employee'
+        : _ctx.role === 'driver' ? 'Driver'
+        : 'User';
     _injectProfilePage();
     _injectProfileNav();
     _applyRoleFilter();
