@@ -180,18 +180,38 @@ tbody tr:hover td { background: var(--bg3); }
 .stat-accent { position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: var(--r4) var(--r4) 0 0; }
 
 /* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .stat-grid.g6, .stat-grid.g5 { grid-template-columns: repeat(3,1fr); }
+}
 @media (max-width: 768px) {
-  .stat-grid.g4, .stat-grid.g3 { grid-template-columns: repeat(2,1fr); }
+  .stat-grid.g6, .stat-grid.g5, .stat-grid.g4, .stat-grid.g3 { grid-template-columns: repeat(2,1fr); }
   .stat-value { font-size: 22px; }
   .card { padding: var(--s4); }
+  /* Prevent iOS zoom on input focus by keeping inputs at >=16px */
+  .form-input, .form-select, .form-textarea { font-size: 16px; }
 }
 @media (max-width: 480px) {
-  .stat-grid.g4, .stat-grid.g3, .stat-grid.g2 { grid-template-columns: repeat(2,1fr); }
+  .stat-grid.g6, .stat-grid.g5, .stat-grid.g4, .stat-grid.g3, .stat-grid.g2 { grid-template-columns: repeat(2,1fr); }
   .stat-value { font-size: 20px; }
   .btn-lg { padding: 11px 20px; font-size: 14px; }
+  .btn { padding: 9px 14px; font-size: 13px; }
   .toast-container { left: var(--s3); right: var(--s3); top: var(--s3); }
   .toast { min-width: auto; max-width: 100%; }
+  .form-label { font-size: 12px; }
+  .form-input, .form-select, .form-textarea { padding: 10px 12px; }
+}
+@media (max-width: 360px) {
+  .stat-grid.g6, .stat-grid.g5, .stat-grid.g4, .stat-grid.g3, .stat-grid.g2 { grid-template-columns: 1fr; }
+  .stat-value { font-size: 18px; }
+}
+/* Touch devices: ensure tap targets >= 44x44 (Apple HIG / WCAG 2.5.5) */
+@media (hover: none) and (pointer: coarse) {
+  .btn, .form-input, .form-select, .portal-tab, .tab, .pill-btn { min-height: 44px; }
+  button:not(.icon-only) { min-height: 40px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+@media (prefers-color-scheme: light) {
+  /* Honour system light mode request but fall back to dark-first design */
 }

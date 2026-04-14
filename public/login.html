@@ -54,9 +54,31 @@ body::before { content:''; position:fixed; inset:0; background:radial-gradient(e
 .spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
-@media (max-width:480px) {
+@media (max-width:560px) {
   .login-card { padding:var(--s5) var(--s5); }
-  body { padding:var(--s3); align-items:flex-start; padding-top:var(--s7); }
+  body { padding:var(--s3); align-items:flex-start; padding-top:var(--s6); }
+  .login-wrap { max-width:100%; }
+  .logo-row { margin-bottom:var(--s5); }
+  .logo-icon { width:40px; height:40px; font-size:20px; border-radius:10px; }
+  .logo-name { font-size:20px; }
+  .portal-tabs { gap:4px; padding:4px; margin-bottom:var(--s4); }
+  .portal-tab { padding:var(--s2); min-height:52px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .portal-tab .tab-icon { font-size:17px; margin-bottom:1px; }
+  .portal-tab .tab-label { font-size:10.5px; }
+  .login-title { font-size:17px; }
+  .login-sub { font-size:12.5px; margin-bottom:var(--s5); }
+  .form-input { font-size:16px; } /* 16px prevents iOS zoom-on-focus */
+  .login-btn { padding:14px 20px; font-size:15px; }
+  .demo-hint p { font-size:11.5px; }
+  .footer-links { font-size:11px; margin-top:var(--s4); }
+}
+@media (max-width:380px) {
+  .portal-tab .tab-label { display:none; } /* icon-only tabs on tiny phones */
+  .portal-tab .tab-icon { font-size:20px; margin:0; }
+  .portal-tab { min-height:44px; }
+}
+@media (hover:none) {
+  .portal-tab, .login-btn, .show-pw { min-height:44px; }
 }
 </style>
 </head>
