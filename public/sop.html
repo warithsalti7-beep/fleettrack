@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
+<title>FleetTrack — Employee SOP (printable)</title>
+<style>
+  :root { --ink:#0b1220; --muted:#6b7280; --rule:#e5e7eb; --bg:#f8fafc; --accent:#1a4db8; --ok:#059669; --warn:#d97706; --err:#dc2626; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; color: var(--ink); line-height: 1.55; font-size: 14px; }
+  .page { max-width: 820px; margin: 24px auto; background: #fff; padding: 48px 56px; border: 1px solid var(--rule); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.04); }
+  .toolbar { max-width: 820px; margin: 16px auto 0; display: flex; gap: 12px; align-items: center; padding: 0 8px; }
+  .toolbar button, .toolbar a { background: var(--accent); color: #fff; border: 0; padding: 10px 18px; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  .toolbar a.secondary { background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+  .toolbar a.secondary:hover, .toolbar button:hover { filter: brightness(1.05); }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--ink); }
+  .brand img { width: 44px; height: 44px; border-radius: 10px; }
+  .brand h1 { margin: 0; font-size: 26px; letter-spacing: -0.5px; }
+  .brand .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  h2 { margin: 32px 0 12px; font-size: 20px; border-bottom: 1px solid var(--rule); padding-bottom: 6px; page-break-after: avoid; }
+  h3 { margin: 20px 0 8px; font-size: 16px; page-break-after: avoid; }
+  h4 { margin: 14px 0 6px; font-size: 14px; color: var(--accent); }
+  p, ul, ol { margin: 8px 0; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 4px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12.5px; }
+  th, td { border: 1px solid var(--rule); padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: #f1f5f9; font-weight: 600; }
+  code { background: #f1f5f9; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: "SF Mono", Menlo, Consolas, monospace; }
+  .note { background: #eff6ff; border-left: 4px solid var(--accent); padding: 10px 14px; margin: 14px 0; border-radius: 0 4px 4px 0; font-size: 13px; }
+  .warn { background: #fffbeb; border-left: 4px solid var(--warn); padding: 10px 14px; margin: 14px 0; border-radius: 0 4px 4px 0; font-size: 13px; }
+  .ok { color: var(--ok); font-weight: 600; }
+  .req { color: var(--err); font-weight: 600; }
+  .opt { color: var(--muted); }
+  .meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 20px; font-size: 13px; color: var(--muted); margin: 8px 0 16px; }
+  .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--rule); font-size: 11.5px; color: var(--muted); text-align: center; }
+  .pagebreak { page-break-before: always; }
+  @media print {
+    body { background: #fff; font-size: 11pt; }
+    .toolbar { display: none; }
+    .page { margin: 0; padding: 18mm 16mm; border: 0; box-shadow: none; border-radius: 0; max-width: none; }
+    h2 { page-break-after: avoid; }
+    table { page-break-inside: avoid; }
+    .note, .warn { page-break-inside: avoid; }
+    @page { size: A4; margin: 18mm 16mm; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+  <a class="secondary" href="./templates/fleet-setup.csv" download>⬇ fleet-setup.csv</a>
+  <a class="secondary" href="./templates/weekly-operations.csv" download>⬇ weekly-operations.csv</a>
+  <a class="secondary" href="./dashboard">← Back to dashboard</a>
+</div>
+
+<div class="page">
+
+<div class="brand">
+  <img src="./favicon.svg" alt="FleetTrack"/>
+  <div>
+    <h1>FleetTrack — Data Entry SOP</h1>
+    <div class="sub">Standard Operating Procedure for dispatch / ops staff · Version 1.0 · April 2026</div>
+  </div>
+</div>
+
+<div class="meta">
+  <div><strong>Audience:</strong> Dispatch office, admin assistants, fleet ops</div>
+  <div><strong>Time commitment:</strong> 30–60 min setup, 15–30 min/week</div>
+  <div><strong>Files to fill:</strong> 2 CSVs (fleet-setup + weekly-operations)</div>
+  <div><strong>Upload frequency:</strong> Once for setup, weekly for operations</div>
+</div>
+
+<div class="note">
+  <strong>How this works:</strong> Every number on the FleetTrack dashboard — revenue, profit margin, VAT, driver scores, fleet utilization — is computed from the data in these two CSV files. Follow the SOP, every KPI updates automatically. Skip steps, dashboard shows stale numbers.
+</div>
+
+<h2>1. The two files</h2>
+
+<table>
+  <tr><th>File</th><th>How often</th><th>Who fills it</th><th>Content</th></tr>
+  <tr><td><code>fleet-setup.csv</code></td><td><strong>Once</strong>, then rarely</td><td>Office manager</td><td>Drivers, vehicles, monthly fixed costs</td></tr>
+  <tr><td><code>weekly-operations.csv</code></td><td><strong>Every Monday</strong></td><td>Dispatch / ops</td><td>Shifts, trips, fuel, maintenance</td></tr>
+</table>
+
+<p>Download template links are in the toolbar above (click "⬇" buttons). Both files use a <code>record_type</code> column — the system uses that to know what each row is. <strong>Leave any column blank if it doesn't apply.</strong></p>
+
+<h2>2. First-time setup (30–60 min, do once)</h2>
+
+<h3>2.1 DRIVER rows — one per driver</h3>
+<table>
+  <tr><th>Column</th><th>Req</th><th>Example</th><th>Source</th></tr>
+  <tr><td><code>record_type</code></td><td><span class="req">✓</span></td><td>DRIVER</td><td>Always "DRIVER"</td></tr>
+  <tr><td><code>name</code></td><td><span class="req">✓</span></td><td>Olsztynski Mariusz Z.</td><td>Passport / ID</td></tr>
+  <tr><td><code>email</code></td><td><span class="req">✓</span></td><td>olsztynski@fleettrack.no</td><td>Work email (used as login)</td></tr>
+  <tr><td><code>phone</code></td><td><span class="req">✓</span></td><td>+47 900 11 111</td><td>HR records</td></tr>
+  <tr><td><code>license_number</code></td><td><span class="req">✓</span></td><td>NO-20148-91</td><td>Norwegian taxi licence (løyvebevis)</td></tr>
+  <tr><td><code>license_expiry</code></td><td><span class="req">✓</span></td><td>2027-08-14</td><td>Same document</td></tr>
+  <tr><td><code>hire_date</code></td><td><span class="req">✓</span></td><td>2024-01-15</td><td>Employment contract</td></tr>
+  <tr><td><code>car_id</code></td><td><span class="opt">—</span></td><td>TR2518</td><td>Internal fleet tag</td></tr>
+  <tr><td><code>shift</code></td><td><span class="opt">—</span></td><td>AM or PM</td><td>Ops schedule</td></tr>
+  <tr><td><code>brand</code></td><td><span class="opt">—</span></td><td>NIO ET5</td><td>Their car model</td></tr>
+  <tr><td><code>commission_pct</code></td><td><span class="opt">—</span></td><td>65</td><td>Contract revenue split %</td></tr>
+  <tr><td><code>status</code></td><td><span class="opt">—</span></td><td>active</td><td>active/inactive</td></tr>
+  <tr><td><code>address</code></td><td><span class="opt">—</span></td><td>Storgata 1, Oslo</td><td>HR records</td></tr>
+</table>
+
+<h3>2.2 VEHICLE rows — one per car</h3>
+<table>
+  <tr><th>Column</th><th>Req</th><th>Example</th><th>Source</th></tr>
+  <tr><td><code>record_type</code></td><td><span class="req">✓</span></td><td>VEHICLE</td><td>Always "VEHICLE"</td></tr>
+  <tr><td><code>car_id</code></td><td><span class="req">✓</span></td><td>TR2518</td><td>Your internal fleet tag</td></tr>
+  <tr><td><code>make</code></td><td><span class="req">✓</span></td><td>NIO</td><td>Registration card</td></tr>
+  <tr><td><code>model</code></td><td><span class="req">✓</span></td><td>ET5</td><td>Registration card</td></tr>
+  <tr><td><code>year</code></td><td><span class="req">✓</span></td><td>2024</td><td>Registration card</td></tr>
+  <tr><td><code>plate_number</code></td><td><span class="req">✓</span></td><td>ZB12345</td><td>Norwegian plate (Statens vegvesen)</td></tr>
+  <tr><td><code>fuel_type</code></td><td><span class="req">✓</span></td><td>Electric</td><td>Electric / Hybrid / Diesel / Petrol</td></tr>
+  <tr><td><code>color</code></td><td><span class="opt">—</span></td><td>Black</td><td>Look at the car</td></tr>
+  <tr><td><code>purchase_date</code></td><td><span class="opt">⚠</span></td><td>2024-01-15</td><td>Purchase / lease contract</td></tr>
+  <tr><td><code>purchase_price_nok</code></td><td><span class="opt">⚠</span></td><td>485000</td><td>Purchase invoice (excl. reclaimable VAT)</td></tr>
+  <tr><td><code>current_mileage_km</code></td><td><span class="opt">⚠</span></td><td>18230</td><td>Odometer today</td></tr>
+  <tr><td><code>lease_monthly_nok</code></td><td><span class="opt">—</span></td><td>0 or 12800</td><td>Lease contract (0 if owned)</td></tr>
+  <tr><td><code>insurance_monthly_nok</code></td><td><span class="opt">⚠</span></td><td>1320</td><td>Insurance policy</td></tr>
+  <tr><td><code>status</code></td><td><span class="opt">—</span></td><td>active</td><td>active / workshop / no-driver</td></tr>
+</table>
+
+<h3>2.3 FIXED_COST rows — one per recurring expense</h3>
+<p>Every Norwegian taxi operator has these. Add one row for each.</p>
+<table>
+  <tr><th>Category</th><th>When to add</th><th>Typical NOK/mo</th></tr>
+  <tr><td><code>LEASE</code></td><td>Per financed/leased vehicle</td><td>~12 800</td></tr>
+  <tr><td><code>INSURANCE</code></td><td>Commercial taxi insurance per vehicle</td><td>~1 300</td></tr>
+  <tr><td><code>LOYVE</code></td><td>Taxi licence (løyveavgift) per vehicle</td><td>~480</td></tr>
+  <tr><td><code>TAXIMETER</code></td><td>Certified taximeter rental / service</td><td>~200</td></tr>
+  <tr><td><code>REGISTRATION</code></td><td>Årsavgift / trafikkforsikringsavgift</td><td>~250</td></tr>
+  <tr><td><code>WASH</code></td><td>Monthly car wash contract</td><td>~800</td></tr>
+  <tr><td><code>PARKING</code></td><td>Garage / parking permit</td><td>~1 500</td></tr>
+  <tr><td><code>OFFICE</code></td><td>Office / dispatch rental</td><td>~3 500</td></tr>
+  <tr><td><code>SOFTWARE</code></td><td>FleetTrack + dispatch software</td><td>~400</td></tr>
+  <tr><td><code>ACCOUNTING</code></td><td>Regnskapsfører monthly</td><td>~2 400</td></tr>
+  <tr><td><code>SALARY</code></td><td>Any salaried staff (dispatcher, office)</td><td>varies</td></tr>
+  <tr><td><code>EMPLOYER_NI</code></td><td>Arbeidsgiveravgift (~14.1%)</td><td>% of salary</td></tr>
+  <tr><td><code>FINANCING</code></td><td>Loan interest on vehicles bought</td><td>varies</td></tr>
+</table>
+
+<p><strong>Frequency values:</strong> <code>ONCE</code>, <code>MONTHLY</code>, <code>QUARTERLY</code>, <code>YEARLY</code>. System normalises everything to monthly-equivalent automatically.</p>
+
+<h3>2.4 Upload fleet-setup.csv</h3>
+<ol>
+  <li>Sign in as admin at <code>https://fleettrack.no/login</code></li>
+  <li>Sidebar → <strong>System</strong> → <strong>Settings</strong> → <strong>Data Import</strong></li>
+  <li>Paste your <code>SEED_TOKEN</code> (ask IT; stored in Vercel env)</li>
+  <li>Drag <code>fleet-setup.csv</code> into the <strong>One-Shot Bundle Upload</strong> zone</li>
+  <li>Review the preview → click <strong>Import to database</strong></li>
+  <li>Report shows e.g. <code>DRIVER: 19 inserted, VEHICLE: 14 inserted, FIXED_COST: 13 inserted</code></li>
+</ol>
+<div class="warn"><strong>You only do this once</strong> — or whenever a new driver/vehicle/cost is added.</div>
+
+<div class="pagebreak"></div>
+
+<h2>3. Weekly workflow — <code>weekly-operations.csv</code></h2>
+<p>Every Monday morning, fill in everything that happened the prior week. <strong>Four row types, all in one file.</strong> Historical data (September 2025 → present) uses the exact same format — just put all historical weeks in one big upload.</p>
+
+<h3>3.1 SHIFT row — one per driver-day</h3>
+<table>
+  <tr><th>Column</th><th>Example</th><th>Source</th></tr>
+  <tr><td><code>record_type</code></td><td>SHIFT</td><td>Always "SHIFT"</td></tr>
+  <tr><td><code>date</code></td><td>2025-09-01</td><td>Shift date</td></tr>
+  <tr><td><code>driver_email</code></td><td>olsztynski@fleettrack.no</td><td>From setup file</td></tr>
+  <tr><td><code>car_id</code></td><td>TR2518</td><td>Which car the driver used</td></tr>
+  <tr><td><code>shift_start</code></td><td>06:00</td><td>Clock-on time (HH:MM, 24h)</td></tr>
+  <tr><td><code>shift_end</code></td><td>14:30</td><td>Clock-off time</td></tr>
+  <tr><td><code>hours_online</code></td><td>8.5</td><td>Total hours app was on — from Bolt/Uber driver app</td></tr>
+  <tr><td><code>zone</code></td><td>City Centre</td><td>Primary operating area</td></tr>
+  <tr><td><code>platform</code></td><td>Bolt</td><td>Bolt / Uber / Bolt+Uber / Norgestaxi / Direct</td></tr>
+  <tr><td><code>status</code></td><td>completed</td><td>completed / cancelled / no-show</td></tr>
+</table>
+
+<h3>3.2 TRIP row — one per completed ride (the biggest section)</h3>
+<table>
+  <tr><th>Column</th><th>Example</th><th>Source</th></tr>
+  <tr><td><code>record_type</code></td><td>TRIP</td><td>Always "TRIP"</td></tr>
+  <tr><td><code>date</code></td><td>2025-09-01</td><td>Trip date</td></tr>
+  <tr><td><code>time</code></td><td>07:12</td><td>Start time (HH:MM, 24h)</td></tr>
+  <tr><td><code>driver_email</code></td><td>olsztynski@fleettrack.no</td><td>From setup</td></tr>
+  <tr><td><code>car_id</code></td><td>TR2518</td><td>From setup</td></tr>
+  <tr><td><code>pickup_address</code></td><td>Oslo Airport T2</td><td>Platform export</td></tr>
+  <tr><td><code>dropoff_address</code></td><td>Aker Brygge</td><td>Platform export</td></tr>
+  <tr><td><code>distance_km</code></td><td>48.2</td><td>Kilometres with passenger</td></tr>
+  <tr><td><code>duration_min</code></td><td>42</td><td>Trip duration in minutes</td></tr>
+  <tr><td><code>fare_nok</code></td><td>582</td><td>Gross fare BEFORE platform commission</td></tr>
+  <tr><td><code>platform</code></td><td>Bolt</td><td>Bolt / Uber / Norgestaxi / Direct</td></tr>
+  <tr><td><code>payment_method</code></td><td>CARD</td><td>CARD / CASH / APP</td></tr>
+  <tr><td><code>rating</code></td><td>5.0</td><td>Customer rating 1.0–5.0</td></tr>
+  <tr><td><code>status</code></td><td>completed</td><td>completed / cancelled</td></tr>
+</table>
+
+<div class="note"><strong>Pro tip:</strong> Combine all platform exports into one big <code>weekly-operations.csv</code>. Duplicate trips (same driver + car + start time ±10 seconds) are auto-detected and skipped — safe to re-upload the same file without corruption.</div>
+
+<h3>3.3 FUEL row — every refill / charging session</h3>
+<table>
+  <tr><th>Column</th><th>Ex. EV</th><th>Ex. Petrol</th><th>Source</th></tr>
+  <tr><td><code>record_type</code></td><td>FUEL</td><td>FUEL</td><td>Always "FUEL"</td></tr>
+  <tr><td><code>date</code></td><td>2025-09-01</td><td>2025-09-02</td><td>Receipt date</td></tr>
+  <tr><td><code>car_id</code></td><td>TR2518</td><td>TR731</td><td>Fleet tag</td></tr>
+  <tr><td><code>liters_or_kwh</code></td><td>42 (kWh)</td><td>38 (L)</td><td>Receipt</td></tr>
+  <tr><td><code>price_per_unit_nok</code></td><td>3.85</td><td>22.50</td><td>Receipt</td></tr>
+  <tr><td><code>total_cost_nok</code></td><td>162</td><td>855</td><td>Receipt total</td></tr>
+  <tr><td><code>mileage_km</code></td><td>18230</td><td>42180</td><td>Odometer at refill</td></tr>
+  <tr><td><code>station</code></td><td>Circle K Aker Brygge</td><td>Shell Sinsen</td><td>Receipt</td></tr>
+</table>
+
+<h3>3.4 MAINTENANCE row — every workshop visit</h3>
+<table>
+  <tr><th>Column</th><th>Example</th><th>Source</th></tr>
+  <tr><td><code>record_type</code></td><td>MAINTENANCE</td><td>Always "MAINTENANCE"</td></tr>
+  <tr><td><code>date</code></td><td>2025-09-05</td><td>Service date</td></tr>
+  <tr><td><code>car_id</code></td><td>TR2518</td><td>Fleet tag</td></tr>
+  <tr><td><code>type</code></td><td>OIL_CHANGE</td><td>OIL_CHANGE / TYRES / BRAKES / INSPECTION / REPAIR / ACCIDENT / OTHER</td></tr>
+  <tr><td><code>description</code></td><td>Routine 10 000 km service</td><td>Invoice</td></tr>
+  <tr><td><code>total_cost_nok</code></td><td>2070</td><td>Invoice</td></tr>
+  <tr><td><code>mileage_km</code></td><td>18000</td><td>Odometer at service</td></tr>
+  <tr><td><code>workshop</code></td><td>AutoFix GmbH</td><td>Workshop name</td></tr>
+  <tr><td><code>status</code></td><td>completed</td><td>scheduled / in_progress / completed</td></tr>
+</table>
+
+<h2>4. Where to gather each data point</h2>
+
+<h3>4.1 Bolt (trips, hours online, earnings)</h3>
+<ol>
+  <li>Go to <code>fleets.bolt.eu</code> → sign in as fleet manager</li>
+  <li><strong>Reports</strong> → <strong>Trips</strong> → select date range (e.g. 2025-09-01 to today) → <strong>Export CSV</strong></li>
+  <li>Column mapping to our TRIP rows:
+    <ul>
+      <li>Bolt <code>Trip Date</code> → <code>date</code></li>
+      <li>Bolt <code>Pickup Time</code> → <code>time</code></li>
+      <li>Bolt <code>Driver</code> → <code>driver_email</code> (match via internal directory)</li>
+      <li>Bolt <code>Price</code> → <code>fare_nok</code></li>
+      <li>Bolt <code>Distance</code> → <code>distance_km</code></li>
+      <li>Bolt <code>Duration</code> → <code>duration_min</code></li>
+      <li>Bolt <code>Rating</code> → <code>rating</code></li>
+      <li><code>platform</code> = <code>Bolt</code> (hardcode)</li>
+    </ul>
+  </li>
+</ol>
+
+<h3>4.2 Uber (trips per driver)</h3>
+<ol>
+  <li>Go to <code>fleet.uber.com</code> — fleet owner login</li>
+  <li><strong>Financials</strong> → <strong>Weekly Payments</strong> → each driver's statement</li>
+  <li>Each driver can also export from the Uber Driver app: <strong>Earnings</strong> → <strong>Past Week</strong> → Export CSV</li>
+  <li>Map to TRIP rows. <code>platform</code> = <code>Uber</code></li>
+</ol>
+
+<h3>4.3 Norgestaxi / Oslo Taxi / 07000 (if you use a central)</h3>
+<ol>
+  <li>Log into the operator portal of whichever dispatch you work with</li>
+  <li><strong>Reports</strong> → <strong>Trip Log</strong> → date range → Export CSV</li>
+  <li><code>platform</code> = the central's name (e.g. <code>Norgestaxi</code>)</li>
+</ol>
+
+<h3>4.4 Circle K / Shell fleet card (fuel)</h3>
+<ol>
+  <li>Circle K Fleet portal: <code>circlekfleet.com</code> → Reports → Fleet Card Transactions → monthly CSV</li>
+  <li>Shell: <code>shellfleethub.com</code> → similar flow</li>
+  <li>Map each transaction to a FUEL row</li>
+</ol>
+
+<h3>4.5 Tesla (for Tesla vehicles in fleet)</h3>
+<ol>
+  <li>Tesla app → driver's account → <strong>Charging History</strong></li>
+  <li>Tesla sends CSV by email on request</li>
+  <li>Or wait for Tesla Fleet API integration (roadmap)</li>
+</ol>
+
+<h3>4.6 Workshop / garage invoices</h3>
+<p>Most workshops email a PDF invoice. Create a Gmail rule: auto-forward to <code>ops@fleettrack.no</code>. Every Monday, dispatch enters the week's invoices as MAINTENANCE rows.</p>
+
+<h3>4.7 Driver-paid receipts (cash fuel, paper tickets)</h3>
+<p>Drivers photograph the receipt at end-of-shift → text to dispatch WhatsApp / email → dispatch enters into weekly file.</p>
+
+<div class="pagebreak"></div>
+
+<h2>5. Upload &amp; what happens next</h2>
+<ol>
+  <li>Sign in as admin at <code>https://fleettrack.no/login</code></li>
+  <li>Sidebar → <strong>System</strong> → <strong>Settings</strong> → <strong>Data Import</strong></li>
+  <li>Drag <code>weekly-operations.csv</code> into the <strong>One-Shot Bundle Upload</strong> zone</li>
+  <li>Click <strong>Import to database</strong></li>
+  <li>Success report example:
+    <pre style="background:#f1f5f9;padding:10px;border-radius:4px;font-size:11px;">SHIFT:       95 inserted, 0 errors
+TRIP:       847 inserted, 3 skipped (duplicates), 0 errors
+FUEL:        34 inserted, 0 errors
+MAINTENANCE:  2 inserted, 0 errors
+Duration: 4.2s</pre></li>
+  <li>Refresh the dashboard — every page pulls fresh data</li>
+</ol>
+
+<h2>6. KPIs that auto-update after import</h2>
+
+<table>
+  <tr><th>KPI</th><th>Where</th><th>Formula</th></tr>
+  <tr><td>Today Revenue</td><td>Command Centre</td><td>Sum of <code>fare_nok</code> where <code>date = today</code></td></tr>
+  <tr><td>Total Trips Today</td><td>Command Centre</td><td>Count of TRIP rows where <code>date = today</code> &amp; status = completed</td></tr>
+  <tr><td>Active Drivers</td><td>Command Centre</td><td>Count of drivers with a SHIFT today</td></tr>
+  <tr><td>MTD Revenue</td><td>Financial</td><td>Sum of <code>fare_nok</code> since 1st of month</td></tr>
+  <tr><td>MTD Fuel Cost</td><td>Financial</td><td>Sum of <code>total_cost_nok</code> FUEL rows since 1st</td></tr>
+  <tr><td>MTD Maintenance</td><td>Financial</td><td>Sum of COMPLETED MAINTENANCE since 1st</td></tr>
+  <tr><td>Fixed Costs (prorated)</td><td>Financial</td><td>Monthly-equivalent × (days_elapsed / days_in_month)</td></tr>
+  <tr><td>Net Profit</td><td>Financial</td><td>Revenue − Variable − Prorated Fixed</td></tr>
+  <tr><td>Profit Margin %</td><td>Financial</td><td>Net Profit / Revenue × 100</td></tr>
+  <tr><td>VAT Payable</td><td>Financial</td><td>Revenue × 12% (NO ride-share rate)</td></tr>
+  <tr><td>Revenue per km</td><td>Financial</td><td>Total fare / Total distance (MTD)</td></tr>
+  <tr><td>Break-even day</td><td>Financial</td><td>Estimated day when cumulative revenue covers all costs</td></tr>
+  <tr><td>Avg Trip Fare</td><td>Trip Log</td><td>Sum(fare) / count(trips)</td></tr>
+  <tr><td>Avg Rating</td><td>Driver Roster</td><td>Average of <code>rating</code> across trips</td></tr>
+</table>
+
+<h2>7. Troubleshooting</h2>
+
+<table>
+  <tr><th>Error</th><th>Meaning</th><th>Fix</th></tr>
+  <tr><td><code>Unknown driver_email</code></td><td>TRIP/SHIFT for a driver not in setup</td><td>Add driver to <code>fleet-setup.csv</code> → re-upload setup first</td></tr>
+  <tr><td><code>Unknown car_id</code></td><td>TRIP/SHIFT for a vehicle not in setup</td><td>Add vehicle to <code>fleet-setup.csv</code> → re-upload</td></tr>
+  <tr><td><code>Missing date, driver_email, or car_id</code></td><td>These 3 are required on every TRIP/SHIFT row</td><td>Check the row number in the error report</td></tr>
+  <tr><td><code>N duplicates skipped</code></td><td>Normal — system de-duped an identical trip</td><td>No action. Your data is safe.</td></tr>
+  <tr><td>Dashboard shows old numbers</td><td>Browser cache</td><td>Hard refresh: Cmd+Shift+R (Mac) or Ctrl+Shift+R (Win)</td></tr>
+  <tr><td>Import 500 error</td><td>Usually missing env var in Vercel</td><td>IT task — check Vercel → Settings → Env Vars</td></tr>
+</table>
+
+<h2>8. Daily &amp; weekly habits summary</h2>
+<ul>
+  <li><strong>Drivers:</strong> Just drive. At shift end, photograph any paper receipts and text to ops.</li>
+  <li><strong>Dispatch daily (5 min):</strong> Photograph workshop invoices, note shift exceptions (no-shows, cancellations).</li>
+  <li><strong>Dispatch Monday (15–30 min):</strong> Export Bolt + Uber + Norgestaxi CSVs for prior week → export fleet-card transactions → enter workshop invoices → combine everything into <code>weekly-operations.csv</code> → upload.</li>
+  <li><strong>Office manager monthly:</strong> Review fixed costs in <code>fleet-setup.csv</code>. Update if insurance renewed, lease amount changed, new cost added.</li>
+</ul>
+
+<h2>9. Historical backfill (Sept 2024 → now)</h2>
+<p>To inject all your historical data in one go:</p>
+<ol>
+  <li>Export trip data from each platform (Bolt, Uber, Norgestaxi) covering <strong>2024-09-01 onwards</strong> — each as a CSV</li>
+  <li>Export fuel card statements for the same period</li>
+  <li>Gather workshop invoices for the same period</li>
+  <li>Combine everything into one <strong>big</strong> <code>weekly-operations.csv</code> — every row tagged with <code>record_type</code></li>
+  <li>Upload once — system handles 50 000+ rows; expect ~2–5 min for huge backfills</li>
+  <li>The dashboard then has 14+ months of history populating every chart, P&amp;L, and driver scorecard</li>
+</ol>
+<div class="note">If a historical upload reports many errors, don't panic — fix the identified rows and re-upload the cleaned file. Duplicates from the successful rows will be auto-skipped.</div>
+
+<div class="footer">
+  FleetTrack Data-Entry SOP · For internal use at the fleet operator's discretion.<br>
+  For dashboard / API / login issues, contact your admin.
+</div>
+
+</div>
+
+</body>
+</html>

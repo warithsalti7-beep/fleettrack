@@ -140,10 +140,13 @@ button { font-family: var(--font); }
   border-bottom: 1px solid var(--b1);
   flex-shrink: 0;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s1);
   min-height: 68px;
 }
+.logo-row { display: flex; align-items: center; gap: var(--s2); }
+.logo-mark { width: 32px; height: 32px; border-radius: 8px; box-shadow: 0 0 0 1px rgba(59,127,245,0.3), var(--shadow-sm); flex-shrink: 0; }
 .logo-inner { display: flex; align-items: center; gap: var(--s3); overflow: hidden; }
 .logo-icon {
   width: 34px; height: 34px;
@@ -1146,9 +1149,12 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
 ═══════════════════════════════ -->
 <aside class="sidebar">
   <div class="logo-area">
-    <div class="logo-name">FleetTrack</div>
+    <div class="logo-row">
+      <img src="./favicon.svg" alt="FleetTrack" class="logo-mark" width="32" height="32"/>
+      <div class="logo-name">FleetTrack</div>
+    </div>
     <div class="logo-tag">FLEET MANAGEMENT SYSTEM</div>
-    <div class="fleet-badge"><span class="live-dot"></span>19 Drivers · Live</div>
+    <div class="fleet-badge"><span class="live-dot"></span><span data-kpi="driversTotal">19</span> Drivers · Live</div>
   </div>
 
   <div class="nav-scroll">

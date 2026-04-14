@@ -22,7 +22,7 @@ export async function GET() {
     authSecret: !!(process.env.AUTH_SECRET && process.env.AUTH_SECRET.length >= 16),
     anthropicKey: !!process.env.ANTHROPIC_API_KEY,
     seedToken: !!process.env.SEED_TOKEN,
-    sentryDsn: !!process.env.NEXT_PUBLIC_SENTRY_DSN || !!process.env.SENTRY_DSN,
+    sentryDsn: !!(process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN),
   };
   const result: Record<string, unknown> = {
     ok: true,
