@@ -62,6 +62,7 @@ model Vehicle {
   maintenance          Maintenance[]
   fuelLogs             FuelLog[]
   shifts               Shift[]
+  fixedCosts           FixedCost[]
 }
 
 model Shift {
@@ -144,4 +145,47 @@ model FuelLog {
   filledAt      DateTime @default(now())
   createdAt     DateTime @default(now())
   vehicle       Vehicle  @relation(fields: [vehicleId], references: [id])
+}
+
+/// Recurring / one-off non-trip costs that feed the P&L.
+/// Examples per vehicle: lease, insurance (CASCO, third-party), financing,
+/// parking, car wash, platform partner subscription, løyve (taxi licence),
+/// taximeter calibration, registration fees, depreciation.
+/// Examples fleet-wide (vehicleId=null): office rent, dispatch software,
+/// admin salaries, employer NI (arbeidsgiveravgift), accounting.
+model FixedCost {
+  id          String    @id @default(cuid())
+  vehicleId   String?   // null = fleet-wide
+  category    String    // LEASE | INSURANCE | FINANCING | PARKING | WASH | LOYVE | TAXIMETER | REGISTRATION | DEPRECIATION | OFFICE | SOFTWARE | SALARY | EMPLOYER_NI | ACCOUNTING | OTHER
+  description String
+  amountNok   Float     // negative for expense, positive for rebate/refund
+  frequency   String    @default("MONTHLY") // ONCE | MONTHLY | QUARTERLY | YEARLY
+  startDate   DateTime
+  endDate     DateTime?
+  vendor      String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  vehicle     Vehicle?  @relation(fields: [vehicleId], references: [id])
+
+  @@index([category, startDate])
+  @@index([vehicleId])
+}
+
+/// Append-only audit log of admin actions (import runs, permission
+/// changes, role reassignments, manual data edits). Lets us trace
+/// every state change back to the user who made it.
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?  // User.id of the person doing it
+  actorEmail String?
+  action    String   // e.g. "import.drivers", "perms.grant", "role.change"
+  target    String?  // e.g. "driver:drv-123" or "vehicle:TR2518"
+  meta      Json?
+  ok        Boolean  @default(true)
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId])
 }

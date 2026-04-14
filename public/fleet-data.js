@@ -108,8 +108,40 @@ window.FleetData = (function(){
     return out;
   }
 
+  // Mutate the exported arrays in place with live data. Anyone who captured
+  // `FleetData.drivers` earlier will see the new rows without a re-import.
+  async function refresh(){
+    const live = await load();
+    liveCache = null; // allow future re-fetch
+    drivers.splice(0, drivers.length, ...(live.drivers || []));
+    vehicles.splice(0, vehicles.length, ...(live.vehicles || []));
+    if (live.kpis) Object.assign(kpis, live.kpis);
+    return { drivers, vehicles, kpis };
+  }
+
+  // Non-blocking bootstrap: on page load, try hydrating from the API.
+  // If successful AND data differs from baked-in, fire a custom event so
+  // the dashboard can show a 'New data available — Reload' banner.
+  function bootstrap(){
+    const baselineDriverCount  = drivers.length;
+    const baselineVehicleCount = vehicles.length;
+    load().then(live => {
+      if (!live) return;
+      const d = live.drivers || [];
+      const v = live.vehicles || [];
+      const diff = (d.length !== baselineDriverCount) || (v.length !== baselineVehicleCount);
+      if (diff) {
+        try {
+          window.dispatchEvent(new CustomEvent('fleetdata:live-available', { detail: { counts: { drivers: d.length, vehicles: v.length } } }));
+        } catch (e){}
+      }
+    }).catch(() => { /* silent */ });
+  }
+  // Run bootstrap after a tick so page-render scripts complete first
+  setTimeout(bootstrap, 200);
+
   function findDriver(idOrCar){ return drivers.find(d => d.id === idOrCar || d.car === idOrCar); }
   function findVehicle(id){ return vehicles.find(v => v.id === id); }
 
-  return { drivers, vehicles, kpis, load, findDriver, findVehicle };
+  return { drivers, vehicles, kpis, load, refresh, findDriver, findVehicle };
 })();

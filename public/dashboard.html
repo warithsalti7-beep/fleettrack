@@ -2501,6 +2501,8 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
       <a href="/templates/fuel_logs.csv" class="tb-btn" download>⬇ fuel</a>
       <a href="/templates/maintenance.csv" class="tb-btn" download>⬇ maintenance</a>
       <a href="/templates/shifts.csv" class="tb-btn" download>⬇ shifts</a>
+      <a href="/templates/users.csv" class="tb-btn" download>⬇ users</a>
+      <a href="/templates/fixed_costs.csv" class="tb-btn" download>⬇ fixed costs</a>
     </div>
   </div>
 
@@ -2566,6 +2568,7 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     { key:'trips',        title:'Trips',        sub:'trip_date, driver_email, car_id required (big table)',order:5 },
     { key:'fuel_logs',    title:'Fuel Logs',    sub:'fill_date, car_id, liters_or_kwh, price required',    order:6 },
     { key:'maintenance',  title:'Maintenance',  sub:'service_date, car_id, type, description required',    order:7 },
+    { key:'fixed_costs',  title:'Fixed Costs',  sub:'lease, insurance, NI, loyve, depreciation — real P&amp;L',order:8 },
   ];
 
   function render(){
@@ -4305,6 +4308,18 @@ document.addEventListener('DOMContentLoaded',()=>{
     _applyRoleFilter();
     _injectPreviewBanner();
   }
+});
+
+// Live-data availability banner — fires when fleet-data.js detects DB has
+// more rows than baked-in demo data. Gives the admin a one-click reload.
+window.addEventListener('fleetdata:live-available', (ev) => {
+  if (document.getElementById('livedata-banner')) return;
+  const counts = (ev && ev.detail && ev.detail.counts) || {};
+  const banner = document.createElement('div');
+  banner.id = 'livedata-banner';
+  banner.style.cssText = 'position:sticky;top:0;z-index:9998;background:var(--greenbg);border-bottom:1px solid var(--greenborder);color:var(--green);padding:7px 14px;font-size:12.5px;font-family:var(--mono);display:flex;align-items:center;justify-content:center;gap:10px;width:100%;box-sizing:border-box';
+  banner.innerHTML = `✓ Live database data available (${counts.drivers||0} drivers, ${counts.vehicles||0} vehicles) — <a href="#" onclick="location.reload();return false" style="color:var(--blue2);text-decoration:underline">reload dashboard</a> to switch from demo to live data`;
+  document.body.insertBefore(banner, document.body.firstChild);
 });
 
 // ── REAL FLEET DATA from driver_car_brand_status.numbers ──────────────────
