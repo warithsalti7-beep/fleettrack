@@ -310,7 +310,7 @@ function downloadReport(kind){
 // Render currency
 if (typeof FleetCurrency !== 'undefined') {
   FleetCurrency.rerender();
-  FleetCurrency.injectToggle();
+  FleetCurrency.injectToggle(); if(typeof FleetTheme!=="undefined")FleetTheme.injectToggle();
 }
 </script>
 </body>

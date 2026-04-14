@@ -183,7 +183,7 @@ function resetAll() {
   setTimeout(() => location.reload(), 1200);
 }
 
-if (typeof FleetCurrency !== 'undefined') { FleetCurrency.rerender(); FleetCurrency.injectToggle(); }
+if (typeof FleetCurrency !== 'undefined') { FleetCurrency.rerender(); FleetCurrency.injectToggle(); if(typeof FleetTheme!=="undefined")FleetTheme.injectToggle(); }
 </script>
 </body>
 </html>

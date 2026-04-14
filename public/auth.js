@@ -300,6 +300,34 @@ const FleetCurrency=(()=>{
   return{get,set,toggle,format,formatCompact,injectToggle,rerender};
 })();
 
+// ── Theme (dark / light) ────────────────────────────────────────────────
+const FleetTheme = (()=>{
+  const KEY = 'ft_theme';
+  const get = () => { try { return localStorage.getItem(KEY) || 'dark'; } catch(e){ return 'dark'; } };
+  const set = (t) => {
+    try { localStorage.setItem(KEY, t); } catch(e){}
+    document.documentElement.setAttribute('data-theme', t);
+  };
+  const toggle = () => { set(get()==='dark' ? 'light' : 'dark'); const b=document.getElementById('ft-theme-btn'); if(b) b.textContent = get()==='dark' ? '☾' : '☀'; };
+  function apply(){ document.documentElement.setAttribute('data-theme', get()); }
+  function injectToggle(){
+    if (document.getElementById('ft-theme-btn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'ft-theme-btn';
+    btn.title = 'Switch theme (dark / light)';
+    btn.setAttribute('aria-label','Toggle theme');
+    btn.textContent = get() === 'dark' ? '☾' : '☀';
+    btn.style.cssText = 'position:fixed;bottom:70px;right:64px;z-index:9999;background:var(--bg3);border:1px solid var(--b2);border-radius:50%;color:var(--t2);font-size:14px;font-weight:700;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow-sm);transition:border-color .15s,color .15s';
+    btn.onmouseover = () => { btn.style.borderColor='var(--blue)'; btn.style.color='var(--blue2)'; };
+    btn.onmouseout  = () => { btn.style.borderColor='var(--b2)';  btn.style.color='var(--t2)'; };
+    btn.onclick = toggle;
+    document.body.appendChild(btn);
+  }
+  // Apply immediately so there's no FOUC (flash of unstyled content)
+  apply();
+  return { get, set, toggle, apply, injectToggle };
+})();
+
 // ── CSV export helper ────────────────────────────────────────────────
 function exportTableToCSV(tableSelector, filename){
   const table = typeof tableSelector==='string' ? document.querySelector(tableSelector) : tableSelector;

@@ -4431,10 +4431,10 @@ mc('c-weekly-pl','bar',days,[
 
   // Init on first load
   document.addEventListener('DOMContentLoaded', ()=>{
-    setTimeout(()=>{ initAllVisibleTables(); if(typeof FleetCurrency!=='undefined'){ FleetCurrency.rerender(); FleetCurrency.injectToggle(); } }, 100);
+    setTimeout(()=>{ initAllVisibleTables(); if(typeof FleetCurrency!=='undefined'){ FleetCurrency.rerender(); FleetCurrency.injectToggle(); if(typeof FleetTheme!=="undefined")FleetTheme.injectToggle(); } }, 100);
   });
   // Also fire immediately in case DOMContentLoaded already fired
-  setTimeout(()=>{ initAllVisibleTables(); if(typeof FleetCurrency!=='undefined'){ FleetCurrency.rerender(); FleetCurrency.injectToggle(); } }, 150);
+  setTimeout(()=>{ initAllVisibleTables(); if(typeof FleetCurrency!=='undefined'){ FleetCurrency.rerender(); FleetCurrency.injectToggle(); if(typeof FleetTheme!=="undefined")FleetTheme.injectToggle(); } }, 150);
 
 
 // ══════════════════════════════════════════════════════════════════
