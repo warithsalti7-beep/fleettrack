@@ -2545,15 +2545,11 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
       <div class="ph-title">Data Import</div>
       <div class="ph-sub">Drag-drop or click to upload CSV files. Data flows straight to the Neon database and every dashboard updates automatically.</div>
     </div>
-    <div class="ph-right">
-      <a href="/templates/drivers.csv" class="tb-btn" download>⬇ drivers template</a>
-      <a href="/templates/vehicles.csv" class="tb-btn" download>⬇ vehicles</a>
-      <a href="/templates/trips.csv" class="tb-btn" download>⬇ trips</a>
-      <a href="/templates/fuel_logs.csv" class="tb-btn" download>⬇ fuel</a>
-      <a href="/templates/maintenance.csv" class="tb-btn" download>⬇ maintenance</a>
-      <a href="/templates/shifts.csv" class="tb-btn" download>⬇ shifts</a>
-      <a href="/templates/users.csv" class="tb-btn" download>⬇ users</a>
-      <a href="/templates/fixed_costs.csv" class="tb-btn" download>⬇ fixed costs</a>
+    <div class="ph-right" style="display:flex;gap:8px;flex-wrap:wrap">
+      <a href="/sop.html" class="tb-btn" target="_blank">📖 SOP for employees</a>
+      <a href="/templates/fleet-setup.csv" class="tb-btn" download>⬇ fleet-setup.csv</a>
+      <a href="/templates/weekly-operations.csv" class="tb-btn" download>⬇ weekly-operations.csv</a>
+      <a href="/photo-import.html" class="tb-btn primary" target="_blank">📸 Photo Import</a>
     </div>
   </div>
 
@@ -2593,20 +2589,41 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
       <div class="card-sub">Fastest way — drop ALL your CSVs at once and we'll import them in the correct order</div>
     </div>
     <div class="ing-drop" id="bundle-drop" style="min-height:100px;padding:var(--s5) var(--s4)">
-      Drop <strong>users.csv, drivers.csv, vehicles.csv, shifts.csv, trips.csv, fuel_logs.csv, maintenance.csv</strong> here (any subset, in any order — we'll sequence them)<br>
-      <span style="color:var(--t3);font-size:11px">Or click to pick multiple files</span>
+      Drop <strong>fleet-setup.csv</strong> + any number of <strong>weekly-operations*.csv</strong> files here<br>
+      <span style="color:var(--t3);font-size:11px">Files are auto-sorted by record_type and dependencies (drivers/vehicles before trips). Click to pick multiple files at once.</span>
       <input type="file" accept=".csv,text/csv" multiple style="display:none" id="bundle-files">
     </div>
     <div id="bundle-report" style="display:none;margin-top:var(--s3)"></div>
   </div>
 
-  <div style="display:flex;align-items:center;gap:var(--s3);margin:var(--s4) 0;color:var(--t3);font-size:12px">
-    <hr style="flex:1;border:none;border-top:1px solid var(--b1)">
-    <span>or import entity-by-entity below</span>
-    <hr style="flex:1;border:none;border-top:1px solid var(--b1)">
+  <!-- Monthly backfill quick-access -->
+  <div class="card" style="margin-top:var(--s4)">
+    <div class="card-header">
+      <div class="card-title">📅 Monthly backfill templates (Sep 2025 → Apr 2026)</div>
+      <div class="card-sub">Pre-dated templates, one per month — fill and drop into the bundle uploader above</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+      <a class="tb-btn" href="/templates/monthly/weekly-operations-2025-09.csv" download>⬇ Sept 2025</a>
+      <a class="tb-btn" href="/templates/monthly/weekly-operations-2025-10.csv" download>⬇ Oct 2025</a>
+      <a class="tb-btn" href="/templates/monthly/weekly-operations-2025-11.csv" download>⬇ Nov 2025</a>
+      <a class="tb-btn" href="/templates/monthly/weekly-operations-2025-12.csv" download>⬇ Dec 2025</a>
+      <a class="tb-btn" href="/templates/monthly/weekly-operations-2026-01.csv" download>⬇ Jan 2026</a>
+      <a class="tb-btn" href="/templates/monthly/weekly-operations-2026-02.csv" download>⬇ Feb 2026</a>
+      <a class="tb-btn" href="/templates/monthly/weekly-operations-2026-03.csv" download>⬇ Mar 2026</a>
+      <a class="tb-btn" href="/templates/monthly/weekly-operations-2026-04.csv" download>⬇ Apr 2026 (MTD)</a>
+    </div>
   </div>
 
-  <div id="import-cards"></div>
+  <!-- Photo OCR shortcut -->
+  <div class="card" style="margin-top:var(--s4);border:1px solid var(--blueborder);background:linear-gradient(180deg,var(--bluebg),var(--bg2))">
+    <div class="card-header">
+      <div class="card-title">📸 Have photos instead of CSV?</div>
+      <div class="card-sub">Drop daily driver sheets, fuel receipts, workshop invoices — Claude Vision extracts rows automatically</div>
+    </div>
+    <a href="/photo-import.html" target="_blank" class="btn btn-primary">Open Photo → CSV importer →</a>
+  </div>
+
+  <div id="import-cards" style="display:none"></div>
 </div>
 
 <script>

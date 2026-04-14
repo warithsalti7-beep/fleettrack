@@ -288,20 +288,44 @@ body { background:var(--bg); min-height:100vh; }
 <script src="./fleet-data.js"></script>
 <script src="./auth.js"></script>
 <script>
+// ── Tab switcher (hoisted FIRST so nav buttons work even if setup errors) ──
+function showTab(id, btn) {
+  try {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    const panel = document.getElementById('tab-' + id);
+    if (panel) panel.classList.add('active');
+    if (btn) btn.classList.add('active');
+    window.scrollTo(0, 0);
+  } catch (e) { console.warn('[driver] showTab failed:', e); }
+}
+// Expose so inline onclick handlers always find it
+window.showTab = showTab;
+
+// Safe DOM setter — no-op if element missing, swallows errors so a single
+// missing field can't block the rest of page init.
+function setText(id, value) {
+  try {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value == null ? '—' : String(value);
+  } catch (e) {}
+}
+
 // ── Auth guard ───────────────────────────────────────────────────────
 const session = FleetAuth.requireAuth(['driver'], './login.html?portal=driver');
 if (!session) throw new Error('Unauthorized');
 
-// ── Populate session info ────────────────────────────────────────────
-document.getElementById('d-avatar').textContent  = session.avatar;
-document.getElementById('d-name').textContent    = session.name.split(' ')[0];
-document.getElementById('d-car').textContent     = session.carId  || '—';
-document.getElementById('d-brand').textContent   = session.brand  || '—';
-document.getElementById('profile-avatar').textContent = session.avatar;
-document.getElementById('profile-name').textContent   = session.name;
-document.getElementById('profile-car').textContent    = `Car: ${session.carId||'—'} · ${session.brand||'—'}`;
-document.getElementById('profile-shift').textContent  = `Shift: ${session.shift||'—'}`;
-document.getElementById('profile-email').textContent  = session.email;
+// ── Populate session info (each field guarded) ───────────────────────
+const firstName = ((session.name || session.email || 'Driver') + '').split(/[\s@]/)[0];
+setText('d-avatar', session.avatar || (firstName[0] || 'D').toUpperCase());
+setText('d-name', firstName);
+setText('d-car', session.carId || '—');
+setText('d-brand', session.brand || '—');
+setText('profile-avatar', session.avatar || (firstName[0] || 'D').toUpperCase());
+setText('profile-name', session.name || firstName);
+setText('profile-car', `Car: ${session.carId || '—'} · ${session.brand || '—'}`);
+setText('profile-shift', `Shift: ${session.shift || '—'}`);
+setText('profile-email', session.email || '—');
 
 // ── Driver data (keyed by driver id — in prod: fetched from API) ─────
 const driverStats = {
@@ -495,14 +519,8 @@ document.getElementById('notif-list').innerHTML = notifs.map(n=>`
   </div>`).join('');
 
 // ── Tab switching ─────────────────────────────────────────────────────
-function showTab(id, btn) {
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+id).classList.add('active');
-  if(btn) btn.classList.add('active');
-  window.scrollTo(0,0);
-}
-FleetCurrency.rerender();
+// showTab already defined at top of this script (hoisted for safety)
+if (typeof FleetCurrency !== 'undefined') FleetCurrency.rerender();
 FleetCurrency.injectToggle(); if(typeof FleetTheme!=="undefined")FleetTheme.injectToggle();
 </script>
 </body>
