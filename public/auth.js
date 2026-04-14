@@ -54,17 +54,49 @@ const FleetAuth = (() => {
   const SESSION_KEY = 'ft_session';
   const SESSION_TTL = 8 * 60 * 60 * 1000; // 8 hours
 
+  // Admin can reassign a user's role at runtime via the Users & Permissions
+  // page. Overrides live in localStorage keyed by user id. Applied when a
+  // session is created and also when getAllUsers() / getUsersByRole() are read.
+  function getRoleOverride(uid){
+    try { return localStorage.getItem('ft_role_' + uid) || null; } catch(e){ return null; }
+  }
+  function setRoleOverride(uid, role){
+    try {
+      if (role) localStorage.setItem('ft_role_' + uid, role);
+      else localStorage.removeItem('ft_role_' + uid);
+    } catch(e){}
+  }
+
+  // Role definitions — what permissions each role defaults to.
+  const ROLE_DEFAULT_PERMS = {
+    admin:    ['all'],
+    employee: [], // blank by default — admin assigns
+    driver:   [], // drivers have fixed self-only access, perms ignored
+  };
+
+  function applyRoleOverride(user){
+    const override = getRoleOverride(user.id);
+    if (!override || override === user.role) return user;
+    return {
+      ...user,
+      role: override,
+      permissions: ROLE_DEFAULT_PERMS[override] !== undefined ? ROLE_DEFAULT_PERMS[override] : user.permissions,
+    };
+  }
+
   function saveSession(user) {
+    // Honour admin role override at login-time too.
+    const effective = applyRoleOverride(user);
     const session = {
-      userId: user.id,
-      name:   user.name,
-      email:  user.email,
-      role:   user.role,
-      avatar: user.avatar,
-      permissions: user.permissions || [],
-      carId:  user.carId  || null,
-      brand:  user.brand  || null,
-      shift:  user.shift  || null,
+      userId: effective.id,
+      name:   effective.name,
+      email:  effective.email,
+      role:   effective.role,
+      avatar: effective.avatar,
+      permissions: effective.permissions || [],
+      carId:  effective.carId  || null,
+      brand:  effective.brand  || null,
+      shift:  effective.shift  || null,
       loginAt: Date.now(),
       expiresAt: Date.now() + SESSION_TTL,
     };
@@ -129,12 +161,17 @@ const FleetAuth = (() => {
     return null;
   }
 
-  // ── Get all users (admin only) ─────────────────────────────────────
-  function getAllUsers() { return DEMO_USERS.map(u => ({ ...u, password: '••••••••' })); }
+  // ── Get all users (admin only) — role overrides applied ───────────
+  function getAllUsers() {
+    return DEMO_USERS.map(u => {
+      const effective = applyRoleOverride(u);
+      return { ...effective, password: '••••••••' };
+    });
+  }
   function getUsersByRole(role) { return getAllUsers().filter(u => u.role === role); }
 
   // ── Public API ─────────────────────────────────────────────────────
-  return { login, logout, requireAuth, getSession, hasPermission, validatePassword, getAllUsers, getUsersByRole };
+  return { login, logout, requireAuth, getSession, hasPermission, validatePassword, getAllUsers, getUsersByRole, setRoleOverride, getRoleOverride };
 
 })();
 

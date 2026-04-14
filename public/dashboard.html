@@ -2586,6 +2586,14 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
       <button class="btn btn-sm" onclick="permsRevokeAll('${u.id}')">Revoke all</button>
     ` : '<span style="font-size:11px;color:var(--t3);font-family:var(--mono)">full access (admin)</span>';
 
+    // Role selector (only rendered on the Employees + Drivers sections; not for self-admin)
+    const roleSelect = (u.role !== 'admin' || editable) ? `
+      <select class="tb-btn" style="cursor:pointer;min-width:110px" onchange="permsChangeRole('${u.id}', this.value)">
+        <option value="admin"    ${u.role==='admin'   ?'selected':''}>Admin</option>
+        <option value="employee" ${u.role==='employee'?'selected':''}>Employee</option>
+        <option value="driver"   ${u.role==='driver'  ?'selected':''}>Driver</option>
+      </select>` : `<span class="badge ${badgeCls}">admin</span>`;
+
     return `<div class="perm-card" id="permcard-${u.id}">
       <div class="perm-card-head">
         <div class="perm-avatar" style="background:${bg};border:1px solid ${border};color:${color}">${u.avatar||'?'}</div>
@@ -2593,7 +2601,7 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
           <div class="perm-info-name">${u.name}</div>
           <div class="perm-info-email">${u.email}</div>
         </div>
-        <span class="badge ${badgeCls}">${u.role}</span>
+        ${roleSelect}
         <div class="perm-actions">${actionBtns}</div>
       </div>
       <div class="perm-grid">${chips}</div>
@@ -2666,6 +2674,38 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     });
     renderAll();
     Toast.info('Reset complete.');
+  };
+
+  window.permsChangeRole = function(uid, newRole){
+    if (!['admin','employee','driver'].includes(newRole)) return;
+    // Persist override
+    if (typeof FleetAuth.setRoleOverride === 'function'){
+      // If new role matches original default, clear override; else set it
+      const allRaw = FleetAuth.getAllUsers();
+      const orig = allRaw.find(x => x.id === uid);
+      // We need the original (pre-override) role to decide — call getRoleOverride to detect
+      const existingOverride = FleetAuth.getRoleOverride(uid);
+      // Simplest: always set override; setting equal-to-default is harmless
+      FleetAuth.setRoleOverride(uid, newRole);
+    }
+    // When moved to admin: grant all perms. When moved to driver: clear perms
+    // (drivers have fixed self-only access). When moved to employee: keep current
+    // or start blank if the user was a driver before.
+    if (newRole === 'admin'){
+      try { localStorage.setItem('ft_perms_' + uid, JSON.stringify(['all'])); } catch(e){}
+    } else if (newRole === 'driver'){
+      try { localStorage.removeItem('ft_perms_' + uid); } catch(e){}
+    }
+    if (typeof Toast !== 'undefined') Toast.success('Role updated to "' + newRole + '" for ' + uid + '. They will see changes on next login.');
+    // If the role change affects the currently logged-in user, warn them
+    const sess = FleetAuth.getSession();
+    if (sess && sess.userId === uid && sess.role !== newRole){
+      if (confirm('You just changed your own role. Sign out now to apply?')){
+        FleetAuth.logout('./login.html');
+        return;
+      }
+    }
+    setTimeout(renderAll, 50);
   };
 
   // Preview as — swap the active session's perms+role for viewing
