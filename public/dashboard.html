@@ -4665,6 +4665,63 @@ document.addEventListener('keydown', e => {
 
 })();
 
+// ═══════════════════════════════════════════════════════════════
+// UNIVERSAL TABLE FILTER
+// Adds a search input above every <table> with 6+ rows that filters
+// its visible rows live. Case-insensitive, matches any column cell.
+// ═══════════════════════════════════════════════════════════════
+(function(){
+  function attachFilter(table){
+    if (!table || table.dataset.ftFilterAttached) return;
+    const tbody = table.tBodies[0];
+    if (!tbody || tbody.rows.length < 6) return;
+    const wrap = table.closest('.tbl-wrap') || table.parentElement;
+    if (!wrap) return;
+    const bar = document.createElement('div');
+    bar.className = 'tbl-filter-bar';
+    bar.style.cssText = 'display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s2);flex-wrap:wrap';
+    const count = tbody.rows.length;
+    bar.innerHTML = `
+      <div style="position:relative;flex:1;min-width:180px;max-width:320px">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:13px;pointer-events:none">🔍</span>
+        <input type="search" placeholder="Filter ${count} rows…" class="tbl-filter-input" style="width:100%;padding:7px 30px 7px 32px;background:var(--bg3);border:1px solid var(--b1);border-radius:var(--r2);color:var(--t1);font-size:12.5px;font-family:var(--mono);outline:none;transition:border-color var(--fast)" aria-label="Filter table">
+        <button type="button" class="tbl-filter-clear" aria-label="Clear filter" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:4px;display:none">×</button>
+      </div>
+      <span class="tbl-filter-count" style="font-size:11px;color:var(--t3);font-family:var(--mono)"></span>`;
+    wrap.parentElement.insertBefore(bar, wrap);
+    const input = bar.querySelector('.tbl-filter-input');
+    const clear = bar.querySelector('.tbl-filter-clear');
+    const cntEl = bar.querySelector('.tbl-filter-count');
+    function apply(){
+      const q = input.value.trim().toLowerCase();
+      clear.style.display = q ? 'inline-block' : 'none';
+      let visible = 0;
+      for (const tr of tbody.rows){
+        const hit = !q || (tr.textContent || '').toLowerCase().includes(q);
+        tr.style.display = hit ? '' : 'none';
+        if (hit) visible++;
+      }
+      cntEl.textContent = q ? (visible + ' of ' + count + ' shown') : '';
+    }
+    input.addEventListener('input', apply);
+    input.addEventListener('focus', () => input.style.borderColor = 'var(--blue)');
+    input.addEventListener('blur',  () => input.style.borderColor = 'var(--b1)');
+    clear.addEventListener('click', () => { input.value = ''; apply(); input.focus(); });
+    table.dataset.ftFilterAttached = '1';
+  }
+  function run(){
+    document.querySelectorAll('table').forEach(attachFilter);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run);
+  } else {
+    run();
+  }
+  // Also re-run when Users & Permissions renders new tables
+  const mo = new MutationObserver(() => run());
+  mo.observe(document.body, { childList:true, subtree:true });
+})();
+
 
 // ── Missing API functions ─────────────────────────────────────────────────
 function testConnection(platform){
