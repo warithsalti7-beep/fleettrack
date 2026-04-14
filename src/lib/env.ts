@@ -17,7 +17,21 @@ type OptionalKey =
   | "OPENAI_API_KEY"
   | "ANTHROPIC_API_KEY"
   | "RESEND_API_KEY"
-  | "SENTRY_DSN";
+  | "SENTRY_DSN"
+  // External integration credentials — all optional. Set in Vercel env.
+  | "TESLA_CLIENT_ID"
+  | "TESLA_CLIENT_SECRET"
+  | "TESLA_REDIRECT_URI"
+  | "SMARTCAR_CLIENT_ID"
+  | "SMARTCAR_CLIENT_SECRET"
+  | "SMARTCAR_REDIRECT_URI"
+  | "UBER_CLIENT_ID"
+  | "UBER_CLIENT_SECRET"
+  | "UBER_FLEET_ID"
+  | "BOLT_API_KEY"
+  | "BOLT_FLEET_ID"
+  | "BOLT_WEBHOOK_SECRET"
+  | "GOOGLE_MAPS_API_KEY";
 
 const REQUIRED: RequiredKey[] = ["DATABASE_URL"];
 const OPTIONAL: OptionalKey[] = [
@@ -27,6 +41,19 @@ const OPTIONAL: OptionalKey[] = [
   "ANTHROPIC_API_KEY",
   "RESEND_API_KEY",
   "SENTRY_DSN",
+  "TESLA_CLIENT_ID",
+  "TESLA_CLIENT_SECRET",
+  "TESLA_REDIRECT_URI",
+  "SMARTCAR_CLIENT_ID",
+  "SMARTCAR_CLIENT_SECRET",
+  "SMARTCAR_REDIRECT_URI",
+  "UBER_CLIENT_ID",
+  "UBER_CLIENT_SECRET",
+  "UBER_FLEET_ID",
+  "BOLT_API_KEY",
+  "BOLT_FLEET_ID",
+  "BOLT_WEBHOOK_SECRET",
+  "GOOGLE_MAPS_API_KEY",
 ];
 
 type Env = Record<RequiredKey, string> & Partial<Record<OptionalKey, string>>;

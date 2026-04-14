@@ -1,0 +1,23 @@
+record_type,name,email,phone,license_number,license_expiry,hire_date,car_id,shift,brand,commission_pct,status,address,make,model,year,color,plate_number,fuel_type,purchase_date,purchase_price_nok,current_mileage_km,lease_monthly_nok,insurance_monthly_nok,category,description,amount_nok,frequency,start_date,end_date,vendor,notes
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# FLEET SETUP — fill ONCE when you start. Re-upload only when drivers leave/join or vehicles are bought/retired. No need to re-upload every week.
+#
+# The `record_type` column tells the system which kind of row it is.
+# Leave unused columns blank — blanks are ignored.
+#
+# Accepted record_type values:
+#   DRIVER        — one row per driver. Fills: name,email,phone,license_*,hire_date,car_id,shift,brand,commission_pct,status,address
+#   VEHICLE       — one row per car. Fills: car_id,make,model,year,color,plate_number,fuel_type,purchase_date,purchase_price_nok,current_mileage_km,lease_monthly_nok,insurance_monthly_nok,status
+#   FIXED_COST    — one row per recurring cost (lease, insurance, løyve, software, etc.). Fills: category,description,amount_nok,frequency (MONTHLY/QUARTERLY/YEARLY/ONCE),start_date,end_date,car_id (blank=fleet-wide),vendor,notes
+#
+# Categories for FIXED_COST: LEASE, INSURANCE, FINANCING, PARKING, WASH, LOYVE, TAXIMETER, REGISTRATION, DEPRECIATION, OFFICE, SOFTWARE, SALARY, EMPLOYER_NI, ACCOUNTING, OTHER
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DRIVER,Olsztynski Mariusz Zbigniew,olsztynski@fleettrack.no,+47 900 11 111,NO-20148-91,2027-08-14,2024-01-15,TR2518,AM,NIO ET5,65,active,"Storgata 1, Oslo",,,,,,,,,,,,,,,,,,,
+DRIVER,Armand Ionut Neculaita,armand@fleettrack.no,+47 900 22 222,NO-20149-12,2028-02-03,2024-02-01,TR2537,AM,NIO EL6,65,active,"Bygdøy Allé 14, Oslo",,,,,,,,,,,,,,,,,,,
+VEHICLE,,,,,,,TR2518,,,,,NIO,ET5,2024,Black,ZB12345,Electric,2024-01-15,485000,18230,0,1320,active,,,,,,,
+VEHICLE,,,,,,,TR2537,,,,,NIO,EL6,2024,White,ZB67890,Electric,2024-02-01,475000,15410,0,1320,active,,,,,,,
+FIXED_COST,,,,,,,TR2518,,,,,,,,,,,,,,,,,LEASE,Monthly operating lease,12800,MONTHLY,2024-01-15,,NIO Norway,60-month lease incl. service
+FIXED_COST,,,,,,,,,,,,,,,,,,,,,,,,LOYVE,Oslo taxi licence per vehicle,480,MONTHLY,2024-01-01,,Oslo kommune,Required løyve for commercial taxi
+FIXED_COST,,,,,,,,,,,,,,,,,,,,,,,,SOFTWARE,FleetTrack SaaS,400,MONTHLY,2024-01-01,,FleetTrack,Dashboard + integrations
+FIXED_COST,,,,,,,,,,,,,,,,,,,,,,,,OFFICE,Rent shared garage space,3500,MONTHLY,2024-01-01,,Property Group AS,Garage + small office
+FIXED_COST,,,,,,,,,,,,,,,,,,,,,,,,ACCOUNTING,Regnskapsfører monthly,2400,MONTHLY,2024-01-01,,Regnskap Oslo AS,Includes VAT filings
