@@ -109,6 +109,8 @@ model Trip {
   duration       Int?
   fare           Float?
   paymentMethod  String    @default("CASH")
+  platform       String?   // Bolt | Uber | Norgestaxi | Direct | etc.
+  tipsNok        Float?    // Driver tips in NOK (optional)
   startedAt      DateTime?
   completedAt    DateTime?
   rating         Float?

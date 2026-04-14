@@ -195,6 +195,8 @@ async function importTrip(r: Row): Promise<{ inserted: boolean }> {
       duration,
       fare: asFloat(r.fare_nok),
       paymentMethod: (asStr(r.payment_method) || "CARD").toUpperCase(),
+      platform: asStr(r.platform),
+      tipsNok: asFloat(r.tips_nok),
       rating: asFloat(r.rating),
       status: (asStr(r.status) || "COMPLETED").toUpperCase(),
       startedAt,
