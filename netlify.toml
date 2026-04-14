@@ -1,9 +1,0 @@
-[build]
-  command = "pnpm install && npx prisma migrate deploy && pnpm build"
-  publish = ".next"
-
-[build.environment]
-  PRISMA_CLI_QUERY_ENGINE_TYPE = "binary"
-
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
