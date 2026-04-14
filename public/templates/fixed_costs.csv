@@ -1,0 +1,13 @@
+category,description,amount_nok,frequency,start_date,end_date,car_id,vendor,notes
+LEASE,Monthly operating lease,12800,MONTHLY,2024-01-15,,TR2518,NIO Norway,60-month lease incl. service
+INSURANCE,CASCO (comprehensive),1320,MONTHLY,2024-01-15,,TR2518,Gjensidige,Fleet policy
+INSURANCE,Third-party liability,480,MONTHLY,2024-01-15,,TR2518,Gjensidige,
+LOYVE,Taxi licence fee (løyve),840,YEARLY,2024-01-01,,TR2518,Samferdselsetaten,
+TAXIMETER,Taximeter yearly calibration,1450,YEARLY,2024-03-15,,TR2518,TaxiTech AS,
+WASH,Car wash subscription,650,MONTHLY,2024-01-15,,TR2518,Circle K,
+PARKING,Monthly parking at hub,450,MONTHLY,2024-01-15,,TR2518,Europark,
+DEPRECIATION,Straight-line depreciation (6y),6740,MONTHLY,2024-01-15,,TR2518,,Amortised purchase price
+OFFICE,Dispatch office rent,18500,MONTHLY,2024-01-01,,,Oslo Eiendom,Fleet-wide
+SOFTWARE,Dispatch + fleet software,4200,MONTHLY,2024-01-01,,,FleetTrack Pro,Fleet-wide SaaS
+EMPLOYER_NI,Arbeidsgiveravgift 14.1%,45800,MONTHLY,2024-01-01,,,Skatteetaten,Fleet-wide on employee salaries
+ACCOUNTING,Bookkeeping + quarterly reporting,3800,MONTHLY,2024-01-01,,,Regnskap AS,Fleet-wide

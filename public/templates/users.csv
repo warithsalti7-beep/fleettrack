@@ -1,0 +1,3 @@
+name,email,password,role,permissions
+Fleet Admin,admin@fleettrack.no,Admin2024!,admin,all
+Dispatch Officer,employee@fleettrack.no,Employee2024!,employee,"view:drivers,view:trips,view:zones,manage:dispatch,view:alerts"

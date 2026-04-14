@@ -1,0 +1,5 @@
+trip_date,trip_time,driver_email,car_id,pickup_address,dropoff_address,distance_km,duration_min,fare_nok,platform,payment_method,rating,status
+2025-09-01,07:12,olsztynski@fleettrack.no,TR2518,Oslo Airport T2,Aker Brygge,48.2,42,582,Bolt,CARD,5.0,completed
+2025-09-01,08:20,olsztynski@fleettrack.no,TR2518,Majorstuen,Sentralstasjon,4.8,12,128,Bolt,CARD,4.8,completed
+2025-09-01,09:05,armand@fleettrack.no,TR2537,Frogner,Grünerløkka,6.1,15,168,Bolt,MOBILE,5.0,completed
+2025-09-01,10:30,armand@fleettrack.no,TR2537,Grünerløkka,Bogstadveien,3.9,9,110,Bolt,CARD,4.9,cancelled

@@ -1,0 +1,4 @@
+service_date,car_id,type,description,cost_nok,workshop,mileage_at_service_km,status
+2025-09-05,TR2518,OIL_CHANGE,Routine 10 000 km service,2070,AutoFix GmbH,18000,completed
+2025-09-12,TR2537,BRAKE_SERVICE,Front brake pad replacement,3220,TirePro,15000,completed
+2025-10-03,TR709,REPAIR,Coolant leak investigation,8400,AutoFix GmbH,88200,completed
