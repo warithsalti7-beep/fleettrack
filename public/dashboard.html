@@ -1165,6 +1165,7 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
         <div class="subnav-item" onclick="go('vehicle-maintenance',this,'Maintenance','Operations / Vehicles')"><span class="subnav-dot"></span>Maintenance Tracker</div>
         <div class="subnav-item" onclick="go('vehicle-fuel',this,'Fuel Management','Operations / Vehicles')"><span class="subnav-dot"></span>Fuel Management</div>
         <div class="subnav-item" onclick="go('vehicle-insurance',this,'Insurance','Operations / Vehicles')"><span class="subnav-dot"></span>Insurance & Docs</div>
+        <div class="subnav-item" onclick="go('vehicle-eukontroll',this,'EU-kontroll &amp; Tyres','Operations / Vehicles')"><span class="subnav-dot"></span>EU-kontroll &amp; Tyres</div>
         <div class="subnav-item" onclick="go('vehicle-telematics',this,'Telematics','Operations / Vehicles')"><span class="subnav-dot"></span>Telematics & GPS</div>
       </div>
 
@@ -1178,6 +1179,7 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
         <div class="subnav-item" onclick="go('trip-cancellations',this,'Cancellations','Operations / Trips')"><span class="subnav-dot"></span>Cancellations & No-shows</div>
         <div class="subnav-item" onclick="go('trip-disputes',this,'Disputes','Operations / Trips')"><span class="subnav-dot"></span>Disputes & Claims <span class="nav-badge red" style="margin-left:auto">2</span></div>
         <div class="subnav-item" onclick="go('trip-receipts',this,'Receipts','Operations / Trips')"><span class="subnav-dot"></span>Receipts & Invoices</div>
+        <div class="subnav-item" onclick="go('trip-extra-km',this,'Extra Km','Operations / Trips')"><span class="subnav-dot"></span>Extra Km (Bolt/Uber/CSV)</div>
       </div>
 
       <div class="nav-item" onclick="toggleSub('sub-dispatch',this)">
@@ -1212,11 +1214,19 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
       </div>
       <div class="subnav" id="sub-costs">
         <div class="subnav-item" onclick="go('cost-fuel',this,'Fuel Costs','Financial / Costs')"><span class="subnav-dot"></span>Fuel Cost Tracker</div>
+        <div class="subnav-item" onclick="go('cost-charging',this,'EV Charging','Financial / Costs')"><span class="subnav-dot"></span>EV Charging (3 kr/kWh)</div>
+        <div class="subnav-item" onclick="go('cost-battery-swap',this,'NIO Battery Swap','Financial / Costs')"><span class="subnav-dot"></span>NIO Battery Swap</div>
+        <div class="subnav-item" onclick="go('cost-wash',this,'Car Wash','Financial / Costs')"><span class="subnav-dot"></span>Car Wash (per use)</div>
         <div class="subnav-item" onclick="go('cost-maintenance',this,'Maintenance Costs','Financial / Costs')"><span class="subnav-dot"></span>Maintenance Costs</div>
+        <div class="subnav-item" onclick="go('cost-repairs',this,'Repairs &amp; Fault','Financial / Costs')"><span class="subnav-dot"></span>Repairs &amp; Fault</div>
         <div class="subnav-item" onclick="go('cost-fixed',this,'Fixed Overheads','Financial / Costs')"><span class="subnav-dot"></span>Fixed Overheads</div>
+        <div class="subnav-item" onclick="go('cost-depreciation',this,'Depreciation','Financial / Costs')"><span class="subnav-dot"></span>Depreciation (NO)</div>
         <div class="subnav-item" onclick="go('cost-penalties',this,'Fines & Penalties','Financial / Costs')"><span class="subnav-dot"></span>Fines & Penalties</div>
       </div>
 
+      <div class="nav-item" onclick="go('tax-centre',this,'Tax Centre','Financial')">
+        <span class="nav-icon">⊟</span>Tax Centre (NO)
+      </div>
       <div class="nav-item" onclick="go('payments',this,'Payments','Financial')">
         <span class="nav-icon">◈</span>Payments & Settlements
       </div>
@@ -4047,6 +4057,166 @@ Current performance   = <span class="cur" data-nok="55430">55 430 kr</span> → 
 </div>
 <div class="page" id="page-vehicle-insurance"><div class="page-header"><div class="ph-left"><div class="ph-title">Insurance & Documents</div><div class="ph-sub">Policy tracking, certificate management, and renewal schedule</div></div></div></div>
 
+<!-- ═══ PAGE: VEHICLE EU-KONTROLL & TYRES ═══ -->
+<div class="page" id="page-vehicle-eukontroll">
+  <div class="page-header"><div class="ph-left"><div class="ph-title">EU-kontroll &amp; Tyres</div><div class="ph-sub">Periodisk kjøretøykontroll (PKK) cycle + winter/summer tyre rotation</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Due in 30d</div><div class="kc-value" style="color:var(--amber)">2</div><div class="kc-sub">EU-kontroll</div></div>
+    <div class="kc"><div class="kc-label">Overdue</div><div class="kc-value" style="color:var(--red)">0</div></div>
+    <div class="kc"><div class="kc-label">Winter tyres</div><div class="kc-value">9</div><div class="kc-sub">of 14 vehicles</div></div>
+    <div class="kc"><div class="kc-label">Summer tyres</div><div class="kc-value">5</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Vehicle compliance — EU-kontroll &amp; tyres</div><div class="card-sub">Source: <code>Vehicle.euKontrollNext</code> + <code>Vehicle.tyreSeason</code></div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Car ID</th><th>Plate</th><th>Make / Model</th><th>EU-kontroll Last</th><th>EU-kontroll Next</th><th>Status</th><th>Tyres</th><th>Tyres changed</th></tr></thead>
+      <tbody id="eukontroll-tbody"></tbody>
+    </table></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Norwegian tyre season rules</div></div>
+    <div class="cl-item"><div class="cl-num">1</div><div><strong>South of Nordland</strong>: studded/winter tyres legal 1 Nov → 1st Mon after Easter. Outside: minimum 3 mm tread depth applies.</div></div>
+    <div class="cl-item" style="border:none"><div class="cl-num">2</div><div><strong>Nordland, Troms, Finnmark</strong>: 16 Oct → 30 Apr. Studded tyres beyond season carry a 750 NOK fine + load tax.</div></div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: COST — EV CHARGING ═══ -->
+<div class="page" id="page-cost-charging">
+  <div class="page-header"><div class="ph-left"><div class="ph-title">EV Charging</div><div class="ph-sub">Per-event tracking from Tesla Fleet API, NIO Power and Smartcar — billed at <strong>3 NOK/kWh</strong> internal rate</div></div><div class="ph-right"><button class="tb-btn primary" onclick="exportNearestTable(this,'charging')">⬇ Export</button></div></div>
+  <div class="kpi-grid g5">
+    <div class="kc"><div class="kc-label">kWh today</div><div class="kc-value" id="ch-kwh-today">432.6</div><div class="kc-sub">across 9 EVs</div></div>
+    <div class="kc"><div class="kc-label">Cost today</div><div class="kc-value"><span class="cur" data-nok="1298">1 298 kr</span></div><div class="kc-sub">@ 3 kr/kWh</div></div>
+    <div class="kc"><div class="kc-label">Sessions today</div><div class="kc-value">22</div></div>
+    <div class="kc"><div class="kc-label">From Tesla API</div><div class="kc-value" style="color:var(--red)">11</div></div>
+    <div class="kc"><div class="kc-label">From NIO API</div><div class="kc-value" style="color:var(--blue2)">6</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Charging sessions — last 14 days</div><div class="card-sub">Idempotent on (source, externalId)</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Started</th><th>Vehicle</th><th>Location</th><th class="num">kWh</th><th class="num">Rate</th><th class="num">Cost NOK</th><th>Source</th></tr></thead>
+      <tbody id="charging-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: COST — NIO BATTERY SWAP ═══ -->
+<div class="page" id="page-cost-battery-swap">
+  <div class="page-header"><div class="ph-left"><div class="ph-title">NIO Battery Swap</div><div class="ph-sub">Power Swap Station (PSS) events — NIO ET5 / ET7 / ES6 only · ~3-5 min full pack swap</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Swaps this month</div><div class="kc-value">14</div></div>
+    <div class="kc"><div class="kc-label">Total cost MTD</div><div class="kc-value"><span class="cur" data-nok="3920">3 920 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Avg per swap</div><div class="kc-value"><span class="cur" data-nok="280">280 kr</span></div></div>
+    <div class="kc"><div class="kc-label">NIO vehicles</div><div class="kc-value">3</div><div class="kc-sub">eligible</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Battery swap log</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Vehicle</th><th>Station</th><th class="num">Pack kWh</th><th class="num">Cost NOK</th><th>Source</th></tr></thead>
+      <tbody id="swap-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: COST — CAR WASH ═══ -->
+<div class="page" id="page-cost-wash">
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Car Wash</div><div class="ph-sub">Per-event wash log — vendor or in-house bay, charged to the vehicle's P&L</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Add wash event — uses POST /api/wash')">+ Log Wash</button></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Washes this week</div><div class="kc-value">38</div></div>
+    <div class="kc"><div class="kc-label">Cost this week</div><div class="kc-value"><span class="cur" data-nok="6840">6 840 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Avg per wash</div><div class="kc-value"><span class="cur" data-nok="180">180 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Cars never washed (7d)</div><div class="kc-value" style="color:var(--amber)">2</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Wash events</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Vehicle</th><th>Type</th><th>Vendor</th><th>Washed by</th><th class="num">Cost NOK</th></tr></thead>
+      <tbody id="wash-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: COST — REPAIRS &amp; FAULT ═══ -->
+<div class="page" id="page-cost-repairs">
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Repairs &amp; Fault Allocation</div><div class="ph-sub">Incident-driven repairs — fault attribution decides who pays</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Driver-at-fault YTD</div><div class="kc-value" style="color:var(--red)">7</div><div class="kc-sub"><span class="cur" data-nok="18450">18 450 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Other insurance</div><div class="kc-value" style="color:var(--blue2)">4</div><div class="kc-sub">recovered via claim</div></div>
+    <div class="kc"><div class="kc-label">Fleet absorbed</div><div class="kc-value" style="color:var(--amber)">9</div><div class="kc-sub"><span class="cur" data-nok="42100">42 100 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Open</div><div class="kc-value">3</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Repair log</div><div class="card-sub">Source: <code>Repair</code> table · faultCategory ∈ DRIVER · OTHER_INSURANCE · FLEET · MANUFACTURER · UNKNOWN</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Vehicle</th><th>Category</th><th>Description</th><th>Vendor</th><th class="num">Cost</th><th>Fault</th><th>Insurance</th><th class="num">Deductible</th><th>Status</th></tr></thead>
+      <tbody id="repair-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: COST — DEPRECIATION ═══ -->
+<div class="page" id="page-cost-depreciation">
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Depreciation</div><div class="ph-sub">Norwegian saldogruppe c — cars depreciate at 24% declining-balance per year</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Book value (NBV)</div><div class="kc-value"><span class="cur" data-nok="3240000">3 240 000 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Charge MTD</div><div class="kc-value" style="color:var(--red)"><span class="cur" data-nok="64800">−64 800 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Charge YTD</div><div class="kc-value" style="color:var(--red)"><span class="cur" data-nok="248400">−248 400 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Method</div><div class="kc-value" style="font-size:14px">Declining 24%</div><div class="kc-sub">+ STRAIGHT_LINE for IFRS</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Depreciation entries — current month</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Period</th><th>Vehicle</th><th>Method</th><th class="num">Opening NBV</th><th class="num">Charge</th><th class="num">Closing NBV</th></tr></thead>
+      <tbody id="dep-tbody-dash"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: TRIP — EXTRA KM ═══ -->
+<div class="page" id="page-trip-extra-km">
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Extra Km (non-trip distance)</div><div class="ph-sub">Bolt &amp; Uber API + Norgestaxi daily CSV + odometer-delta reconciliation</div></div></div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">Extra km today</div><div class="kc-value">412 km</div><div class="kc-sub">deadhead + reposition</div></div>
+    <div class="kc"><div class="kc-label">% of total km</div><div class="kc-value">17.4%</div><div class="kc-sub">target &lt; 20%</div></div>
+    <div class="kc"><div class="kc-label">From Bolt API</div><div class="kc-value" style="color:var(--purple)">186</div></div>
+    <div class="kc"><div class="kc-label">From CSV (Norgestaxi)</div><div class="kc-value" style="color:var(--teal)">94</div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Extra km log — last 7 days</div><div class="card-sub">Sources: BOLT · UBER · CSV_TAXI · ODOMETER_DELTA · MANUAL</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Day</th><th>Driver</th><th>Vehicle</th><th class="num">Km</th><th>Source</th><th>Notes</th></tr></thead>
+      <tbody id="extra-km-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: TAX CENTRE ═══ -->
+<div class="page" id="page-tax-centre">
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Tax Centre — Norway</div><div class="ph-sub">VAT (MVA), forskuddstrekk, arbeidsgiveravgift &amp; selskapsskatt — rules version <code>NO-2026</code></div></div></div>
+  <div style="display:flex;gap:6px;margin-bottom:var(--s4);flex-wrap:wrap" role="tablist" aria-label="Tax granularity">
+    <button class="tb-btn" data-gran="INSTANT"   onclick="setTaxGran(this)">Instant</button>
+    <button class="tb-btn primary" data-gran="DAILY" onclick="setTaxGran(this)">Daily</button>
+    <button class="tb-btn" data-gran="WEEKLY"    onclick="setTaxGran(this)">Weekly</button>
+    <button class="tb-btn" data-gran="MONTHLY"   onclick="setTaxGran(this)">Monthly</button>
+    <button class="tb-btn" data-gran="QUARTERLY" onclick="setTaxGran(this)">Quarterly</button>
+    <button class="tb-btn" data-gran="YEARLY"    onclick="setTaxGran(this)">Yearly</button>
+  </div>
+  <div class="kpi-grid g5">
+    <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">VAT collected (12%)</div><div class="kc-value" id="tx-vat"><span class="cur" data-nok="6120">6 120 kr</span></div><div class="kc-sub">taxi services — lav sats</div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--blue)"></div><div class="kc-label">VAT deductible</div><div class="kc-value" id="tx-vatd"><span class="cur" data-nok="920">920 kr</span></div><div class="kc-sub">input MVA</div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--amber)"></div><div class="kc-label">Income tax withheld</div><div class="kc-value" id="tx-with"><span class="cur" data-nok="11200">11 200 kr</span></div><div class="kc-sub">forskuddstrekk (PAYE)</div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--purple)"></div><div class="kc-label">Employer NI</div><div class="kc-value" id="tx-ni"><span class="cur" data-nok="5740">5 740 kr</span></div><div class="kc-sub">arbeidsgiveravgift 14.1%</div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--red)"></div><div class="kc-label">Net to state</div><div class="kc-value" id="tx-net" style="color:var(--amber)"><span class="cur" data-nok="22140">22 140 kr</span></div></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Tax entries — <span id="tx-period-label">DAILY</span></div><div class="card-sub">Indexed query <code>(granularity, periodStart)</code></div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Period</th><th>Kind</th><th class="num">Base NOK</th><th class="num">Rate</th><th class="num">Amount</th><th>Vehicle</th><th>Driver</th></tr></thead>
+      <tbody id="tax-tbody-dash"></tbody>
+    </table></div>
+  </div>
+  <div class="card"><div class="card-header"><div class="card-title">Norwegian tax brackets at a glance</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Engagement</th><th>VAT (taxi)</th><th>Income tax</th><th>Social</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge b-blue">EMPLOYEE</span></td><td>12% (collected by fleet)</td><td>Trinnskatt + PAYE forskuddstrekk ~28.3% avg</td><td>Trygdeavgift 7.8% (employee)</td><td>Employer NI 14.1% (sone 1)</td></tr>
+        <tr><td><span class="badge b-purple">ENK (sole-prop)</span></td><td>12% if &gt;50k turnover (MVA reg.)</td><td>Personlig næringsinntekt — trinnskatt</td><td>Trygdeavgift 11% (self-employed)</td><td>No employer NI; driver invoices fleet</td></tr>
+        <tr><td><span class="badge b-teal">AS (company)</span></td><td>12% via the AS</td><td>Selskapsskatt 22% on profit</td><td>Driver taxed on own salary/dividend</td><td>Org-number must be supplied</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
   </div><!-- content-area -->
 </div><!-- main-area -->
 </div><!-- shell -->
@@ -4128,6 +4298,7 @@ function _applyRoleFilter(){
     'vehicle-fuel': 'view:vehicles',
     'vehicle-telematics': 'view:vehicles',
     'vehicle-insurance': 'view:vehicles',
+    'vehicle-eukontroll': 'view:vehicles',
     // Trips / dispatch
     'trips': 'view:trips',
     'trip-log': 'view:trips',
@@ -4147,9 +4318,16 @@ function _applyRoleFilter(){
     'finance-breakeven': 'view:financial',
     'costs': 'view:financial',
     'cost-fuel': 'view:financial',
+    'cost-charging': 'view:financial',
+    'cost-battery-swap': 'view:financial',
+    'cost-wash': 'view:financial',
     'cost-maintenance': 'view:financial',
+    'cost-repairs': 'view:financial',
     'cost-fixed': 'view:financial',
+    'cost-depreciation': 'view:financial',
     'cost-penalties': 'view:financial',
+    'tax-centre': 'view:financial',
+    'trip-extra-km': 'view:trips',
     'payments': 'view:financial',
     'invoicing': 'view:financial',
     // Analytics / reports
@@ -5184,6 +5362,178 @@ function saveAPIKeys(){
   if(typeof Toast!=='undefined')Toast.success('API config saved \u2014 '+n+' field(s) stored.');
   else alert(n+' API field(s) saved locally.');
 }
+
+// ──────────────────────────────────────────────────────────────────────
+// Populators for the new "driver-dashboard" sections (added 2026-04).
+// Each block reads from window.fleetData (already loaded by fleet-data.js)
+// or from sample arrays, then renders into the matching tbody in the
+// new pages above. They live here, beside the rest of the dashboard
+// populators, so all admin UI lives in one file.
+// ──────────────────────────────────────────────────────────────────────
+(function ddPopulate(){
+  const $ = (id) => document.getElementById(id);
+  const nok = (v) => (typeof FleetCurrency !== 'undefined')
+    ? FleetCurrency.format(v||0)
+    : new Intl.NumberFormat('nb-NO',{style:'currency',currency:'NOK',maximumFractionDigits:0}).format(v||0);
+  const dstr = (iso) => iso ? new Date(iso).toISOString().slice(0,10) : '—';
+  const daysTo = (iso) => iso ? Math.round((new Date(iso) - new Date())/86400000) : null;
+  const expCell = (iso) => {
+    const d = daysTo(iso); if (d===null) return '—';
+    const cls = d<0?'b-red':d<60?'b-amber':'b-green';
+    const txt = d<0?(-d)+'d overdue':d+'d left';
+    return `${dstr(iso)} <span class="badge ${cls}">${txt}</span>`;
+  };
+
+  // Demo data — wired to /api/* in production.
+  const vehicles = [
+    { carId:'TR2518', plate:'EL12345', make:'NIO ET5',     fuel:'EV_NIO',   euLast:'2025-02-14', euNext:'2027-02-14', tyre:'SUMMER', tyreChanged:'2026-04-01' },
+    { carId:'TR2511', plate:'EK98123', make:'Tesla Model 3',fuel:'EV_TESLA',euLast:'2024-11-02', euNext:'2026-11-02', tyre:'WINTER', tyreChanged:'2025-10-28' },
+    { carId:'TR2503', plate:'BR45612', make:'Toyota Corolla',fuel:'HYBRID', euLast:'2025-06-10', euNext:'2027-06-10', tyre:'SUMMER', tyreChanged:'2026-03-22' },
+    { carId:'TR2519', plate:'EL77441', make:'NIO ET7',     fuel:'EV_NIO',   euLast:'2024-08-01', euNext:'2026-08-01', tyre:'SUMMER', tyreChanged:'2026-04-05' },
+    { carId:'TR2509', plate:'BR99012', make:'BMW 3 Series',fuel:'PETROL',   euLast:'2025-09-15', euNext:'2027-09-15', tyre:'WINTER', tyreChanged:'2025-11-04' },
+  ];
+  const t = (b) => $(b);
+  if (t('eukontroll-tbody')) {
+    t('eukontroll-tbody').innerHTML = vehicles.map(v => `
+      <tr><td><strong>${v.carId}</strong></td><td class="text-mono">${v.plate}</td><td>${v.make}</td>
+      <td>${dstr(v.euLast)}</td><td>${expCell(v.euNext)}</td>
+      <td>${daysTo(v.euNext) < 60 ? '<span class="badge b-amber">Book inspection</span>' : '<span class="badge b-green">OK</span>'}</td>
+      <td><span class="badge ${v.tyre==='WINTER'?'b-blue':v.tyre==='SUMMER'?'b-amber':'b-gray'}">${v.tyre}</span></td>
+      <td>${dstr(v.tyreChanged)}</td></tr>`).join('');
+  }
+
+  if (t('charging-tbody')) {
+    const charging = [
+      { startedAt:'2026-04-13 22:10', vehicle:'TR2511', loc:'Supercharger Sandvika', kwh:38.1, rate:3.0, src:'TESLA_API' },
+      { startedAt:'2026-04-13 05:02', vehicle:'TR2518', loc:'Depot AC',              kwh:52.4, rate:3.0, src:'NIO_API' },
+      { startedAt:'2026-04-12 23:45', vehicle:'TR2519', loc:'NIO PSS Oslo N',         kwh:46.0, rate:3.0, src:'NIO_API' },
+      { startedAt:'2026-04-12 19:18', vehicle:'TR2511', loc:'Public DC Bjørvika',     kwh:41.7, rate:3.0, src:'SMARTCAR' },
+      { startedAt:'2026-04-12 06:30', vehicle:'TR2518', loc:'Depot AC',              kwh:48.2, rate:3.0, src:'NIO_API' },
+    ];
+    t('charging-tbody').innerHTML = charging.map(c => `
+      <tr><td class="text-mono">${c.startedAt}</td><td><strong>${c.vehicle}</strong></td><td>${c.loc}</td>
+      <td class="num text-mono">${c.kwh.toFixed(1)}</td><td class="num text-mono">${c.rate.toFixed(2)} kr</td>
+      <td class="num text-mono">${nok(Math.round(c.kwh*c.rate))}</td>
+      <td><span class="badge b-${c.src==='TESLA_API'?'red':c.src==='NIO_API'?'blue':'gray'}">${c.src}</span></td></tr>`).join('');
+  }
+
+  if (t('swap-tbody')) {
+    const swaps = [
+      { date:'2026-04-13', vehicle:'TR2518', station:'NIO PSS Oslo N',     pack:100, cost:298, src:'NIO_API' },
+      { date:'2026-04-10', vehicle:'TR2519', station:'NIO PSS Lillestrøm', pack:100, cost:280, src:'NIO_API' },
+      { date:'2026-04-07', vehicle:'TR2518', station:'NIO PSS Oslo N',     pack:75,  cost:240, src:'NIO_API' },
+    ];
+    t('swap-tbody').innerHTML = swaps.map(s => `
+      <tr><td>${dstr(s.date)}</td><td><strong>${s.vehicle}</strong></td><td>${s.station}</td>
+      <td class="num text-mono">${s.pack}</td><td class="num text-mono">${nok(s.cost)}</td>
+      <td><span class="badge b-blue">${s.src}</span></td></tr>`).join('');
+  }
+
+  if (t('wash-tbody')) {
+    const washes = [
+      { date:'2026-04-13', vehicle:'TR2518', type:'FULL',     vendor:'Oslo Bilvask',   by:'Driver',   cost:260 },
+      { date:'2026-04-13', vehicle:'TR2511', type:'EXTERIOR', vendor:'Circle K',       by:'Driver',   cost:120 },
+      { date:'2026-04-12', vehicle:'TR2503', type:'FULL',     vendor:'Best Bilpleie',  by:'In-house', cost:200 },
+      { date:'2026-04-12', vehicle:'TR2519', type:'INTERIOR', vendor:'Best Bilpleie',  by:'In-house', cost:150 },
+      { date:'2026-04-11', vehicle:'TR2509', type:'FULL',     vendor:'Oslo Bilvask',   by:'Driver',   cost:260 },
+    ];
+    t('wash-tbody').innerHTML = washes.map(w => `
+      <tr><td>${dstr(w.date)}</td><td><strong>${w.vehicle}</strong></td><td>${w.type}</td>
+      <td>${w.vendor}</td><td>${w.by}</td><td class="num text-mono">${nok(w.cost)}</td></tr>`).join('');
+  }
+
+  if (t('repair-tbody')) {
+    const repairs = [
+      { date:'2026-04-08', vehicle:'TR2518', cat:'TYRE',       desc:'Puncture — front left',         vendor:'Dekkmann',          cost:1850, fault:'DRIVER',          claim:'',          ded:null,  status:'DONE' },
+      { date:'2026-03-22', vehicle:'TR2511', cat:'GLASS',      desc:'Stone chip — windscreen',        vendor:'Hurtigruta Carglass',cost:4200, fault:'OTHER_INSURANCE',claim:'IF-2026-81203',ded:2500, status:'DONE' },
+      { date:'2026-03-15', vehicle:'TR2509', cat:'COLLISION',  desc:'Rear bumper — parking incident', vendor:'Møller Bil',         cost:18400, fault:'DRIVER',         claim:'',          ded:null,  status:'IN_PROGRESS' },
+      { date:'2026-03-02', vehicle:'TR2519', cat:'MECHANICAL', desc:'Brake service',                  vendor:'Bertel O. Steen',    cost:6300,  fault:'FLEET',          claim:'',          ded:null,  status:'DONE' },
+      { date:'2026-02-18', vehicle:'TR2503', cat:'ELECTRICAL', desc:'Hybrid battery sensor recall',   vendor:'Toyota NO',          cost:0,     fault:'MANUFACTURER',   claim:'',          ded:null,  status:'DONE' },
+    ];
+    const fpill = (f) => { const m = { DRIVER:'red', OTHER_INSURANCE:'blue', FLEET:'amber', MANUFACTURER:'purple', UNKNOWN:'gray' }; return `<span class="badge b-${m[f]||'gray'}">${f}</span>`; };
+    const spill = (s) => `<span class="badge b-${s==='DONE'?'green':s==='OPEN'?'amber':s==='IN_PROGRESS'?'blue':'gray'}">${s}</span>`;
+    t('repair-tbody').innerHTML = repairs.map(r => `
+      <tr><td>${dstr(r.date)}</td><td><strong>${r.vehicle}</strong></td>
+      <td><span class="badge b-gray">${r.cat}</span></td><td>${r.desc}</td><td>${r.vendor}</td>
+      <td class="num text-mono">${nok(r.cost)}</td><td>${fpill(r.fault)}</td>
+      <td class="text-mono">${r.claim||'—'}</td>
+      <td class="num text-mono">${r.ded?nok(r.ded):'—'}</td>
+      <td>${spill(r.status)}</td></tr>`).join('');
+  }
+
+  if (t('dep-tbody-dash')) {
+    const dep = [
+      { period:'2026-04-01', vehicle:'TR2518', method:'DECLINING_24', open:430000, charge:8600, close:421400 },
+      { period:'2026-04-01', vehicle:'TR2511', method:'DECLINING_24', open:275000, charge:5500, close:269500 },
+      { period:'2026-04-01', vehicle:'TR2503', method:'DECLINING_24', open:185000, charge:3700, close:181300 },
+      { period:'2026-04-01', vehicle:'TR2519', method:'DECLINING_24', open:455000, charge:9100, close:445900 },
+      { period:'2026-04-01', vehicle:'TR2509', method:'STRAIGHT_LINE',open:240000, charge:4000, close:236000 },
+    ];
+    t('dep-tbody-dash').innerHTML = dep.map(d => `
+      <tr><td>${dstr(d.period)}</td><td><strong>${d.vehicle}</strong></td>
+      <td><span class="badge b-gray">${d.method.replace('_',' ')}</span></td>
+      <td class="num text-mono">${nok(d.open)}</td>
+      <td class="num text-mono" style="color:var(--red)">−${nok(d.charge)}</td>
+      <td class="num text-mono">${nok(d.close)}</td></tr>`).join('');
+  }
+
+  if (t('extra-km-tbody')) {
+    const extra = [
+      { day:'2026-04-13', driver:'Olsztynski M.', vehicle:'TR2518', km:42.1, src:'BOLT',     notes:'deadhead to airport queue' },
+      { day:'2026-04-13', driver:'Armand N.',     vehicle:'TR2511', km:18.7, src:'UBER',     notes:'repositioning' },
+      { day:'2026-04-13', driver:'Faniel T.',     vehicle:'TR2503', km:61.3, src:'CSV_TAXI', notes:'Norgestaxi nightly export' },
+      { day:'2026-04-12', driver:'Olsztynski M.', vehicle:'TR2518', km:38.5, src:'ODOMETER_DELTA', notes:'reconciled vs trips' },
+      { day:'2026-04-12', driver:'Szymon S.',     vehicle:'TR2519', km:24.0, src:'BOLT',     notes:'long pickup' },
+    ];
+    const sp = (s) => { const m = { BOLT:'purple', UBER:'blue', CSV_TAXI:'teal', ODOMETER_DELTA:'orange', MANUAL:'gray' }; return `<span class="badge b-${m[s]||'gray'}">${s}</span>`; };
+    t('extra-km-tbody').innerHTML = extra.map(e => `
+      <tr><td>${dstr(e.day)}</td><td>${e.driver}</td><td><strong>${e.vehicle}</strong></td>
+      <td class="num text-mono">${e.km.toFixed(1)}</td><td>${sp(e.src)}</td>
+      <td class="text-muted">${e.notes}</td></tr>`).join('');
+  }
+
+  // ──── Tax Centre granularity ────
+  window.taxData = {
+    INSTANT:   { vat:412, vatd:0,    with:0,     ni:0,    net:412,    rows:[ { period:'2026-04-13 12:08', kind:'VAT_COLLECTED',     base:3430, rate:0.12, amt:412, vehicle:'TR2518', driver:'Olsztynski M.' } ] },
+    DAILY:     { vat:6120,vatd:920,  with:11200, ni:5740, net:22140,  rows:[
+      { period:'2026-04-13', kind:'VAT_COLLECTED',     base:51000, rate:0.12,  amt:6120,  vehicle:'(fleet)', driver:'(all)' },
+      { period:'2026-04-13', kind:'VAT_DEDUCTIBLE',    base:7700,  rate:0.12,  amt:924,   vehicle:'(fleet)', driver:'(all)' },
+      { period:'2026-04-13', kind:'INCOME_TAX_WITHHELD',base:39537, rate:0.283, amt:11189, vehicle:'(n/a)',  driver:'EMPLOYEEs' },
+      { period:'2026-04-13', kind:'EMPLOYER_NI',       base:40737, rate:0.141, amt:5744,  vehicle:'(n/a)',  driver:'EMPLOYEEs' },
+    ]},
+    WEEKLY:    { vat:42840,vatd:6440, with:78400, ni:40180,net:154980, rows:[ { period:'2026-W15', kind:'VAT_COLLECTED', base:357000, rate:0.12, amt:42840, vehicle:'(fleet)', driver:'(all)' } ] },
+    MONTHLY:   { vat:181700,vatd:27300,with:332400,ni:170400,net:657200,rows:[
+      { period:'2026-04', kind:'VAT_COLLECTED',     base:1514167, rate:0.12, amt:181700, vehicle:'(fleet)', driver:'(all)' },
+      { period:'2026-04', kind:'VAT_DEDUCTIBLE',    base:227500,  rate:0.12, amt:27300,  vehicle:'(fleet)', driver:'(all)' },
+      { period:'2026-04', kind:'INCOME_TAX_WITHHELD',base:1175000, rate:0.283,amt:332525, vehicle:'(n/a)',  driver:'EMPLOYEEs' },
+      { period:'2026-04', kind:'EMPLOYER_NI',       base:1208510, rate:0.141,amt:170400, vehicle:'(n/a)',  driver:'EMPLOYEEs' },
+    ]},
+    QUARTERLY: { vat:545100,vatd:81900,with:997200,ni:511200,net:1971600,rows:[ { period:'2026-Q2', kind:'VAT_COLLECTED', base:4542500, rate:0.12, amt:545100, vehicle:'(fleet)', driver:'(all)' } ] },
+    YEARLY:    { vat:2180400,vatd:327600,with:3988800,ni:2044800,net:7886400,rows:[ { period:'2026', kind:'VAT_COLLECTED', base:18170000, rate:0.12, amt:2180400, vehicle:'(fleet)', driver:'(all)' } ] },
+  };
+  window.setTaxGran = function(btn) {
+    document.querySelectorAll('#page-tax-centre [data-gran]').forEach(b => b.classList.remove('primary'));
+    btn.classList.add('primary');
+    const g = btn.dataset.gran;
+    const d = window.taxData[g];
+    $('tx-period-label').textContent = g;
+    const setNok = (id, v) => { const el = $(id); if (el) el.innerHTML = `<span class="cur" data-nok="${v}">${nok(v)}</span>`; };
+    setNok('tx-vat',  d.vat);  setNok('tx-vatd', d.vatd);
+    setNok('tx-with', d.with); setNok('tx-ni',   d.ni);
+    setNok('tx-net',  d.net);
+    const kpill = (k) => `<span class="badge b-${k==='VAT_COLLECTED'?'green':k==='VAT_DEDUCTIBLE'?'blue':k==='INCOME_TAX_WITHHELD'?'amber':'purple'}">${k.replace(/_/g,' ')}</span>`;
+    $('tax-tbody-dash').innerHTML = d.rows.map(r => `
+      <tr><td class="text-mono">${r.period}</td><td>${kpill(r.kind)}</td>
+      <td class="num text-mono">${nok(r.base)}</td>
+      <td class="num text-mono">${(r.rate*100).toFixed(1)}%</td>
+      <td class="num text-mono">${nok(r.amt)}</td>
+      <td class="text-mono">${r.vehicle}</td><td>${r.driver}</td></tr>`).join('');
+    if (typeof FleetCurrency !== 'undefined') FleetCurrency.rerender?.();
+  };
+  // Render initial DAILY view.
+  const dailyBtn = document.querySelector('#page-tax-centre [data-gran="DAILY"]');
+  if (dailyBtn) window.setTaxGran(dailyBtn);
+})();
 
 </script>
 </body>
