@@ -98,7 +98,30 @@ window.FleetData = (function(){
       const s = st.status === 'fulfilled' && st.value ? st.value : null;
       if (d && d.length) out.drivers  = d;
       if (v && v.length) out.vehicles = v;
-      if (s && typeof s === 'object') out.kpis = Object.assign({}, kpis, s);
+      // Map the /api/stats envelope into the flat kpis shape the dashboard
+      // has historically consumed. Only applied when dataState != 'empty'.
+      if (s && typeof s === 'object' && s.dataState && s.dataState !== 'empty') {
+        out.kpis = Object.assign({}, kpis, {
+          revenueToday:    s.today?.revenueNok ?? kpis.revenueToday,
+          tripsToday:      s.today?.trips ?? kpis.tripsToday,
+          driversActive:   s.today?.activeDrivers ?? kpis.driversActive,
+          vehiclesOnRoad:  s.today?.onTripVehicles ?? kpis.vehiclesOnRoad,
+          driversTotal:    s.fleet?.drivers?.total ?? kpis.driversTotal,
+          vehiclesTotal:   s.fleet?.vehicles?.total ?? kpis.vehiclesTotal,
+          netRevenue:      s.mtd?.grossNok ?? kpis.netRevenue,
+          netProfit:       s.mtd?.netNok ?? kpis.netProfit,
+          marginPct:       s.mtd?.marginPct ?? kpis.marginPct,
+          avgTripFare:     s.trip?.avgFareNok ?? kpis.avgTripFare,
+          vatPayable:      s.mtd?.vatPayableNok ?? null,
+          revenuePerKm:    s.trip?.revenuePerKmNok ?? null,
+          breakEvenDay:    s.mtd?.breakEvenDay ?? null,
+          dataState:       s.dataState,
+          generatedAt:     s.generatedAt,
+        });
+        out.statsRaw = s; // full envelope for any caller that wants detail
+      } else if (s) {
+        out.kpis = Object.assign({}, kpis, { dataState: s.dataState || 'empty' });
+      }
     } catch (err) {
       if (window.Sentry && typeof window.Sentry.captureException === 'function') {
         window.Sentry.captureException(err, { tags: { where: 'FleetData.load' } });
@@ -127,6 +150,14 @@ window.FleetData = (function(){
     const baselineVehicleCount = vehicles.length;
     load().then(live => {
       if (!live) return;
+      // Merge live kpis into the exported kpis object so DOM hydrator
+      // picks them up. load() returned a new object; we want to keep
+      // reference equality on window.FleetData.kpis.
+      if (live.kpis) Object.assign(kpis, live.kpis);
+      // Only hydrate cards when backend has actual data
+      if (kpis.dataState && kpis.dataState !== 'empty') {
+        try { hydrateKpis(); } catch(e){}
+      }
       const d = live.drivers || [];
       const v = live.vehicles || [];
       const diff = (d.length !== baselineDriverCount) || (v.length !== baselineVehicleCount);
@@ -143,5 +174,32 @@ window.FleetData = (function(){
   function findDriver(idOrCar){ return drivers.find(d => d.id === idOrCar || d.car === idOrCar); }
   function findVehicle(id){ return vehicles.find(v => v.id === id); }
 
-  return { drivers, vehicles, kpis, load, refresh, findDriver, findVehicle };
+  // Update any DOM node tagged [data-kpi="<key>"] with the latest value from
+  // FleetData.kpis. Optional [data-kpi-format="money|pct|int"] controls
+  // formatting; defaults to comma-formatted integer.
+  function formatKpi(val, format){
+    if (val == null || val === '') return '—';
+    const n = Number(val);
+    if (Number.isNaN(n)) return String(val);
+    if (format === 'money') {
+      return n.toLocaleString('nb-NO', { maximumFractionDigits: 0 }) + ' kr';
+    }
+    if (format === 'pct') return n.toFixed(1) + '%';
+    if (format === 'float') return n.toFixed(2);
+    return n.toLocaleString('nb-NO', { maximumFractionDigits: 0 });
+  }
+  function hydrateKpis(){
+    const els = document.querySelectorAll('[data-kpi]');
+    els.forEach(el => {
+      const key = el.getAttribute('data-kpi');
+      const fmt = el.getAttribute('data-kpi-format') || '';
+      if (!key) return;
+      if (!(key in kpis)) return;
+      el.textContent = formatKpi(kpis[key], fmt);
+    });
+    // Broadcast so non-DOM consumers (charts, etc.) can redraw
+    try { window.dispatchEvent(new CustomEvent('fleetdata:kpis-hydrated', { detail: { kpis } })); } catch(e){}
+  }
+
+  return { drivers, vehicles, kpis, load, refresh, findDriver, findVehicle, hydrateKpis };
 })();

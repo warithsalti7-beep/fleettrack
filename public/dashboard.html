@@ -9,6 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="./fleet-data.js"></script>
 <script src="./auth.js"></script>
+<script src="./ai-panel.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ══════════════════════════════════════════════════════
@@ -1111,6 +1112,30 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ── AI recommendations panel ── */
+.ai-card { border-color: rgba(138, 109, 255, 0.35); background: linear-gradient(180deg, rgba(138, 109, 255, 0.05), var(--bg2)); margin-bottom: var(--s4); }
+.ai-badge { display:inline-block; background:linear-gradient(135deg,#8a6dff,#b38dff); color:#fff; font-weight:700; font-size:10px; letter-spacing:0.5px; padding:2px 7px; border-radius:10px; margin-right:6px; vertical-align:middle; }
+.ai-status { font-size:11px; color:var(--t3); font-weight:400; margin-left:8px; }
+.ai-headline { font-size:14px; color:var(--t1); font-weight:600; padding:var(--s3) 0 var(--s2); border-bottom:1px solid var(--b1); margin-bottom:var(--s3); }
+.ai-rec { display:grid; grid-template-columns:8px 1fr auto; gap:var(--s3); align-items:start; padding:var(--s3) 0; border-bottom:1px solid var(--b1); }
+.ai-rec:last-child { border-bottom:none; }
+.ai-rec-pri { width:6px; height:100%; min-height:40px; border-radius:3px; margin-top:2px; }
+.ai-rec-pri.high { background:var(--red); }
+.ai-rec-pri.medium { background:var(--amber); }
+.ai-rec-pri.low { background:var(--blue2); }
+.ai-rec-title { font-size:13.5px; font-weight:600; color:var(--t1); margin-bottom:2px; }
+.ai-rec-area { font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:var(--t3); margin-right:var(--s2); }
+.ai-rec-body { font-size:13px; color:var(--t2); line-height:1.5; }
+.ai-rec-action { font-size:12px; padding:6px 12px; border-radius:6px; background:var(--bg3); border:1px solid var(--b2); color:var(--t1); text-decoration:none; white-space:nowrap; transition:all var(--fast); }
+.ai-rec-action:hover { background:var(--bg4); border-color:var(--blue2); }
+.ai-skeleton { padding:var(--s3) 0; }
+.sk-line { height:14px; background:linear-gradient(90deg, var(--bg3), var(--bg4), var(--bg3)); background-size:200% 100%; border-radius:4px; margin:10px 0; animation:sk 1.5s infinite linear; }
+.sk-1 { width:85%; } .sk-2 { width:70%; } .sk-3 { width:60%; }
+@keyframes sk { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.ai-error { padding:var(--s3); background:var(--redbg); border:1px solid var(--redborder); border-radius:var(--r2); color:var(--red); font-size:13px; }
+.ai-error .ai-retry { margin-top:var(--s2); display:inline-block; padding:4px 10px; background:var(--red); color:#fff; border-radius:4px; cursor:pointer; font-size:12px; }
+.ai-disabled { padding:var(--s3); background:var(--bg3); border-radius:var(--r2); color:var(--t3); font-size:13px; font-style:italic; }
 </style>
 </head>
 <body>
@@ -1416,9 +1441,29 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
   <div class="page-header"><div class="ph-left"><div class="ph-title">FleetTrack Command Centre</div><div class="ph-sub">Full operational control panel — all systems at a glance</div></div></div>
   <div class="kpi-grid g4">
     <div class="kc"><div class="kc-label">Fleet Status</div><div class="kc-value" style="color:var(--green)">Operational</div><div class="kc-sub">16 active · 2 workshop · 1 offline</div></div>
-    <div class="kc"><div class="kc-label">Today Revenue Pace</div><div class="kc-value"><span class="cur" data-nok="55430">55 430 kr</span></div><div class="kc-delta up">On track for <span class="cur" data-nok="59800">59 800 kr</span> EOD</div></div>
+    <div class="kc"><div class="kc-label">Today Revenue Pace</div><div class="kc-value"><span class="cur" data-nok="55430" data-kpi="revenueToday" data-kpi-format="money">55 430 kr</span></div><div class="kc-delta up">On track for <span class="cur" data-nok="59800">59 800 kr</span> EOD</div></div>
     <div class="kc"><div class="kc-label">Open Alerts</div><div class="kc-value" style="color:var(--red)">4</div><div class="kc-sub">2 critical · 2 warnings</div></div>
     <div class="kc"><div class="kc-label">Platform Health</div><div class="kc-value" style="color:var(--green)">Good</div><div class="kc-sub">Bolt avg 86% · Uber avg 80%</div></div>
+  </div>
+  <!-- ═══ AI RECOMMENDATIONS (LIVE) ═══ -->
+  <div class="card ai-card" id="ai-fleet-summary" data-ai-panel="fleet-summary">
+    <div class="card-header">
+      <div class="card-title">
+        <span class="ai-badge">AI</span> Fleet Recommendations
+        <span class="ai-status" id="ai-fleet-status"></span>
+      </div>
+      <div class="card-actions">
+        <button class="tb-btn" onclick="AIPanel.refresh('fleet-summary')" title="Regenerate">⟳ Refresh</button>
+      </div>
+    </div>
+    <div class="ai-body" id="ai-fleet-body">
+      <!-- Rendered by AIPanel.js -->
+      <div class="ai-skeleton">
+        <div class="sk-line sk-1"></div>
+        <div class="sk-line sk-2"></div>
+        <div class="sk-line sk-3"></div>
+      </div>
+    </div>
   </div>
   <div class="three-col">
     <div class="card"><div class="card-header"><div class="card-title">Driver Status Board</div></div>
