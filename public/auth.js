@@ -56,39 +56,14 @@ const FleetAuth = (() => {
 
   // ── Demo user database (replace with real API calls) ──────────────
   const DEMO_USERS = [
-    // ADMINS
-    { id:'admin-1',  email:'stefan@oslofleet.no',    password:'Admin2024!',  name:'Stefan (Owner)',             role:'admin',    avatar:'SO', permissions:['all'] },
-    { id:'admin-2',  email:'manager@fleettrack.no',  password:'Manager2024!',name:'Fleet Manager',              role:'admin',    avatar:'FM', permissions:['all'] },
-    { id:'admin-3',  email:'warithsalti@fleettrack.no', password:'adminwarith123', name:'Warith Salti', role:'admin', avatar:'WS', permissions:['all'] },
-
-    // EMPLOYEES
-    { id:'emp-1',    email:'dispatch@fleettrack.no', password:'Dispatch2024!',name:'Dispatch Officer',           role:'employee', avatar:'DO',
+    // One login account per role — simplified for easier testing.
+    // Additional drivers exist as fleet data (public/fleet-data.js) but
+    // don't have login accounts by default. Create more via admin
+    // Users & Permissions page as needed.
+    { id:'admin-1', email:'admin@fleettrack.no',    password:'Admin2024!',    name:'Fleet Admin',          role:'admin',    avatar:'FA', permissions:['all'] },
+    { id:'emp-1',   email:'employee@fleettrack.no', password:'Employee2024!', name:'Dispatch Officer',     role:'employee', avatar:'DO',
       permissions:['view:drivers','view:trips','view:zones','manage:dispatch','view:alerts'] },
-    { id:'emp-2',    email:'accounts@regnskap.no',   password:'Finance2024!', name:'Accountant',                 role:'employee', avatar:'AC',
-      permissions:['view:financial','view:payroll','export:reports','view:vehicles'] },
-    { id:'emp-3',    email:'ops@fleettrack.no',      password:'Ops2024!',     name:'Operations Staff',           role:'employee', avatar:'OS',
-      permissions:['view:drivers','view:vehicles','view:trips','manage:maintenance','view:alerts'] },
-
-    // DRIVERS
-    { id:'drv-1',    email:'olsztynski@fleettrack.no',password:'Driver2024!', name:'Olsztynski Mariusz Zbigniew',role:'driver',   avatar:'OM', carId:'TR2518', brand:'NIO ET5',       shift:'AM' },
-    { id:'drv-2',    email:'armand@fleettrack.no',   password:'Driver2024!',  name:'Armand Ionut Neculaita',     role:'driver',   avatar:'AI', carId:'TR2537', brand:'NIO EL6',       shift:'AM' },
-    { id:'drv-3',    email:'szymon@fleettrack.no',   password:'Driver2024!',  name:'Szymon Silay Khassany',      role:'driver',   avatar:'SS', carId:'TR2540', brand:'NIO ET5',       shift:'AM' },
-    { id:'drv-4',    email:'piotr@fleettrack.no',    password:'Driver2024!',  name:'Piotr Nowak',                role:'driver',   avatar:'PN', carId:'TR732',  brand:'NIO EL6',       shift:'AM' },
-    { id:'drv-5',    email:'faniel@fleettrack.no',   password:'Driver2024!',  name:'Faniel Tsegay Weldetnase',   role:'driver',   avatar:'FT', carId:'TR2519', brand:'Tesla Model Y', shift:'AM' },
-    { id:'drv-6',    email:'aram@fleettrack.no',     password:'Driver2024!',  name:'Aram Khalandy',              role:'driver',   avatar:'AK', carId:'TR2520', brand:'NIO ET5',       shift:'AM' },
-    { id:'drv-7',    email:'sofiullah@fleettrack.no',password:'Driver2024!',  name:'Sofiullah Razai',            role:'driver',   avatar:'SR', carId:'TR2539', brand:'NIO ET5',       shift:'AM' },
-    { id:'drv-8',    email:'imran@fleettrack.no',    password:'Driver2024!',  name:'Imran Shinwari',             role:'driver',   avatar:'IS', carId:'TR2539', brand:'NIO ET5',       shift:'PM' },
-    { id:'drv-9',    email:'alaa@fleettrack.no',     password:'Driver2024!',  name:'Alaa Haithem Alnaeb',        role:'driver',   avatar:'AH', carId:'TR2597', brand:'Tesla Model 3', shift:'AM' },
-    { id:'drv-10',   email:'mateusz@fleettrack.no',  password:'Driver2024!',  name:'Mateusz Kamil Golik',        role:'driver',   avatar:'MG', carId:'TR2516', brand:'NIO ET5',       shift:'AM' },
-    { id:'drv-11',   email:'martin@fleettrack.no',   password:'Driver2024!',  name:'Martin Pastor',              role:'driver',   avatar:'MP', carId:'TR2516', brand:'NIO ET5',       shift:'PM' },
-    { id:'drv-12',   email:'radoslaw@fleettrack.no', password:'Driver2024!',  name:'Radoslaw Stefan Brozek',     role:'driver',   avatar:'RB', carId:'TR2536', brand:'Tesla Model 3', shift:'AM' },
-    { id:'drv-13',   email:'don@fleettrack.no',      password:'Driver2024!',  name:'Don August Tomte Mendonca',  role:'driver',   avatar:'DA', carId:'TR2536', brand:'NIO ET5',       shift:'PM' },
-    { id:'drv-14',   email:'hokam@fleettrack.no',    password:'Driver2024!',  name:'Hokam Ali',                  role:'driver',   avatar:'HA', carId:'TR3319', brand:'Tesla Model 3', shift:'AM' },
-    { id:'drv-15',   email:'abdulqadir@fleettrack.no',password:'Driver2024!', name:'Abdulqadir Abukar Ali',      role:'driver',   avatar:'AA', carId:'TR709',  brand:'Tesla Model S', shift:'AM' },
-    { id:'drv-16',   email:'petros@fleettrack.no',   password:'Driver2024!',  name:'Petros Bampos',              role:'driver',   avatar:'PB', carId:'TR3323', brand:'KIA NIRO',      shift:'AM' },
-    { id:'drv-17',   email:'geir@fleettrack.no',     password:'Driver2024!',  name:'Geir Erik Paulsen',          role:'driver',   avatar:'GE', carId:'TR3323', brand:'KIA NIRO',      shift:'PM' },
-    { id:'drv-18',   email:'mubarak@fleettrack.no',  password:'Driver2024!',  name:'Mubarak Warith Salti',       role:'driver',   avatar:'MW', carId:'TR3320', brand:'NIO EL6',       shift:'AM' },
-    { id:'drv-19',   email:'radu@fleettrack.no',     password:'Driver2024!',  name:'Radu Mihai Sandor',          role:'driver',   avatar:'RM', carId:'TR3320', brand:'NIO EL6',       shift:'PM' },
+    { id:'drv-1',   email:'driver@fleettrack.no',   password:'Driver2024!',   name:'Olsztynski Mariusz Zbigniew', role:'driver', avatar:'OM', carId:'TR2518', brand:'NIO ET5', shift:'AM' },
   ];
 
   // ── Session management ─────────────────────────────────────────────

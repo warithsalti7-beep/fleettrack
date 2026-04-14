@@ -48,14 +48,16 @@ function enc(text: string): Uint8Array {
 }
 
 async function hmac(data: string): Promise<Uint8Array> {
+  const secretBytes = enc(getSecret()).slice();
+  const dataBytes = enc(data).slice();
   const key = await crypto.subtle.importKey(
     "raw",
-    enc(getSecret()),
+    secretBytes.buffer,
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
   );
-  const sig = await crypto.subtle.sign("HMAC", key, enc(data));
+  const sig = await crypto.subtle.sign("HMAC", key, dataBytes.buffer);
   return new Uint8Array(sig);
 }
 
