@@ -324,7 +324,26 @@ const driverStats = {
   'drv-18': { earnings:1580, trips:4,  hours:7.0, accept:70, boltTrips:4,  uberTrips:0,  boltWin:'06:00–13:00', uberWin:'—',           score:44 },
   'drv-19': { earnings:1490, trips:4,  hours:7.5, accept:68, boltTrips:4,  uberTrips:1,  boltWin:'14:00–21:00', uberWin:'14:30–15:30', score:41 },
 };
-const myStats = driverStats[session.userId] || { earnings:0, trips:0, hours:0, accept:0, boltTrips:0, uberTrips:0, boltWin:'—', uberWin:'—', score:0 };
+// Fallback stats for drivers not in the hardcoded list (e.g. custom drivers
+// added by admin via the UI). Derives a deterministic seed from the user id
+// so the numbers are stable for that user across sessions.
+function _seed(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0)/4294967295;}
+function _rand(seed, min, max){ return min + Math.floor(seed * (max - min)); }
+function synthesizeDriverStats(uid){
+  const s1=_seed(uid+'-a'), s2=_seed(uid+'-b'), s3=_seed(uid+'-c'), s4=_seed(uid+'-d');
+  const trips = _rand(s1, 4, 11);
+  const hours = Number((7 + s2 * 2).toFixed(1));
+  const earnings = Math.round(trips * (210 + s3 * 110));
+  const accept = _rand(s2, 68, 94);
+  const boltTrips = Math.max(1, trips - _rand(s4, 0, 3));
+  const uberTrips = trips - boltTrips;
+  const score = _rand(s3, 45, 92);
+  const shiftStart = _rand(s1, 5, 15);
+  const boltWin = String(shiftStart).padStart(2,'0') + ':00–' + String(shiftStart + 8).padStart(2,'0') + ':00';
+  const uberWin = uberTrips > 0 ? boltWin : '—';
+  return { earnings, trips, hours, accept, boltTrips, uberTrips, boltWin, uberWin, score };
+}
+const myStats = driverStats[session.userId] || synthesizeDriverStats(session.userId || session.email || 'unknown');
 
 // ── Render home tab ──────────────────────────────────────────────────
 document.getElementById('d-earnings').textContent = FleetCurrency.format(myStats.earnings);
