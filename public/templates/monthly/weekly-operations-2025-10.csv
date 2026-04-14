@@ -1,0 +1,15 @@
+record_type,date,time,driver_email,car_id,shift_start,shift_end,hours_online,zone,platform,pickup_address,dropoff_address,distance_km,duration_min,fare_nok,payment_method,rating,status,liters_or_kwh,price_per_unit_nok,total_cost_nok,mileage_km,station,type,description,workshop,notes
+# -----------------------------------------------------------------------
+# WEEKLY OPERATIONS — Month: 2025-10
+# Fill every shift, trip, fuel refill, and maintenance event that happened in 2025-10.
+# record_type values: SHIFT | TRIP | FUEL | MAINTENANCE
+# See https://fleettrack.no/sop.html for full column documentation.
+# Dates: YYYY-MM-DD. Times: HH:MM (24h).
+# Safe to re-upload: duplicates auto-detected (10s window on driver+car+time).
+# -----------------------------------------------------------------------
+# Example rows below — DELETE the # at the start of each line to activate,
+# or delete these example lines entirely and add your real data.
+#SHIFT,2025-10-01,,olsztynski@fleettrack.no,TR2518,06:00,14:30,8.5,City Centre,Bolt,,,,,,,,completed,,,,,,,,,
+#TRIP,2025-10-01,07:12,olsztynski@fleettrack.no,TR2518,,,,,Bolt,Oslo Airport T2,Aker Brygge,48.2,42,582,CARD,5.0,completed,,,,,,,,,
+#FUEL,2025-10-01,,,TR2518,,,,,,,,,,,,,,42,3.85,162,18230,Circle K Aker Brygge,,,,
+#MAINTENANCE,2025-10-01,,,TR2518,,,,,,,,,,,,,,completed,,,2070,18000,,OIL_CHANGE,Routine 10000 km service,AutoFix GmbH,

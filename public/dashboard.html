@@ -1412,10 +1412,10 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
     <div class="ph-right"><button class="tb-btn primary" onclick="Toast.success('Dashboard refreshed')">⟳ Refresh</button></div>
   </div>
   <div class="kpi-grid g6">
-    <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">Revenue Today</div><div class="kc-value"><span class="cur" data-nok="55430">55 430 kr</span></div><div class="kc-delta up">↑ 8.3% vs yesterday</div><div class="kc-sub">Target: <span class="cur" data-nok="51750">51 750 kr</span></div></div>
-    <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">Net Profit</div><div class="kc-value"><span class="cur" data-nok="9200">9 200 kr</span></div><div class="kc-delta up">↑ 16.6% margin</div><div class="kc-sub">Break-even: <span class="cur" data-nok="38800">38 800 kr</span></div></div>
-    <div class="kc"><div class="kc-accent" style="background:var(--blue)"></div><div class="kc-label">Active Drivers</div><div class="kc-value">16/19</div><div class="kc-delta neu">1 offline · 2 workshop</div><div class="kc-sub">84% attendance</div></div>
-    <div class="kc"><div class="kc-accent" style="background:var(--blue)"></div><div class="kc-label">Trips Done</div><div class="kc-value">189</div><div class="kc-delta up">↑ +14 vs target</div><div class="kc-sub">Target: 175</div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">Revenue Today</div><div class="kc-value"><span class="cur" data-nok="55430" data-kpi="revenueToday" data-kpi-format="money">55 430 kr</span></div><div class="kc-delta up">↑ 8.3% vs yesterday</div><div class="kc-sub">Target: <span class="cur" data-nok="51750">51 750 kr</span></div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">Net Profit (MTD)</div><div class="kc-value"><span class="cur" data-nok="9200" data-kpi="netProfit" data-kpi-format="money">9 200 kr</span></div><div class="kc-delta up">↑ <span data-kpi="marginPct" data-kpi-format="pct">16.6%</span> margin</div><div class="kc-sub">Break-even: <span class="cur" data-nok="38800" data-kpi="breakEven" data-kpi-format="money">38 800 kr</span></div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--blue)"></div><div class="kc-label">Active Drivers</div><div class="kc-value"><span data-kpi="driversActive">16</span>/<span data-kpi="driversTotal">19</span></div><div class="kc-delta neu">1 offline · 2 workshop</div><div class="kc-sub">84% attendance</div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--blue)"></div><div class="kc-label">Trips Done</div><div class="kc-value" data-kpi="tripsToday">189</div><div class="kc-delta up">↑ +14 vs target</div><div class="kc-sub">Target: 175</div></div>
     <div class="kc"><div class="kc-accent" style="background:var(--amber)"></div><div class="kc-label">Utilization</div><div class="kc-value">68.4%</div><div class="kc-bar"><div class="kc-bar-fill" style="width:68.4%;background:var(--amber)"></div></div><div class="kc-sub">Target: >70%</div></div>
     <div class="kc"><div class="kc-accent" style="background:var(--teal)"></div><div class="kc-label">Avg Rev/Hour</div><div class="kc-value"><span class="cur" data-nok="258">258 kr</span></div><div class="kc-delta up">↑ Above <span class="cur" data-nok="230">230 kr</span> target</div><div class="kc-sub">Fleet average</div></div>
   </div>
@@ -1500,8 +1500,8 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
 <div class="page" id="page-driver-roster">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Driver Roster & Profiles</div><div class="ph-sub">Complete driver database — 19 registered drivers</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Add Driver — not implemented yet')">+ Add Driver</button></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Total Registered</div><div class="kc-value">19</div></div>
-    <div class="kc"><div class="kc-label">Active Today</div><div class="kc-value" style="color:var(--green)">16</div></div>
+    <div class="kc"><div class="kc-label">Total Registered</div><div class="kc-value" data-kpi="driversTotal">19</div></div>
+    <div class="kc"><div class="kc-label">Active Today</div><div class="kc-value" style="color:var(--green)" data-kpi="driversActive">16</div></div>
     <div class="kc"><div class="kc-label">Licenses Expiring <60d</div><div class="kc-value" style="color:var(--amber)">2</div></div>
     <div class="kc"><div class="kc-label">On Improvement Plan</div><div class="kc-value" style="color:var(--red)">3</div></div>
   </div>
@@ -1794,10 +1794,10 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
 <div class="page" id="page-financial">
   <div class="page-header"><div class="ph-left"><div class="ph-title">P&L Dashboard</div><div class="ph-sub">Daily, weekly, monthly profit & loss with per-trip economics</div></div><div class="ph-right"><button class="tb-btn primary" onclick="exportNearestTable(this,'pnl')" aria-label="Export P&amp;L">⬇ Export P&L</button></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Gross Revenue</div><div class="kc-value"><span class="cur" data-nok="55430">55 430 kr</span></div></div>
-    <div class="kc"><div class="kc-label">Net Revenue</div><div class="kc-value"><span class="cur" data-nok="47115">47 115 kr</span></div><div class="kc-sub">After platform fees</div></div>
-    <div class="kc"><div class="kc-label">Net Profit</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="9200">9 200 kr</span></div><div class="kc-sub">16.6% margin</div></div>
-    <div class="kc"><div class="kc-label">Break-Even</div><div class="kc-value"><span class="cur" data-nok="38800">38 800 kr</span></div><div class="kc-sub">Daily requirement</div></div>
+    <div class="kc"><div class="kc-label">Gross Revenue (Today)</div><div class="kc-value"><span class="cur" data-nok="55430" data-kpi="revenueToday" data-kpi-format="money">55 430 kr</span></div></div>
+    <div class="kc"><div class="kc-label">Net Revenue (MTD)</div><div class="kc-value"><span class="cur" data-nok="47115" data-kpi="netRevenue" data-kpi-format="money">47 115 kr</span></div><div class="kc-sub">After platform fees</div></div>
+    <div class="kc"><div class="kc-label">Net Profit (MTD)</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="9200" data-kpi="netProfit" data-kpi-format="money">9 200 kr</span></div><div class="kc-sub"><span data-kpi="marginPct" data-kpi-format="pct">16.6%</span> margin</div></div>
+    <div class="kc"><div class="kc-label">Break-Even</div><div class="kc-value"><span class="cur" data-nok="38800" data-kpi="breakEven" data-kpi-format="money">38 800 kr</span></div><div class="kc-sub">Daily requirement</div></div>
   </div>
   <div class="three-col">
     <div class="card" style="margin-bottom:0">

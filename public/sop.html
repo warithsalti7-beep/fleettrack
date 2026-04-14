@@ -52,7 +52,8 @@
 <div class="toolbar">
   <button onclick="window.print()">🖨️ Print / Save as PDF</button>
   <a class="secondary" href="./templates/fleet-setup.csv" download>⬇ fleet-setup.csv</a>
-  <a class="secondary" href="./templates/weekly-operations.csv" download>⬇ weekly-operations.csv</a>
+  <a class="secondary" href="./templates/weekly-operations.csv" download>⬇ weekly-operations.csv (blank)</a>
+  <a class="secondary" href="#monthly-templates">📅 Monthly backfill templates ↓</a>
   <a class="secondary" href="./dashboard">← Back to dashboard</a>
 </div>
 
@@ -349,6 +350,64 @@ Duration: 4.2s</pre></li>
   <li>The dashboard then has 14+ months of history populating every chart, P&amp;L, and driver scorecard</li>
 </ol>
 <div class="note">If a historical upload reports many errors, don't panic — fix the identified rows and re-upload the cleaned file. Duplicates from the successful rows will be auto-skipped.</div>
+
+<h2 id="monthly-templates">10. Monthly backfill templates — Sept 2025 → today</h2>
+<p>For historical data injection, download one file per month below. Each template has the correct headers + commented-out example rows dated to that month. <strong>Do one month at a time</strong>, upload, verify it looks right on the dashboard, then move to the next month.</p>
+
+<div class="note">
+  <strong>Recommended order:</strong> oldest first (September 2025) → most recent. After uploading each month, open the Financial page on the dashboard and compare the MTD Revenue to your real accounting figure for that month. If they match, proceed.
+</div>
+
+<table>
+  <tr><th>Month</th><th>Template</th><th>Expected rows</th></tr>
+  <tr><td>September 2025</td><td><a href="./templates/monthly/weekly-operations-2025-09.csv" download>⬇ weekly-operations-2025-09.csv</a></td><td>~4 000</td></tr>
+  <tr><td>October 2025</td><td><a href="./templates/monthly/weekly-operations-2025-10.csv" download>⬇ weekly-operations-2025-10.csv</a></td><td>~4 200</td></tr>
+  <tr><td>November 2025</td><td><a href="./templates/monthly/weekly-operations-2025-11.csv" download>⬇ weekly-operations-2025-11.csv</a></td><td>~4 000</td></tr>
+  <tr><td>December 2025</td><td><a href="./templates/monthly/weekly-operations-2025-12.csv" download>⬇ weekly-operations-2025-12.csv</a></td><td>~4 300</td></tr>
+  <tr><td>January 2026</td><td><a href="./templates/monthly/weekly-operations-2026-01.csv" download>⬇ weekly-operations-2026-01.csv</a></td><td>~3 800</td></tr>
+  <tr><td>February 2026</td><td><a href="./templates/monthly/weekly-operations-2026-02.csv" download>⬇ weekly-operations-2026-02.csv</a></td><td>~3 900</td></tr>
+  <tr><td>March 2026</td><td><a href="./templates/monthly/weekly-operations-2026-03.csv" download>⬇ weekly-operations-2026-03.csv</a></td><td>~4 200</td></tr>
+  <tr><td>April 2026 (MTD)</td><td><a href="./templates/monthly/weekly-operations-2026-04.csv" download>⬇ weekly-operations-2026-04.csv</a></td><td>~2 000 (half month)</td></tr>
+</table>
+
+<h3>10.1 How to fill each monthly file</h3>
+<ol>
+  <li>Open the downloaded CSV in Excel / Google Sheets / Numbers</li>
+  <li>Delete the 4 example rows (lines starting with <code>#</code>)</li>
+  <li>For that month, pull data from your sources (see Section 4):
+    <ul>
+      <li><strong>Bolt</strong>: <code>fleets.bolt.eu</code> → Reports → Trips → set date range to exactly that month → Export CSV → paste into TRIP rows</li>
+      <li><strong>Uber</strong>: <code>fleet.uber.com</code> → weekly statements for that month → concat into TRIP rows</li>
+      <li><strong>Fuel card</strong>: Circle K / Shell statement for that month → FUEL rows</li>
+      <li><strong>Workshop invoices</strong>: that month's invoices → MAINTENANCE rows</li>
+      <li><strong>Shifts</strong>: rebuild from Bolt/Uber "hours online" summaries → SHIFT rows (one per driver-day)</li>
+    </ul>
+  </li>
+  <li>Save with the same filename (e.g. <code>weekly-operations-2025-09.csv</code>)</li>
+  <li>Upload via <strong>Data Import</strong> → <strong>One-Shot Bundle Upload</strong></li>
+</ol>
+
+<h3>10.2 Verification after each month</h3>
+<ul>
+  <li>Dashboard → Financial → MTD Revenue should match your accounting figure for that month (±1%)</li>
+  <li>Dashboard → Driver Roster → trip counts should roughly match Bolt+Uber statements</li>
+  <li>Any import error row numbers map to the CSV you just uploaded — open it, fix the bad row, re-upload (duplicates auto-skip)</li>
+</ul>
+
+<div class="warn"><strong>Pace yourself.</strong> Eight months × 30 min = 4 hours. Spread across 2 people, 2 hours. Don't try to do all months in one go — mistakes cascade and error-recovery becomes painful.</div>
+
+<h3>10.3 What auto-updates on the dashboard after each upload</h3>
+<table>
+  <tr><th>Page</th><th>Auto-syncs?</th><th>What updates</th></tr>
+  <tr><td>Command Centre</td><td>✅</td><td>Revenue Today, Net Profit, Trips Done, Active Drivers (from DB)</td></tr>
+  <tr><td>Financial (P&amp;L)</td><td>✅</td><td>Gross / Net Revenue, Net Profit, Margin %, Break-Even, VAT Payable, Revenue per km</td></tr>
+  <tr><td>Driver Roster table</td><td>✅</td><td>All 19 drivers with live stats</td></tr>
+  <tr><td>Vehicle Fleet table</td><td>✅</td><td>All 14 vehicles with live utilisation</td></tr>
+  <tr><td>Trip Log table</td><td>✅</td><td>Every trip from DB</td></tr>
+  <tr><td>Fuel Log table</td><td>✅</td><td>Every refill</td></tr>
+  <tr><td>Maintenance Log</td><td>✅</td><td>Every workshop visit</td></tr>
+  <tr><td>Some charts (revenue trend, platform split)</td><td>🟡</td><td>Still read hardcoded demo values — live-data wiring pending</td></tr>
+</table>
 
 <div class="footer">
   FleetTrack Data-Entry SOP · For internal use at the fleet operator's discretion.<br>
