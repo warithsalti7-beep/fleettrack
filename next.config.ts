@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
       { source: "/login", destination: "/login.html" },
       { source: "/dashboard", destination: "/dashboard.html" },
       { source: "/access-management", destination: "/access-management.html" },
+      { source: "/employee", destination: "/employee.html" },
       { source: "/driver", destination: "/driver.html" },
     ];
   },

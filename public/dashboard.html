@@ -2892,18 +2892,58 @@ if(tripLogTbody){
 }
 
 // ── NAVIGATION ─────────────────────────────────────────
-function go(id,el,title,root){
+// Core page switcher — no history side effects.
+function showPage(id,title,root){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const pg=document.getElementById('page-'+id);
-  if(pg)pg.classList.add('active');
+  if(pg){pg.classList.add('active');window.scrollTo(0,0);}
+  const bc1=document.getElementById('bc-current'),bc2=document.getElementById('bc-root');
+  if(bc1)bc1.textContent=title||id;
+  if(bc2)bc2.textContent=root||'';
+  // Update active sidebar item based on page id
+  document.querySelectorAll('.nav-item.active,.subnav-item.active').forEach(n=>n.classList.remove('active'));
+  const link=document.querySelector('[data-page="'+id+'"]')||document.querySelector('[onclick*="go(\\''+id+'\\'"]');
+  if(link)link.classList.add('active');
+}
+
+// Public navigation — pushes a new history entry so browser Back/Forward work.
+function go(id,el,title,root){
+  showPage(id,title,root);
   if(el){
     document.querySelectorAll('.nav-item,.subnav-item').forEach(n=>n.classList.remove('active'));
     el.classList.add('active');
   }
-  document.getElementById('bc-current').textContent=title||id;
-  document.getElementById('bc-root').textContent=root||'';
-  document.getElementById('topbar-title')||null;
+  const state={id,title,root};
+  const hash='#'+id;
+  if(location.hash!==hash){
+    history.pushState(state,'',hash);
+  } else {
+    history.replaceState(state,'',hash);
+  }
 }
+
+// Handle browser Back/Forward
+window.addEventListener('popstate',(e)=>{
+  const s=e.state;
+  if(s && s.id){
+    showPage(s.id,s.title,s.root);
+  } else if(location.hash){
+    const id=location.hash.replace(/^#/,'');
+    showPage(id, id.replace(/-/g,' '), '');
+  } else {
+    showPage('command-centre','Command Centre','Operations');
+  }
+});
+
+// On first load, restore page from URL hash if present
+(function initRouteFromHash(){
+  const hash=location.hash.replace(/^#/,'');
+  if(hash && document.getElementById('page-'+hash)){
+    showPage(hash, hash.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()), '');
+    // Replace state so hash navigates cleanly
+    history.replaceState({id:hash},'','#'+hash);
+  }
+})();
 
 function toggleSub(id,el){
   const sub=document.getElementById(id);
