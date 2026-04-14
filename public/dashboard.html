@@ -3715,16 +3715,18 @@ function _applyRoleFilter(){
 
   // Map onclick-target page ids to required permissions.
   // null = admin-only (hide completely for non-admins)
+  // 'any' = always visible (e.g. My Profile — every user has one)
   const gate = {
-    // Command centre & main dashboards
-    'command-centre': 'any',
+    // Command centre & main dashboards — these show FLEET data.
+    // Employees must explicitly have view:drivers to see them.
+    'command-centre': 'view:drivers',
     'financial': 'view:financial',
-    'efficiency': 'any',
-    'platforms': 'any',
+    'efficiency': 'view:financial',
+    'platforms': 'view:drivers',
     'zones': 'view:zones',
     'alerts-page': 'view:alerts',
-    'compliance': 'any',
-    'kpis': 'any',
+    'compliance': 'view:drivers',
+    'kpis': 'view:financial',
     'datamodel': null,
     // Drivers
     'drivers': 'view:drivers',
@@ -3767,15 +3769,15 @@ function _applyRoleFilter(){
     'payments': 'view:financial',
     'invoicing': 'view:financial',
     // Analytics / reports
-    'peak-hours': 'any',
+    'peak-hours': 'view:trips',
     'revenue-analysis': 'view:financial',
     'forecasting': 'view:financial',
     'reports': 'export:reports',
     // Other
-    'incidents': 'any',
-    'ratings': 'any',
-    'complaints': 'any',
-    'safety': 'any',
+    'incidents': 'view:drivers',
+    'ratings': 'view:drivers',
+    'complaints': 'view:drivers',
+    'safety': 'view:drivers',
     'audits': null,
     'customer-accounts': 'view:financial',
     'activity-log': 'view:drivers',
@@ -3811,6 +3813,84 @@ function _applyRoleFilter(){
   });
 }
 
+// Inject a personal "My Profile" page for every non-admin user, and route
+// them there if they have no accessible pages OR on first visit.
+function _injectProfilePage(){
+  if (document.getElementById('page-my-profile')) return;
+  const perms = _employeePerms() || [];
+  const allPerms = ['view:drivers','view:vehicles','view:trips','view:alerts','view:financial','view:payroll','view:zones','manage:dispatch','manage:maintenance','export:reports'];
+  const chips = allPerms.map(p => {
+    const on = perms.includes('all') || perms.includes(p);
+    return `<span class="badge ${on?'b-green':'b-gray'}" style="margin:2px;font-family:var(--mono);font-size:10.5px">${on?'✓':'·'} ${p}</span>`;
+  }).join('');
+
+  const roleLabel = _ctx.role === 'admin' ? 'Administrator'
+                  : _ctx.role === 'employee' ? 'Employee'
+                  : 'Driver';
+
+  const page = document.createElement('div');
+  page.className = 'page';
+  page.id = 'page-my-profile';
+  page.innerHTML = `
+    <div class="page-header">
+      <div class="ph-left">
+        <div class="ph-title">My Profile</div>
+        <div class="ph-sub">Your account, role and current access level.</div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Account</div></div>
+        <div style="display:flex;align-items:center;gap:var(--s4);margin-bottom:var(--s4)">
+          <div style="width:56px;height:56px;border-radius:50%;background:var(--bluebg);border:1px solid var(--blueborder);color:var(--blue2);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">${(_s?.avatar)||'US'}</div>
+          <div>
+            <div style="font-size:16px;font-weight:600;color:var(--t1)">${_s?.name||'—'}</div>
+            <div style="font-size:12px;color:var(--t3);font-family:var(--mono)">${_s?.email||'—'}</div>
+          </div>
+        </div>
+        <div class="info-row" style="display:flex;justify-content:space-between;padding:var(--s2) 0;border-bottom:1px solid var(--b1);font-size:13px"><span style="color:var(--t2)">Role</span><span style="color:var(--t1);font-weight:500">${roleLabel}</span></div>
+        <div class="info-row" style="display:flex;justify-content:space-between;padding:var(--s2) 0;border-bottom:1px solid var(--b1);font-size:13px"><span style="color:var(--t2)">User ID</span><span style="color:var(--t1);font-family:var(--mono);font-size:11.5px">${_s?.userId||'—'}</span></div>
+        <div class="info-row" style="display:flex;justify-content:space-between;padding:var(--s2) 0;font-size:13px"><span style="color:var(--t2)">Session expires</span><span style="color:var(--t1);font-family:var(--mono);font-size:11.5px" id="my-session-exp">—</span></div>
+        <button class="btn" style="margin-top:var(--s4);color:var(--red);border-color:var(--redborder);width:100%" onclick="FleetAuth.logout('./login.html')">Sign out</button>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Your access</div><div class="card-sub">${_ctx.role==='admin'?'Full access':perms.length+' permission(s)'}</div></div>
+        <div style="font-size:12.5px;color:var(--t2);margin-bottom:var(--s3);line-height:1.6">${_ctx.role==='admin'?'As an administrator you have access to every page and can manage users, permissions and settings.':'Your administrator controls which parts of the dashboard you can open. Contact them to request additional access.'}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:2px">${chips}</div>
+      </div>
+    </div>`;
+
+  // Insert before any existing page div
+  const firstPage = document.querySelector('.page');
+  if (firstPage) firstPage.parentElement.insertBefore(page, firstPage);
+  else document.body.appendChild(page);
+
+  // Session expiry clock
+  if (_s?.expiresAt){
+    const exp = new Date(_s.expiresAt);
+    const el = document.getElementById('my-session-exp');
+    if (el) el.textContent = exp.toLocaleString('en-GB', { dateStyle:'short', timeStyle:'short' });
+  }
+
+  // If the non-admin has no accessible pages, land them here on load.
+  const hasAnyAccess = perms.length > 0 || _ctx.role === 'admin';
+  if (!hasAnyAccess && !location.hash){
+    if (typeof showPage === 'function') showPage('my-profile', 'My Profile', 'Account');
+  }
+}
+// Also inject a nav entry for it in the sidebar — last item, always visible
+function _injectProfileNav(){
+  const sb = document.querySelector('.sidebar .nav') || document.querySelector('.sidebar');
+  if (!sb || document.getElementById('nav-my-profile')) return;
+  const el = document.createElement('div');
+  el.className = 'nav-item';
+  el.id = 'nav-my-profile';
+  el.setAttribute('onclick', "go('my-profile', this, 'My Profile', 'Account')");
+  el.style.marginTop = 'auto';
+  el.innerHTML = '<span class="nav-icon">👤</span>My Profile';
+  sb.appendChild(el);
+}
+
 // Preview-mode banner (when an admin is viewing as another user)
 function _injectPreviewBanner(){
   if (!_ctx.previewFrom) return;
@@ -3828,6 +3908,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     const av=document.getElementById('sb-avatar'),nm=document.getElementById('sb-name');
     if(av)av.textContent=(_ctx.role==='admin'&&!_ctx.previewFrom)?(_s.avatar||'AD'):(_ctx.role==='employee'?(_ctx.name||'EM').substring(0,2).toUpperCase():'PV');
     if(nm)nm.textContent=_ctx.name||_s.name||'User';
+    _injectProfilePage();
+    _injectProfileNav();
     _applyRoleFilter();
     _injectPreviewBanner();
   }
