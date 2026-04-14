@@ -9,6 +9,7 @@ const ROUTES: Array<{ slug: string; file: string }> = [
   { slug: "access-management", file: "access-management.html" },
   { slug: "employee",          file: "employee.html" },
   { slug: "driver",            file: "driver.html" },
+  { slug: "driver-profile",    file: "driver-profile.html" },
 ];
 
 const nextConfig: NextConfig = {

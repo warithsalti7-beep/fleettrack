@@ -15,54 +15,137 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
+/// A driver in the fleet. Every revenue-generating person is modelled here,
+/// whether they're employed (PAYE), a sole-prop (ENK), or an AS company.
+/// Employees + office/mechanic staff live in `Employee` instead.
 model Driver {
-  id            String          @id @default(cuid())
-  name          String
-  email         String          @unique
-  phone         String
-  licenseNumber String          @unique
-  licenseExpiry DateTime
-  status        String          @default("AVAILABLE")
-  rating        Float           @default(5.0)
-  totalTrips    Int             @default(0)
-  joinedAt      DateTime        @default(now())
-  photoUrl      String?
-  address       String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  trips         Trip[]
-  vehicles      DriverVehicle[]
-  shifts        Shift[]
+  id             String          @id @default(cuid())
+  name           String
+  email          String          @unique
+  phone          String
+  address        String?
+  // Norwegian personal / D-number (fødselsnummer or D-nummer), 11 digits.
+  // Stored server-side only; never expose to client without auth scope.
+  personalNumber String?         @unique
+  licenseNumber  String          @unique
+  licenseExpiry  DateTime
+  // Bank details for payouts (commission, expense reimbursement).
+  bankAccount    String?
+  bankName       String?
+  // Commission split that the driver keeps of net trip revenue (0..1).
+  // Fleet keeps (1 - commissionPct) before tax.
+  commissionPct  Float           @default(0.5)
+  // How the driver is engaged for tax/accounting purposes.
+  // EMPLOYEE = PAYE, employer pays arbeidsgiveravgift + forskuddstrekk
+  // ENK      = enkeltpersonforetak (self-employed, driver invoices fleet)
+  // AS       = aksjeselskap (driver's company invoices fleet)
+  employmentType String          @default("EMPLOYEE") // EMPLOYEE | ENK | AS
+  // Org number for ENK / AS drivers (9 digits). Null for employees.
+  orgNumber      String?
+  // VAT / MVA registered (only ENK/AS above 50k NOK turnover).
+  vatRegistered  Boolean         @default(false)
+  status         String          @default("AVAILABLE")
+  rating         Float           @default(5.0)
+  totalTrips     Int             @default(0)
+  joinedAt       DateTime        @default(now())
+  photoUrl       String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  trips          Trip[]
+  vehicles       DriverVehicle[]
+  shifts         Shift[]
+  documents      DriverDocument[]
+  extraKm        ExtraKm[]
+  parkingTickets ParkingTicket[]
+  repairsAtFault Repair[]         @relation("RepairDriverAtFault")
+}
+
+/// Uploaded ID / licence / passport scans for a driver.
+/// Each row is one side of one document (front/back for license/id).
+model DriverDocument {
+  id          String   @id @default(cuid())
+  driverId    String
+  // LICENSE | PASSPORT | ID_CARD | RESIDENCE_PERMIT | WORK_CONTRACT | OTHER
+  type        String
+  // FRONT | BACK | SINGLE  (passports are single, license/id have both sides)
+  side        String   @default("SINGLE")
+  // Blob URL — S3 / R2 / local /public/uploads. Signed URL for private access.
+  fileUrl     String
+  fileName    String?
+  mimeType    String?
+  sizeBytes   Int?
+  // Document number (licence #, passport #, national id #).
+  number      String?
+  issuedAt    DateTime?
+  expiresAt   DateTime?
+  // Country ISO-2 (NO, SE, PL, ...).
+  country     String?
+  verifiedAt  DateTime?
+  verifiedBy  String?   // User.id of the reviewer
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  driver      Driver    @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@index([driverId, type])
+  @@index([expiresAt])
 }
 
 model Vehicle {
-  id                   String          @id @default(cuid())
-  carId                String?         @unique   // Internal fleet tag e.g. TR2518
-  plateNumber          String          @unique
-  make                 String
-  model                String
-  year                 Int
-  color                String
-  status               String          @default("AVAILABLE")
-  fuelType             String          @default("PETROL")
-  fuelLevel            Float           @default(100.0)
-  mileage              Int             @default(0)
-  purchaseDate         DateTime?
-  purchasePriceNok     Int?
-  leaseMonthlyNok      Int?
-  insuranceMonthlyNok  Int?
-  lastService          DateTime?
-  nextService          DateTime?
-  latitude             Float?
-  longitude            Float?
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-  trips                Trip[]
-  drivers              DriverVehicle[]
-  maintenance          Maintenance[]
-  fuelLogs             FuelLog[]
-  shifts               Shift[]
-  fixedCosts           FixedCost[]
+  id                    String          @id @default(cuid())
+  carId                 String?         @unique   // Internal fleet tag e.g. TR2518
+  plateNumber           String          @unique
+  make                  String
+  model                 String
+  year                  Int
+  color                 String
+  status                String          @default("AVAILABLE")
+  fuelType              String          @default("PETROL") // PETROL | DIESEL | EV_TESLA | EV_NIO | EV_OTHER | HYBRID
+  fuelLevel             Float           @default(100.0)
+  mileage               Int             @default(0)
+  purchaseDate          DateTime?
+  purchasePriceNok      Int?
+  leaseMonthlyNok       Int?
+  insuranceMonthlyNok   Int?
+  // Insurance policy reference + its renewal date (separate from monthly cost).
+  insuranceProvider     String?
+  insurancePolicyNumber String?
+  insuranceExpiry       DateTime?
+  // Norwegian periodic vehicle inspection ("EU-kontroll" / PKK), every 2 yrs.
+  euKontrollLast        DateTime?
+  euKontrollNext        DateTime?
+  // Currently mounted tyre set. Switched twice a year by Norwegian law
+  // (winter: Nov 1 – Mon after Easter for South / Oct 16 – Apr 30 for North).
+  tyreSeason            String?         // WINTER | SUMMER | ALL_SEASON
+  tyreChangedAt         DateTime?
+  // Straight-line depreciation inputs (Norwegian accounting, saldogruppe c
+  // for cars: 24% declining balance; we also store an override for IFRS /
+  // management reporting if needed).
+  depreciationMethod    String          @default("DECLINING_24") // DECLINING_24 | STRAIGHT_LINE
+  depreciationYears     Int?            // for STRAIGHT_LINE
+  residualValueNok      Int?
+  lastService           DateTime?
+  nextService           DateTime?
+  latitude              Float?
+  longitude             Float?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  trips                 Trip[]
+  drivers               DriverVehicle[]
+  maintenance           Maintenance[]
+  fuelLogs              FuelLog[]
+  shifts                Shift[]
+  fixedCosts            FixedCost[]
+  washEvents            WashEvent[]
+  chargingSessions      ChargingSession[]
+  batterySwaps          BatterySwap[]
+  extraKm               ExtraKm[]
+  parkingTickets        ParkingTicket[]
+  repairs               Repair[]
+  depreciationEntries   DepreciationEntry[]
+  taxEntries            TaxEntry[]
+
+  @@index([insuranceExpiry])
+  @@index([euKontrollNext])
 }
 
 model Shift {
@@ -170,6 +253,261 @@ model FixedCost {
 
   @@index([category, startDate])
   @@index([vehicleId])
+}
+
+/// Car wash event. Logged every time the car is washed (in-house bay,
+/// external car wash, drive-through). Cost is per-event and charged
+/// against the vehicle's P&L.
+model WashEvent {
+  id        String   @id @default(cuid())
+  vehicleId String
+  washedAt  DateTime @default(now())
+  // INTERIOR | EXTERIOR | FULL | DRIVE_THROUGH
+  type      String   @default("FULL")
+  costNok   Float
+  vendor    String?
+  // Who washed it — driver or an external vendor.
+  washedBy  String?
+  notes     String?
+  createdAt DateTime @default(now())
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId, washedAt])
+}
+
+/// EV charging session. One row per plug-in event. The fleet bills the
+/// driver (or absorbs as cost) at a fixed rate (default 3 NOK/kWh).
+/// Data can come from:
+///   - Tesla Fleet API (vehicle_data -> charge_state)
+///   - NIO Power / Smartcar /battery endpoint
+///   - Manual entry from receipt
+model ChargingSession {
+  id             String   @id @default(cuid())
+  vehicleId      String
+  startedAt      DateTime
+  endedAt        DateTime?
+  // Energy delivered in kWh (from API or receipt).
+  kwh            Float
+  // Fleet's internal rate at time of session. Default 3 NOK/kWh.
+  ratePerKwhNok  Float    @default(3.0)
+  // Computed: kwh * ratePerKwhNok. Stored for historical accuracy.
+  totalCostNok   Float
+  // HOME | SUPERCHARGER | PUBLIC_AC | PUBLIC_DC | WORKPLACE
+  locationType   String?
+  location       String?
+  latitude       Float?
+  longitude      Float?
+  // Source of the data — lets us dedupe / know what can be trusted.
+  source         String   @default("MANUAL") // MANUAL | TESLA_API | NIO_API | SMARTCAR | CSV
+  externalId     String?  // API session id for idempotency
+  createdAt      DateTime @default(now())
+  vehicle        Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([source, externalId])
+  @@index([vehicleId, startedAt])
+}
+
+/// NIO Power Swap event. Only applicable to NIO vehicles (ET5, ET7, ES6…).
+/// A swap takes ~3-5 minutes and replaces the whole battery pack.
+/// Price varies by subscription tier; we log the actual paid amount.
+model BatterySwap {
+  id            String   @id @default(cuid())
+  vehicleId     String
+  swappedAt     DateTime @default(now())
+  stationId     String?
+  stationName   String?
+  // Pack capacity after swap (kWh) — NIO offers 75 / 100 / 150 kWh packs.
+  packKwh       Float?
+  // Price paid for this swap (net of subscription credits).
+  costNok       Float
+  source        String   @default("MANUAL") // MANUAL | NIO_API
+  externalId    String?
+  createdAt     DateTime @default(now())
+  vehicle       Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([source, externalId])
+  @@index([vehicleId, swappedAt])
+}
+
+/// Kilometers driven that are NOT part of billed trips — e.g. deadhead,
+/// personal use, relocation, waiting-zone repositioning. Sourced from
+/// vehicle odometer (Samsara / Tesla / Smartcar) reconciled against
+/// the sum of Trip.distance for the period, or from platform exports.
+///
+/// Taxi platforms without APIs (e.g. Norgestaxi) provide daily CSVs —
+/// the importer writes rows here tagged with source=CSV_TAXI.
+model ExtraKm {
+  id         String   @id @default(cuid())
+  vehicleId  String
+  driverId   String?
+  day        DateTime // truncated to midnight local time
+  km         Float
+  // BOLT | UBER | YANGO | CSV_TAXI | ODOMETER_DELTA | MANUAL
+  source     String   @default("MANUAL")
+  externalId String?
+  notes      String?
+  createdAt  DateTime @default(now())
+  vehicle    Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driver     Driver?  @relation(fields: [driverId], references: [id])
+
+  @@unique([source, externalId])
+  @@index([vehicleId, day])
+  @@index([driverId, day])
+}
+
+/// Parking violation / toll fine issued against a vehicle. Initially the
+/// fleet pays; if the driver was at fault we recharge them (tracked via
+/// `chargedBackToDriverId`).
+model ParkingTicket {
+  id                    String   @id @default(cuid())
+  vehicleId             String
+  issuedAt              DateTime
+  issuer                String?  // Municipality / Q-Park / Aimo Park …
+  ticketNumber          String?  @unique
+  location              String?
+  reason                String?
+  amountNok             Float
+  dueDate               DateTime?
+  paid                  Boolean  @default(false)
+  paidAt                DateTime?
+  // Driver assigned as responsible (if any). If null, fleet absorbs the cost.
+  chargedBackToDriverId String?
+  chargedBackAmountNok  Float?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  vehicle               Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driver                Driver?  @relation(fields: [chargedBackToDriverId], references: [id])
+
+  @@index([vehicleId, issuedAt])
+}
+
+/// Repair / body-shop / operational fix for a vehicle. Distinct from
+/// scheduled `Maintenance` — repairs are incident-driven (collision,
+/// breakdown, vandalism, tyre blowout). Fault attribution drives who
+/// pays: driver, another insurer, fleet, or manufacturer warranty.
+model Repair {
+  id              String   @id @default(cuid())
+  vehicleId       String
+  occurredAt      DateTime
+  reportedAt      DateTime @default(now())
+  completedAt     DateTime?
+  // COLLISION | BODY | MECHANICAL | TYRE | GLASS | ELECTRICAL | VANDALISM | OTHER
+  category        String
+  description     String
+  // Workshop / vendor performing the repair.
+  vendor          String?
+  costNok         Float
+  // Whose fault, for cost allocation. FLEET = we eat it.
+  faultCategory   String   @default("FLEET") // DRIVER | OTHER_INSURANCE | FLEET | MANUFACTURER | UNKNOWN
+  faultDriverId   String?
+  insuranceClaim  String?  // claim # if recovered via insurance
+  deductibleNok   Float?   // "egenandel" — what the fleet still pays
+  status          String   @default("OPEN") // OPEN | IN_PROGRESS | DONE | WRITTEN_OFF
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  vehicle         Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  faultDriver     Driver?  @relation("RepairDriverAtFault", fields: [faultDriverId], references: [id])
+
+  @@index([vehicleId, occurredAt])
+  @@index([faultDriverId])
+}
+
+/// Monthly depreciation accounting entry. Populated by a scheduled job
+/// at month-close based on the Vehicle's `depreciationMethod`,
+/// `purchasePriceNok`, and remaining book value.
+///
+/// Norway: cars are saldogruppe c → 24% declining balance per year
+/// (i.e. ~2% per month on opening book value). We also accept straight-line
+/// for management reporting.
+model DepreciationEntry {
+  id              String   @id @default(cuid())
+  vehicleId       String
+  periodStart     DateTime // first day of the accounting period
+  periodEnd       DateTime // last day (inclusive)
+  openingValueNok Float
+  amountNok       Float    // depreciation charged this period
+  closingValueNok Float
+  method          String   // DECLINING_24 | STRAIGHT_LINE
+  createdAt       DateTime @default(now())
+  vehicle         Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleId, periodStart])
+  @@index([vehicleId, periodStart])
+}
+
+/// Tax liability entry generated from revenue events. We compute at
+/// multiple granularities (INSTANT per trip, DAILY, WEEKLY, MONTHLY,
+/// QUARTERLY, YEARLY) so the database can answer any "taxes as of X"
+/// query without recomputing.
+///
+/// Norwegian context:
+///   - MVA (VAT) on taxi rides is currently 12% (low rate).
+///   - Fleet-level corporate tax is 22% on profit (selskapsskatt).
+///   - For ENK drivers, personal income tax (trinnskatt + trygdeavgift 11%)
+///     applies to net income instead.
+///   - Employer NI (arbeidsgiveravgift) varies 0–14.1% by region ("sone").
+///
+/// `kind` tells you which tax: VAT_COLLECTED, VAT_DEDUCTIBLE, CORP_TAX,
+/// INCOME_TAX_WITHHELD, EMPLOYER_NI, SELF_EMPLOYED_NI.
+model TaxEntry {
+  id           String   @id @default(cuid())
+  vehicleId    String?
+  driverId     String?
+  tripId       String?
+  // Bucket for rollups.
+  granularity  String   // INSTANT | DAILY | WEEKLY | MONTHLY | QUARTERLY | YEARLY
+  periodStart  DateTime
+  periodEnd    DateTime
+  kind         String
+  // Gross revenue (or wage) this entry is derived from.
+  baseNok      Float
+  // Tax rate applied (0.12 for 12% VAT, 0.22 for corp tax, etc.).
+  rate         Float
+  // Tax amount (baseNok * rate, but stored explicitly for audit).
+  amountNok    Float
+  // What set of rules generated this. Bumped when legislation changes.
+  rulesVersion String   @default("NO-2026")
+  createdAt    DateTime @default(now())
+  vehicle      Vehicle? @relation(fields: [vehicleId], references: [id])
+
+  @@index([granularity, periodStart])
+  @@index([vehicleId, periodStart])
+  @@index([driverId, periodStart])
+  @@index([tripId])
+}
+
+/// Non-driver staff: mechanics, dispatchers, accountants, office admins.
+/// Drivers live in `Driver` even if they're PAYE employees — this model
+/// is for back-office roles that don't generate trip revenue directly.
+model Employee {
+  id             String   @id @default(cuid())
+  name           String
+  email          String   @unique
+  phone          String?
+  address        String?
+  personalNumber String?  @unique
+  // DISPATCHER | ACCOUNTANT | MECHANIC | MANAGER | OFFICE_ADMIN | OTHER
+  role           String
+  // Link to application user if they have login access.
+  userId         String?  @unique
+  employmentType String   @default("EMPLOYEE") // EMPLOYEE | CONTRACTOR_ENK | CONTRACTOR_AS
+  orgNumber      String?
+  // Gross monthly salary (NOK) for employees, or monthly retainer for contractors.
+  monthlySalaryNok Float?
+  // Employer NI zone — 1..5 by Norwegian region, drives arbeidsgiveravgift rate.
+  niZone         Int?
+  bankAccount    String?
+  bankName       String?
+  startDate      DateTime
+  endDate        DateTime?
+  active         Boolean  @default(true)
+  photoUrl       String?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([role, active])
 }
 
 /// Append-only audit log of admin actions (import runs, permission

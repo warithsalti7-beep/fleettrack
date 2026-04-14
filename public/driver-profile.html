@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
+<title>FleetTrack — Driver Profile</title>
+<link rel="stylesheet" href="./design-system.css">
+<style>
+body { background:var(--bg); min-height:100vh; }
+.app { max-width:1400px; margin:0 auto; padding:var(--s4) var(--s5); }
+.top-bar { display:flex; align-items:center; justify-content:space-between; padding:var(--s3) 0 var(--s4); border-bottom:1px solid var(--b1); margin-bottom:var(--s5); flex-wrap:wrap; gap:var(--s3); }
+.brand { font-family:var(--mono); font-size:16px; font-weight:700; color:var(--t1); }
+.brand-sub { font-size:11px; color:var(--t3); font-family:var(--mono); text-transform:uppercase; letter-spacing:0.07em; }
+.back-link { font-size:12px; color:var(--t2); text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+.back-link:hover { color:var(--t1); }
+
+/* ── HERO / IDENTITY STRIP ── */
+.hero { display:grid; grid-template-columns:auto 1fr auto; gap:var(--s5); align-items:center; background:var(--bg2); border:1px solid var(--b1); border-radius:var(--r4); padding:var(--s5) var(--s6); margin-bottom:var(--s4); }
+.hero-avatar { width:72px; height:72px; border-radius:50%; background:var(--bluebg); border:2px solid var(--blueborder); display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:700; color:var(--blue2); font-family:var(--mono); }
+.hero-name { font-size:20px; font-weight:700; color:var(--t1); }
+.hero-meta { font-size:12px; color:var(--t2); margin-top:4px; display:flex; flex-wrap:wrap; gap:var(--s3); }
+.hero-meta span { display:inline-flex; align-items:center; gap:4px; }
+.hero-tags { display:flex; flex-wrap:wrap; gap:var(--s2); margin-top:var(--s3); }
+.hero-actions { display:flex; flex-direction:column; gap:var(--s2); }
+@media(max-width:768px) { .hero { grid-template-columns:auto 1fr; } .hero-actions { grid-column:1/-1; flex-direction:row; } }
+
+/* ── TAB BAR ── */
+.tabs { display:flex; gap:2px; background:var(--bg3); border:1px solid var(--b1); border-radius:var(--r3); padding:4px; margin-bottom:var(--s4); overflow-x:auto; }
+.tab { padding:8px 14px; font-size:12.5px; color:var(--t2); cursor:pointer; border-radius:var(--r2); white-space:nowrap; font-weight:500; transition:all var(--fast); border:none; background:transparent; font-family:var(--font); }
+.tab:hover { color:var(--t1); background:var(--bg4); }
+.tab.active { background:var(--bg2); color:var(--t1); box-shadow:var(--shadow-sm); border:1px solid var(--b2); }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+/* ── INFO ROWS ── */
+.info-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:0; }
+@media(max-width:640px) { .info-grid { grid-template-columns:1fr; } }
+.info-row { display:grid; grid-template-columns:160px 1fr; padding:var(--s3) 0; border-bottom:1px solid var(--b1); font-size:13px; align-items:center; gap:var(--s3); }
+.info-row:last-child { border-bottom:none; }
+.info-label { color:var(--t3); font-size:11.5px; font-family:var(--mono); text-transform:uppercase; letter-spacing:0.06em; }
+.info-value { color:var(--t1); font-weight:500; word-break:break-word; }
+.info-value.mono { font-family:var(--mono); }
+.info-value.muted { color:var(--t3); font-style:italic; }
+
+/* ── KPI MICRO CARDS ── */
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:var(--s3); margin-bottom:var(--s4); }
+.kc { background:var(--bg2); border:1px solid var(--b1); border-radius:var(--r3); padding:var(--s4); }
+.kc-label { font-size:10.5px; color:var(--t3); font-family:var(--mono); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:var(--s2); }
+.kc-value { font-size:22px; font-weight:700; color:var(--t1); font-family:var(--mono); letter-spacing:-0.4px; }
+.kc-sub { font-size:11px; color:var(--t3); margin-top:4px; }
+
+/* ── DOCUMENT GRID ── */
+.doc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:var(--s3); }
+.doc-card { background:var(--bg2); border:1px solid var(--b1); border-radius:var(--r3); overflow:hidden; transition:border-color var(--fast); }
+.doc-card:hover { border-color:var(--b3); }
+.doc-img { width:100%; aspect-ratio:1.58/1; background:var(--bg3); display:flex; align-items:center; justify-content:center; color:var(--t3); font-size:11px; font-family:var(--mono); position:relative; border-bottom:1px solid var(--b1); }
+.doc-img.placeholder::after { content:'No file'; }
+.doc-side-tag { position:absolute; top:var(--s2); right:var(--s2); font-size:9.5px; font-family:var(--mono); background:var(--bg); color:var(--t2); border:1px solid var(--b2); padding:2px 7px; border-radius:var(--r6); text-transform:uppercase; letter-spacing:0.05em; }
+.doc-body { padding:var(--s3) var(--s4); }
+.doc-type { font-size:13px; font-weight:600; color:var(--t1); margin-bottom:4px; }
+.doc-number { font-size:11px; font-family:var(--mono); color:var(--t3); margin-bottom:var(--s2); }
+.doc-expiry { font-size:12px; display:flex; justify-content:space-between; align-items:center; }
+
+/* ── TABLES (local) ── */
+.tbl-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:12.5px; }
+th { text-align:left; padding:10px 12px; background:var(--bg3); color:var(--t3); font-size:10.5px; font-family:var(--mono); text-transform:uppercase; letter-spacing:0.07em; border-bottom:1px solid var(--b2); }
+td { padding:10px 12px; border-bottom:1px solid var(--b1); color:var(--t1); }
+td.mono { font-family:var(--mono); }
+td.num { text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; }
+th.num { text-align:right; }
+tr:last-child td { border-bottom:none; }
+tbody tr:hover td { background:var(--bg3); }
+
+/* ── SECTIONS ── */
+.section-title { font-size:14px; font-weight:600; color:var(--t1); margin:var(--s5) 0 var(--s3); display:flex; align-items:center; justify-content:space-between; }
+.section-title .tag { font-size:10.5px; font-family:var(--mono); color:var(--t3); font-weight:500; }
+
+/* ── PILLS / CHIPS ── */
+.pill { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:var(--r6); font-size:10.5px; font-family:var(--mono); font-weight:600; border:1px solid transparent; }
+.pill-emp    { background:var(--bluebg);   color:var(--blue2);  border-color:var(--blueborder); }
+.pill-enk    { background:var(--purplebg); color:var(--purple); border-color:var(--purpleborder); }
+.pill-as     { background:var(--tealbg);   color:var(--teal);   border-color:var(--tealborder); }
+.pill-neutral{ background:var(--bg4); color:var(--t2); border-color:var(--b2); }
+
+/* ── TAX PERIOD PICKER ── */
+.period-row { display:flex; gap:var(--s1); flex-wrap:wrap; margin-bottom:var(--s3); }
+.period-btn { padding:6px 12px; border-radius:var(--r2); background:var(--bg3); border:1px solid var(--b1); color:var(--t2); font-size:11.5px; font-family:var(--mono); cursor:pointer; }
+.period-btn.active { background:var(--bluebg); border-color:var(--blueborder); color:var(--blue2); }
+
+/* ── ALERTS ── */
+.soft-alert { display:flex; gap:var(--s3); padding:var(--s3) var(--s4); border-radius:var(--r3); font-size:12.5px; margin-bottom:var(--s3); border:1px solid transparent; }
+.soft-alert.amber { background:var(--amberbg); border-color:var(--amberborder); color:var(--amber); }
+.soft-alert.red   { background:var(--redbg);   border-color:var(--redborder);   color:var(--red); }
+.soft-alert.green { background:var(--greenbg); border-color:var(--greenborder); color:var(--green); }
+
+/* ── EMPTY STATE ── */
+.empty { text-align:center; padding:var(--s7) var(--s4); color:var(--t3); font-size:13px; border:1px dashed var(--b2); border-radius:var(--r3); }
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">Skip to content</a>
+<div class="app" id="main">
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div>
+      <div class="brand">FleetTrack <span style="color:var(--t3);font-weight:500">/ Driver Profile</span></div>
+      <a class="back-link" href="./dashboard#driver-roster">← Back to Roster</a>
+    </div>
+    <div style="display:flex; gap:var(--s2); align-items:center">
+      <button class="btn btn-sm" onclick="window.print()" aria-label="Print">⎙ Print</button>
+      <button class="btn btn-sm btn-primary" onclick="exportDriverCsv()" aria-label="Export CSV">⬇ Export</button>
+    </div>
+  </div>
+
+  <!-- ══════════  HERO / IDENTITY STRIP  ══════════ -->
+  <div class="hero">
+    <div class="hero-avatar" id="h-avatar">—</div>
+    <div>
+      <div class="hero-name" id="h-name">—</div>
+      <div class="hero-meta">
+        <span>📧 <span id="h-email">—</span></span>
+        <span>☎ <span id="h-phone">—</span></span>
+        <span>📍 <span id="h-address">—</span></span>
+      </div>
+      <div class="hero-tags" id="h-tags"></div>
+    </div>
+    <div class="hero-actions">
+      <div style="text-align:right"><div class="info-label">Driver Score</div><div style="font-size:26px;font-weight:700;font-family:var(--mono);color:var(--blue2)" id="h-score">—</div></div>
+      <div style="text-align:right"><div class="info-label">MTD Payout</div><div style="font-size:16px;font-weight:600;font-family:var(--mono);color:var(--green)" id="h-mtd">—</div></div>
+    </div>
+  </div>
+
+  <!-- Alerts area (licence expiring, EU-kontroll due, docs missing…) -->
+  <div id="alerts"></div>
+
+  <!-- ══════════  TABS  ══════════ -->
+  <div class="tabs" role="tablist" aria-label="Driver sections">
+    <button class="tab active" role="tab" data-tab="identity" onclick="showTab('identity',this)">Identity</button>
+    <button class="tab" role="tab" data-tab="documents" onclick="showTab('documents',this)">Documents</button>
+    <button class="tab" role="tab" data-tab="vehicles"  onclick="showTab('vehicles',this)">Vehicles</button>
+    <button class="tab" role="tab" data-tab="ops"       onclick="showTab('ops',this)">Operations</button>
+    <button class="tab" role="tab" data-tab="repairs"   onclick="showTab('repairs',this)">Repairs</button>
+    <button class="tab" role="tab" data-tab="finance"   onclick="showTab('finance',this)">Finance</button>
+    <button class="tab" role="tab" data-tab="tax"       onclick="showTab('tax',this)">Tax</button>
+    <button class="tab" role="tab" data-tab="accounting" onclick="showTab('accounting',this)">Accounting</button>
+  </div>
+
+  <!-- ══════════  IDENTITY TAB  ══════════ -->
+  <div class="tab-panel active" id="panel-identity" role="tabpanel">
+    <div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s4)">
+      <div class="card">
+        <div class="section-title" style="margin:0 0 var(--s3)">Personal <span class="tag">from Driver table</span></div>
+        <div class="info-row"><div class="info-label">Full name</div><div class="info-value" id="i-name">—</div></div>
+        <div class="info-row"><div class="info-label">Email</div><div class="info-value mono" id="i-email">—</div></div>
+        <div class="info-row"><div class="info-label">Phone</div><div class="info-value mono" id="i-phone">—</div></div>
+        <div class="info-row"><div class="info-label">Address</div><div class="info-value" id="i-address">—</div></div>
+        <div class="info-row"><div class="info-label">D-number / Fnr</div><div class="info-value mono" id="i-pnr">—</div></div>
+        <div class="info-row"><div class="info-label">Joined</div><div class="info-value" id="i-joined">—</div></div>
+      </div>
+      <div class="card">
+        <div class="section-title" style="margin:0 0 var(--s3)">Employment & Tax <span class="tag">drives payroll</span></div>
+        <div class="info-row"><div class="info-label">Engagement</div><div class="info-value" id="i-emp-type">—</div></div>
+        <div class="info-row"><div class="info-label">Org number</div><div class="info-value mono" id="i-org">—</div></div>
+        <div class="info-row"><div class="info-label">VAT (MVA)</div><div class="info-value" id="i-vat">—</div></div>
+        <div class="info-row"><div class="info-label">Commission %</div><div class="info-value mono" id="i-commission">—</div></div>
+        <div class="info-row"><div class="info-label">Bank</div><div class="info-value" id="i-bank">—</div></div>
+        <div class="info-row"><div class="info-label">Account #</div><div class="info-value mono" id="i-account">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════  DOCUMENTS TAB  ══════════ -->
+  <div class="tab-panel" id="panel-documents" role="tabpanel">
+    <div class="section-title">License, Passport & ID <span class="tag">front / back stored per document</span></div>
+    <div id="docs-grid" class="doc-grid"></div>
+    <div class="section-title">Document expiries</div>
+    <div class="tbl-wrap card" style="padding:0">
+      <table>
+        <thead><tr><th>Type</th><th>Number</th><th>Country</th><th>Issued</th><th>Expires</th><th>Verified</th><th>Status</th></tr></thead>
+        <tbody id="docs-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════  VEHICLES TAB  ══════════ -->
+  <div class="tab-panel" id="panel-vehicles" role="tabpanel">
+    <div class="section-title">Assigned vehicles <span class="tag">car id · plate · insurance · EU-kontroll · tyres</span></div>
+    <div class="tbl-wrap card" style="padding:0">
+      <table>
+        <thead><tr>
+          <th>Car ID</th><th>Plate</th><th>Make / Model</th><th>Year</th><th>Fuel</th>
+          <th>Insurance</th><th>Exp.</th><th>EU-kontroll</th><th>Tyres</th><th>Mileage</th><th>Status</th>
+        </tr></thead>
+        <tbody id="veh-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════  OPERATIONS TAB  ══════════ -->
+  <div class="tab-panel" id="panel-ops" role="tabpanel">
+    <div class="kpi-grid">
+      <div class="kc"><div class="kc-label">Extra km (30d)</div><div class="kc-value" id="m-extra-km">—</div><div class="kc-sub">non-trip distance</div></div>
+      <div class="kc"><div class="kc-label">Washes (30d)</div><div class="kc-value" id="m-wash-count">—</div><div class="kc-sub" id="m-wash-cost">—</div></div>
+      <div class="kc"><div class="kc-label">Charging (30d)</div><div class="kc-value" id="m-charge-kwh">—</div><div class="kc-sub" id="m-charge-cost">@3 kr/kWh</div></div>
+      <div class="kc"><div class="kc-label">Battery swaps</div><div class="kc-value" id="m-swap-count">—</div><div class="kc-sub">NIO only</div></div>
+      <div class="kc"><div class="kc-label">Parking fines</div><div class="kc-value" id="m-park-count">—</div><div class="kc-sub" id="m-park-cost">—</div></div>
+    </div>
+
+    <div class="section-title">Extra km <span class="tag">Bolt · Uber API · Norgestaxi CSV · odometer</span></div>
+    <div class="tbl-wrap card" style="padding:0"><table>
+      <thead><tr><th>Day</th><th>Vehicle</th><th class="num">Km</th><th>Source</th><th>Notes</th></tr></thead>
+      <tbody id="ops-extra-tbody"></tbody>
+    </table></div>
+
+    <div class="section-title">Wash events <span class="tag">3 kr/kWh / per-use charge</span></div>
+    <div class="tbl-wrap card" style="padding:0"><table>
+      <thead><tr><th>Date</th><th>Vehicle</th><th>Type</th><th>Vendor</th><th class="num">Cost</th></tr></thead>
+      <tbody id="ops-wash-tbody"></tbody>
+    </table></div>
+
+    <div class="section-title">Charging sessions <span class="tag">Tesla Fleet · NIO Power · Smartcar</span></div>
+    <div class="tbl-wrap card" style="padding:0"><table>
+      <thead><tr><th>Started</th><th>Vehicle</th><th>Location</th><th class="num">kWh</th><th class="num">Rate</th><th class="num">Cost</th><th>Source</th></tr></thead>
+      <tbody id="ops-charge-tbody"></tbody>
+    </table></div>
+
+    <div class="section-title">Battery swaps <span class="tag">NIO only — Power Swap Stations</span></div>
+    <div class="tbl-wrap card" style="padding:0"><table>
+      <thead><tr><th>Date</th><th>Vehicle</th><th>Station</th><th class="num">Pack kWh</th><th class="num">Cost</th></tr></thead>
+      <tbody id="ops-swap-tbody"></tbody>
+    </table></div>
+
+    <div class="section-title">Parking tickets <span class="tag">charge-back to driver if at fault</span></div>
+    <div class="tbl-wrap card" style="padding:0"><table>
+      <thead><tr><th>Issued</th><th>Vehicle</th><th>Issuer</th><th>Reason</th><th class="num">Amount</th><th>Paid</th><th>Charge-back</th></tr></thead>
+      <tbody id="ops-park-tbody"></tbody>
+    </table></div>
+  </div>
+
+  <!-- ══════════  REPAIRS TAB  ══════════ -->
+  <div class="tab-panel" id="panel-repairs" role="tabpanel">
+    <div class="kpi-grid">
+      <div class="kc"><div class="kc-label">Driver-at-fault (YTD)</div><div class="kc-value" id="r-drv-count">—</div><div class="kc-sub" id="r-drv-cost">—</div></div>
+      <div class="kc"><div class="kc-label">Other insurance</div><div class="kc-value" id="r-ins-count">—</div><div class="kc-sub">recovered via claim</div></div>
+      <div class="kc"><div class="kc-label">Fleet absorbed</div><div class="kc-value" id="r-fleet-count">—</div><div class="kc-sub" id="r-fleet-cost">—</div></div>
+      <div class="kc"><div class="kc-label">Open repairs</div><div class="kc-value" id="r-open-count">—</div></div>
+    </div>
+    <div class="section-title">Repair log <span class="tag">category · vendor · fault · cost</span></div>
+    <div class="tbl-wrap card" style="padding:0"><table>
+      <thead><tr><th>Date</th><th>Vehicle</th><th>Category</th><th>Description</th><th>Vendor</th><th class="num">Cost</th><th>Fault</th><th>Insurance</th><th class="num">Deductible</th><th>Status</th></tr></thead>
+      <tbody id="rep-tbody"></tbody>
+    </table></div>
+  </div>
+
+  <!-- ══════════  FINANCE TAB  ══════════ -->
+  <div class="tab-panel" id="panel-finance" role="tabpanel">
+    <div class="kpi-grid">
+      <div class="kc"><div class="kc-label">Revenue MTD</div><div class="kc-value" id="f-rev">—</div></div>
+      <div class="kc"><div class="kc-label">Commission %</div><div class="kc-value" id="f-pct">—</div></div>
+      <div class="kc"><div class="kc-label">Driver payout</div><div class="kc-value" id="f-payout" style="color:var(--green)">—</div></div>
+      <div class="kc"><div class="kc-label">Fleet share</div><div class="kc-value" id="f-fleet">—</div></div>
+      <div class="kc"><div class="kc-label">Next payout</div><div class="kc-value" id="f-next" style="font-size:14px">—</div></div>
+    </div>
+    <div class="section-title">Payroll breakdown (month-to-date)</div>
+    <div class="tbl-wrap card" style="padding:0"><table>
+      <thead><tr><th>Line item</th><th class="num">Amount</th><th>Notes</th></tr></thead>
+      <tbody id="f-tbody"></tbody>
+    </table></div>
+    <div class="section-title">Bank payout details</div>
+    <div class="card">
+      <div class="info-row"><div class="info-label">Beneficiary name</div><div class="info-value" id="f-bene">—</div></div>
+      <div class="info-row"><div class="info-label">Bank</div><div class="info-value" id="f-bank">—</div></div>
+      <div class="info-row"><div class="info-label">Account</div><div class="info-value mono" id="f-acct">—</div></div>
+      <div class="info-row"><div class="info-label">Tax bracket</div><div class="info-value" id="f-bracket">—</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════  TAX TAB  ══════════ -->
+  <div class="tab-panel" id="panel-tax" role="tabpanel">
+    <div class="section-title">Tax &amp; duties <span class="tag" id="tax-rules">NO-2026 rules</span></div>
+    <div class="period-row" role="tablist" aria-label="Granularity">
+      <button class="period-btn" data-gran="INSTANT" onclick="setPeriod(this)">Instant</button>
+      <button class="period-btn active" data-gran="DAILY" onclick="setPeriod(this)">Daily</button>
+      <button class="period-btn" data-gran="WEEKLY" onclick="setPeriod(this)">Weekly</button>
+      <button class="period-btn" data-gran="MONTHLY" onclick="setPeriod(this)">Monthly</button>
+      <button class="period-btn" data-gran="QUARTERLY" onclick="setPeriod(this)">Quarterly</button>
+      <button class="period-btn" data-gran="YEARLY" onclick="setPeriod(this)">Yearly</button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kc"><div class="kc-label">VAT collected (12%)</div><div class="kc-value" id="t-vat">—</div><div class="kc-sub">taxi services — lav sats</div></div>
+      <div class="kc"><div class="kc-label">VAT deductible</div><div class="kc-value" id="t-vatd">—</div><div class="kc-sub">input MVA</div></div>
+      <div class="kc"><div class="kc-label">Income-tax withheld</div><div class="kc-value" id="t-withheld">—</div><div class="kc-sub" id="t-withheld-sub">forskuddstrekk</div></div>
+      <div class="kc"><div class="kc-label">Employer NI</div><div class="kc-value" id="t-ni">—</div><div class="kc-sub">arbeidsgiveravgift</div></div>
+      <div class="kc"><div class="kc-label">Net to state</div><div class="kc-value" id="t-net" style="color:var(--amber)">—</div></div>
+    </div>
+    <div class="section-title">Tax entries <span class="tag">from TaxEntry table · rulesVersion NO-2026</span></div>
+    <div class="tbl-wrap card" style="padding:0"><table>
+      <thead><tr><th>Period</th><th>Kind</th><th class="num">Base</th><th class="num">Rate</th><th class="num">Amount</th><th>Vehicle</th><th>Trip</th></tr></thead>
+      <tbody id="tax-tbody"></tbody>
+    </table></div>
+  </div>
+
+  <!-- ══════════  ACCOUNTING TAB  ══════════ -->
+  <div class="tab-panel" id="panel-accounting" role="tabpanel">
+    <div class="section-title">Depreciation <span class="tag">saldogruppe c — 24% declining (NO)</span></div>
+    <div class="tbl-wrap card" style="padding:0"><table>
+      <thead><tr><th>Period</th><th>Vehicle</th><th>Method</th><th class="num">Opening</th><th class="num">Charge</th><th class="num">Closing</th></tr></thead>
+      <tbody id="dep-tbody"></tbody>
+    </table></div>
+
+    <div class="section-title">Fixed / accounting costs allocated <span class="tag">from FixedCost table</span></div>
+    <div class="tbl-wrap card" style="padding:0"><table>
+      <thead><tr><th>Category</th><th>Description</th><th>Vendor</th><th>Frequency</th><th class="num">Amount NOK</th></tr></thead>
+      <tbody id="cost-tbody"></tbody>
+    </table></div>
+
+    <div class="section-title">Fleet-wide accounting touchpoints</div>
+    <div class="card">
+      <div class="info-row"><div class="info-label">Accounting software</div><div class="info-value">Tripletex · PowerOffice · Fiken (export via Norway Cost Structure)</div></div>
+      <div class="info-row"><div class="info-label">Chart of accounts</div><div class="info-value">Norsk Standard Kontoplan (NS 4102)</div></div>
+      <div class="info-row"><div class="info-label">Revenue account</div><div class="info-value mono">3000 — Salgsinntekt, avgiftspliktig 12%</div></div>
+      <div class="info-row"><div class="info-label">Depreciation account</div><div class="info-value mono">6000 — Avskrivning på varige driftsmidler</div></div>
+      <div class="info-row"><div class="info-label">Driver payouts</div><div class="info-value mono" id="acc-payout">5000 — Lønn (EMPLOYEE) · 7790 — Annen fremmed tjeneste (ENK/AS)</div></div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script src="./fleet-data.js"></script>
+<script src="./auth.js"></script>
+<script>
+// ─────────────────────────────────────────────────────────────────────────
+// Driver profile page — admin drilldown for a single driver.
+// Data source: /api/drivers/:id/profile (aggregates all related entities).
+// Until that endpoint is wired to real DB rows, we render sample content
+// that demonstrates the layout & every field listed in the product spec.
+// ─────────────────────────────────────────────────────────────────────────
+const session = (typeof FleetAuth !== 'undefined')
+  ? FleetAuth.requireAuth(['admin','dispatcher','accountant'], './login.html')
+  : { name:'Fleet Manager', role:'admin' };
+
+// Pick the driver to show — URL ?id=drv-3, else first driver.
+const params = new URLSearchParams(location.search);
+const driverId = params.get('id') || 'drv-1';
+
+// NOK formatting — uses the shared helper when available.
+const nok = (v) => (typeof FleetCurrency !== 'undefined')
+  ? FleetCurrency.format(v || 0)
+  : new Intl.NumberFormat('nb-NO',{style:'currency',currency:'NOK',maximumFractionDigits:0}).format(v||0);
+const dstr = (iso) => iso ? new Date(iso).toISOString().slice(0,10) : '—';
+const daysTo = (iso) => iso ? Math.round((new Date(iso) - new Date())/86400000) : null;
+
+async function loadProfile() {
+  try {
+    const r = await fetch(`/api/drivers/${driverId}/profile`, { credentials:'include' });
+    if (r.ok) return await r.json();
+  } catch (_) { /* fall through to demo */ }
+  return demoProfile(driverId);
+}
+
+// Demo data — mirrors the shape returned by /api/drivers/:id/profile.
+function demoProfile(id) {
+  return {
+    driver: {
+      id, name:'Olsztynski M.', email:'m.olsztynski@fleettrack.no', phone:'+47 411 22 333',
+      address:'Storgata 14, 0184 Oslo', personalNumber:'01019012345',
+      licenseNumber:'NO-DL-771203', licenseExpiry:'2026-08-14',
+      employmentType:'EMPLOYEE', orgNumber:null, vatRegistered:false,
+      commissionPct:0.65, bankAccount:'1503.12.34567', bankName:'DNB',
+      status:'AVAILABLE', rating:4.86, totalTrips:1284, joinedAt:'2022-03-01',
+      score:91, mtdPayoutNok:46200
+    },
+    documents: [
+      { type:'LICENSE', side:'FRONT', number:'NO-DL-771203', country:'NO', issuedAt:'2016-08-14', expiresAt:'2026-08-14', fileUrl:null, verifiedAt:'2024-10-01' },
+      { type:'LICENSE', side:'BACK',  number:'NO-DL-771203', country:'NO', issuedAt:'2016-08-14', expiresAt:'2026-08-14', fileUrl:null, verifiedAt:'2024-10-01' },
+      { type:'PASSPORT', side:'SINGLE', number:'PL-AB123456', country:'PL', issuedAt:'2020-02-12', expiresAt:'2030-02-11', fileUrl:null, verifiedAt:'2024-10-01' },
+      { type:'ID_CARD',  side:'FRONT',  number:'9104-2233',   country:'NO', issuedAt:'2023-01-05', expiresAt:'2028-01-05', fileUrl:null, verifiedAt:null },
+      { type:'ID_CARD',  side:'BACK',   number:'9104-2233',   country:'NO', issuedAt:'2023-01-05', expiresAt:'2028-01-05', fileUrl:null, verifiedAt:null },
+    ],
+    vehicles: [
+      { carId:'TR2518', plateNumber:'EL 12345', make:'NIO', model:'ET5', year:2024, fuelType:'EV_NIO',
+        insuranceProvider:'If Skadeforsikring', insuranceExpiry:'2026-06-30',
+        euKontrollNext:'2027-02-14', tyreSeason:'SUMMER', mileage:48120, status:'AVAILABLE' },
+      { carId:'TR2511', plateNumber:'EK 98123', make:'Tesla', model:'Model 3', year:2022, fuelType:'EV_TESLA',
+        insuranceProvider:'Gjensidige', insuranceExpiry:'2026-03-15',
+        euKontrollNext:'2026-11-02', tyreSeason:'WINTER', mileage:91400, status:'AVAILABLE' },
+    ],
+    extraKm:       [ { day:'2026-04-12', vehicle:'TR2518', km:42.1, source:'BOLT', notes:'deadhead to airport queue' },
+                     { day:'2026-04-11', vehicle:'TR2518', km:18.7, source:'UBER', notes:'repositioning' },
+                     { day:'2026-04-10', vehicle:'TR2511', km:61.3, source:'CSV_TAXI', notes:'Norgestaxi daily CSV' } ],
+    washes:        [ { washedAt:'2026-04-12', vehicle:'TR2518', type:'FULL', vendor:'Oslo Bilvask', costNok:260 },
+                     { washedAt:'2026-04-05', vehicle:'TR2518', type:'EXTERIOR', vendor:'Circle K', costNok:120 } ],
+    charging:      [ { startedAt:'2026-04-13T05:02', vehicle:'TR2518', location:'Depot', kwh:52.4, ratePerKwhNok:3.0, totalCostNok:157, source:'NIO_API' },
+                     { startedAt:'2026-04-12T22:10', vehicle:'TR2511', location:'Supercharger Sandvika', kwh:38.1, ratePerKwhNok:3.0, totalCostNok:114, source:'TESLA_API' } ],
+    batterySwaps:  [ { swappedAt:'2026-04-07', vehicle:'TR2518', stationName:'NIO PSS Oslo N', packKwh:100, costNok:298 } ],
+    parking:       [ { issuedAt:'2026-04-03', vehicle:'TR2518', issuer:'Oslo Kommune', reason:'No ticket', amountNok:900, paid:true, chargedBackToDriverId:id, chargedBackAmountNok:900 },
+                     { issuedAt:'2026-03-28', vehicle:'TR2511', issuer:'Aimo Park', reason:'Expired', amountNok:550, paid:true, chargedBackToDriverId:null, chargedBackAmountNok:null } ],
+    repairs:       [ { occurredAt:'2026-03-22', vehicle:'TR2511', category:'GLASS', description:'Stone chip — windscreen replaced', vendor:'Hurtigruta Carglass', costNok:4200, faultCategory:'OTHER_INSURANCE', insuranceClaim:'IF-2026-81203', deductibleNok:2500, status:'DONE' },
+                     { occurredAt:'2026-04-08', vehicle:'TR2518', category:'TYRE',  description:'Puncture — front left', vendor:'Dekkmann', costNok:1850, faultCategory:'DRIVER', insuranceClaim:null, deductibleNok:null, status:'DONE' } ],
+    payroll: {
+      periodLabel:'2026-04-01 → 2026-04-14',
+      lines: [
+        { label:'Gross trip revenue', amountNok: 71200, note:'Bolt + Uber + taxi platforms' },
+        { label:'Platform fees',      amountNok: -8450, note:'15% avg across platforms' },
+        { label:'Net revenue',        amountNok: 62750 },
+        { label:'Commission @ 65%',   amountNok: 40787, note:'driver split' },
+        { label:'Charge-backs (parking, repairs at fault)', amountNok: -2750 },
+        { label:'Bonuses',            amountNok:  1500, note:'weekend peak bonus' },
+        { label:'MTD payout',         amountNok: 39537, note:'gross to driver' },
+      ]
+    },
+    tax: {
+      rulesVersion:'NO-2026',
+      DAILY: { vat:6120, vatDeductible:920, withheld:11200, employerNi:5740, netToState:22140, entries:[
+        { periodStart:'2026-04-13', kind:'VAT_COLLECTED', base:51000, rate:0.12, amount:6120, vehicle:'TR2518', tripId:null },
+        { periodStart:'2026-04-13', kind:'VAT_DEDUCTIBLE', base:7700, rate:0.12, amount:924, vehicle:'TR2518', tripId:null },
+        { periodStart:'2026-04-13', kind:'INCOME_TAX_WITHHELD', base:39537, rate:0.283, amount:11189, vehicle:null, tripId:null },
+        { periodStart:'2026-04-13', kind:'EMPLOYER_NI', base:40737, rate:0.141, amount:5744, vehicle:null, tripId:null }
+      ]},
+      MONTHLY: { vat:21800, vatDeductible:3400, withheld:45900, employerNi:23400, netToState:87700, entries:[
+        { periodStart:'2026-04-01', kind:'VAT_COLLECTED', base:181000, rate:0.12, amount:21720, vehicle:null, tripId:null },
+        { periodStart:'2026-04-01', kind:'INCOME_TAX_WITHHELD', base:162000, rate:0.283, amount:45846, vehicle:null, tripId:null }
+      ]}
+    },
+    depreciation: [
+      { periodStart:'2026-04-01', vehicle:'TR2518', method:'DECLINING_24', openingValueNok:430000, amountNok:8600, closingValueNok:421400 },
+      { periodStart:'2026-04-01', vehicle:'TR2511', method:'DECLINING_24', openingValueNok:275000, amountNok:5500, closingValueNok:269500 }
+    ],
+    fixedCosts: [
+      { category:'LEASE',      description:'NIO ET5 lease',        vendor:'NIO Finans',      frequency:'MONTHLY', amountNok:-7900 },
+      { category:'INSURANCE',  description:'Fleet CASCO',          vendor:'If',              frequency:'MONTHLY', amountNok:-1850 },
+      { category:'LOYVE',      description:'Taxi licence (løyve)', vendor:'Statsforvalteren', frequency:'YEARLY', amountNok:-2400 },
+      { category:'TAXIMETER',  description:'Taximeter calibration',vendor:'Frogner Taxi',    frequency:'YEARLY',  amountNok:-1200 },
+      { category:'SOFTWARE',   description:'Dispatch + CRM',       vendor:'FleetTrack',      frequency:'MONTHLY', amountNok:-490 },
+      { category:'ACCOUNTING', description:'Bookkeeping',          vendor:'Tripletex',       frequency:'MONTHLY', amountNok:-990 }
+    ]
+  };
+}
+
+// ──────── renderers ────────
+function initials(s){ return (s||'').split(/\s+/).slice(0,2).map(p=>p[0]||'').join('').toUpperCase() || '?'; }
+function empPill(t){
+  if (t==='EMPLOYEE') return '<span class="pill pill-emp">EMPLOYEE (PAYE)</span>';
+  if (t==='ENK')      return '<span class="pill pill-enk">ENK (sole-prop)</span>';
+  if (t==='AS')       return '<span class="pill pill-as">AS (company)</span>';
+  return `<span class="pill pill-neutral">${t||'—'}</span>`;
+}
+function statusPill(s){ return `<span class="badge b-${s==='AVAILABLE'?'green':s==='ON_TRIP'?'blue':'gray'}">${s}</span>`; }
+function faultPill(f){
+  const map = { DRIVER:'red', OTHER_INSURANCE:'blue', FLEET:'amber', MANUFACTURER:'purple', UNKNOWN:'gray' };
+  return `<span class="badge b-${map[f]||'gray'}">${f}</span>`;
+}
+function expiryCell(iso){
+  const d = daysTo(iso); if (d===null) return '<span class="text-muted">—</span>';
+  const cls = d<0 ? 'b-red' : d<60 ? 'b-amber' : 'b-green';
+  const label = d<0 ? `${-d}d overdue` : `${d}d left`;
+  return `${dstr(iso)} <span class="badge ${cls}" style="margin-left:6px">${label}</span>`;
+}
+
+function renderHero(p){
+  const d = p.driver;
+  document.getElementById('h-avatar').textContent = initials(d.name);
+  document.getElementById('h-name').textContent = d.name;
+  document.getElementById('h-email').textContent = d.email;
+  document.getElementById('h-phone').textContent = d.phone;
+  document.getElementById('h-address').textContent = d.address || '—';
+  document.getElementById('h-score').textContent = d.score ?? '—';
+  document.getElementById('h-mtd').textContent = nok(d.mtdPayoutNok);
+  document.getElementById('h-tags').innerHTML = [
+    empPill(d.employmentType),
+    `<span class="pill pill-neutral">Commission ${Math.round((d.commissionPct||0)*100)}%</span>`,
+    `<span class="pill pill-neutral">Rating ${d.rating?.toFixed(2) ?? '—'}</span>`,
+    `<span class="pill pill-neutral">${d.totalTrips ?? 0} trips</span>`,
+    statusPill(d.status)
+  ].join(' ');
+}
+
+function renderIdentity(p){
+  const d = p.driver;
+  document.getElementById('i-name').textContent = d.name;
+  document.getElementById('i-email').textContent = d.email;
+  document.getElementById('i-phone').textContent = d.phone;
+  document.getElementById('i-address').textContent = d.address || '—';
+  document.getElementById('i-pnr').textContent = d.personalNumber ? (d.personalNumber.slice(0,6) + '·••••') : '—';
+  document.getElementById('i-joined').textContent = dstr(d.joinedAt);
+  document.getElementById('i-emp-type').innerHTML = empPill(d.employmentType);
+  document.getElementById('i-org').textContent = d.orgNumber || '—';
+  document.getElementById('i-vat').textContent = d.vatRegistered ? 'Registered (MVA)' : 'Not registered';
+  document.getElementById('i-commission').textContent = `${Math.round((d.commissionPct||0)*100)}%`;
+  document.getElementById('i-bank').textContent = d.bankName || '—';
+  document.getElementById('i-account').textContent = d.bankAccount || '—';
+}
+
+function renderDocuments(p){
+  const grid = document.getElementById('docs-grid');
+  grid.innerHTML = (p.documents||[]).map(d => `
+    <div class="doc-card">
+      <div class="doc-img placeholder" style="${d.fileUrl?`background-image:url(${d.fileUrl});background-size:cover;background-position:center`:''}">
+        <span class="doc-side-tag">${d.type} · ${d.side}</span>
+      </div>
+      <div class="doc-body">
+        <div class="doc-type">${d.type.replace('_',' ')}</div>
+        <div class="doc-number">${d.number || '—'} · ${d.country || ''}</div>
+        <div class="doc-expiry">
+          <span class="text-muted">Expires</span>
+          <span>${expiryCell(d.expiresAt)}</span>
+        </div>
+      </div>
+    </div>`).join('') || '<div class="empty">No documents uploaded yet — use the Add Document button.</div>';
+
+  const tbody = document.getElementById('docs-tbody');
+  tbody.innerHTML = (p.documents||[]).map(d => `
+    <tr>
+      <td>${d.type.replace('_',' ')} (${d.side})</td>
+      <td class="mono">${d.number || '—'}</td>
+      <td>${d.country || '—'}</td>
+      <td>${dstr(d.issuedAt)}</td>
+      <td>${expiryCell(d.expiresAt)}</td>
+      <td>${d.verifiedAt ? `<span class="badge b-green">✓ ${dstr(d.verifiedAt)}</span>` : `<span class="badge b-amber">Pending</span>`}</td>
+      <td>${daysTo(d.expiresAt) < 0 ? '<span class="badge b-red">Expired</span>' : daysTo(d.expiresAt) < 60 ? '<span class="badge b-amber">Renew soon</span>' : '<span class="badge b-green">OK</span>'}</td>
+    </tr>`).join('');
+}
+
+function renderVehicles(p){
+  document.getElementById('veh-tbody').innerHTML = (p.vehicles||[]).map(v => `
+    <tr>
+      <td class="mono">${v.carId || '—'}</td>
+      <td class="mono">${v.plateNumber}</td>
+      <td>${v.make} ${v.model}</td>
+      <td class="mono">${v.year}</td>
+      <td><span class="badge b-${v.fuelType?.startsWith('EV')?'teal':'gray'}">${v.fuelType}</span></td>
+      <td>${v.insuranceProvider || '—'}</td>
+      <td>${expiryCell(v.insuranceExpiry)}</td>
+      <td>${expiryCell(v.euKontrollNext)}</td>
+      <td><span class="badge b-${v.tyreSeason==='WINTER'?'blue':v.tyreSeason==='SUMMER'?'amber':'gray'}">${v.tyreSeason || '—'}</span></td>
+      <td class="num">${v.mileage?.toLocaleString('nb-NO') || 0}</td>
+      <td>${statusPill(v.status)}</td>
+    </tr>`).join('');
+}
+
+function renderOps(p){
+  // KPIs (30d rollup — uses arrays regardless of date, demo scope)
+  const kmSum = (p.extraKm||[]).reduce((s,x)=>s+(x.km||0),0);
+  const washCost = (p.washes||[]).reduce((s,x)=>s+(x.costNok||0),0);
+  const kwh = (p.charging||[]).reduce((s,x)=>s+(x.kwh||0),0);
+  const chargeCost = (p.charging||[]).reduce((s,x)=>s+(x.totalCostNok||0),0);
+  const swaps = (p.batterySwaps||[]).length;
+  const park = (p.parking||[]).reduce((s,x)=>s+(x.amountNok||0),0);
+  document.getElementById('m-extra-km').textContent   = `${kmSum.toFixed(1)} km`;
+  document.getElementById('m-wash-count').textContent = (p.washes||[]).length;
+  document.getElementById('m-wash-cost').textContent  = nok(washCost);
+  document.getElementById('m-charge-kwh').textContent = `${kwh.toFixed(1)} kWh`;
+  document.getElementById('m-charge-cost').textContent= `${nok(chargeCost)} @ 3 kr/kWh`;
+  document.getElementById('m-swap-count').textContent = swaps;
+  document.getElementById('m-park-count').textContent = (p.parking||[]).length;
+  document.getElementById('m-park-cost').textContent  = nok(park);
+
+  document.getElementById('ops-extra-tbody').innerHTML = (p.extraKm||[]).map(x => `
+    <tr><td>${dstr(x.day)}</td><td class="mono">${x.vehicle||'—'}</td>
+    <td class="num">${(x.km||0).toFixed(1)}</td>
+    <td><span class="badge b-${x.source==='BOLT'?'purple':x.source==='UBER'?'blue':'gray'}">${x.source}</span></td>
+    <td class="text-muted">${x.notes||''}</td></tr>`).join('') || '<tr><td colspan="5" class="text-muted text-center" style="padding:var(--s5)">No entries.</td></tr>';
+
+  document.getElementById('ops-wash-tbody').innerHTML = (p.washes||[]).map(w => `
+    <tr><td>${dstr(w.washedAt)}</td><td class="mono">${w.vehicle}</td><td>${w.type}</td>
+    <td>${w.vendor||'—'}</td><td class="num">${nok(w.costNok)}</td></tr>`).join('') || '<tr><td colspan="5" class="text-muted text-center" style="padding:var(--s5)">No wash events.</td></tr>';
+
+  document.getElementById('ops-charge-tbody').innerHTML = (p.charging||[]).map(c => `
+    <tr><td class="mono">${c.startedAt?.replace('T',' ')}</td><td class="mono">${c.vehicle}</td><td>${c.location||'—'}</td>
+    <td class="num">${c.kwh?.toFixed(1)}</td><td class="num">${c.ratePerKwhNok?.toFixed(2)} kr</td>
+    <td class="num">${nok(c.totalCostNok)}</td>
+    <td><span class="badge b-${c.source==='TESLA_API'?'red':c.source==='NIO_API'?'blue':'gray'}">${c.source}</span></td></tr>`).join('') || '<tr><td colspan="7" class="text-muted text-center" style="padding:var(--s5)">No charging sessions.</td></tr>';
+
+  document.getElementById('ops-swap-tbody').innerHTML = (p.batterySwaps||[]).map(s => `
+    <tr><td>${dstr(s.swappedAt)}</td><td class="mono">${s.vehicle}</td><td>${s.stationName||'—'}</td>
+    <td class="num">${s.packKwh||'—'}</td><td class="num">${nok(s.costNok)}</td></tr>`).join('') || '<tr><td colspan="5" class="text-muted text-center" style="padding:var(--s5)">No battery swaps — applicable to NIO only.</td></tr>';
+
+  document.getElementById('ops-park-tbody').innerHTML = (p.parking||[]).map(t => `
+    <tr><td>${dstr(t.issuedAt)}</td><td class="mono">${t.vehicle}</td><td>${t.issuer||'—'}</td>
+    <td>${t.reason||'—'}</td><td class="num">${nok(t.amountNok)}</td>
+    <td>${t.paid ? '<span class="badge b-green">Paid</span>' : '<span class="badge b-amber">Unpaid</span>'}</td>
+    <td>${t.chargedBackToDriverId ? `<span class="badge b-red">Driver ${nok(t.chargedBackAmountNok)}</span>` : '<span class="badge b-gray">Fleet</span>'}</td></tr>`).join('') || '<tr><td colspan="7" class="text-muted text-center" style="padding:var(--s5)">No tickets.</td></tr>';
+}
+
+function renderRepairs(p){
+  const list = p.repairs || [];
+  const bucket = (f) => list.filter(r => r.faultCategory === f);
+  const sum = (arr) => arr.reduce((s,r)=>s+(r.costNok||0),0);
+  document.getElementById('r-drv-count').textContent  = bucket('DRIVER').length;
+  document.getElementById('r-drv-cost').textContent   = nok(sum(bucket('DRIVER')));
+  document.getElementById('r-ins-count').textContent  = bucket('OTHER_INSURANCE').length;
+  document.getElementById('r-fleet-count').textContent= bucket('FLEET').length;
+  document.getElementById('r-fleet-cost').textContent = nok(sum(bucket('FLEET')));
+  document.getElementById('r-open-count').textContent = list.filter(r=>r.status!=='DONE' && r.status!=='WRITTEN_OFF').length;
+  document.getElementById('rep-tbody').innerHTML = list.map(r => `
+    <tr>
+      <td>${dstr(r.occurredAt)}</td>
+      <td class="mono">${r.vehicle}</td>
+      <td><span class="badge b-gray">${r.category}</span></td>
+      <td>${r.description}</td>
+      <td>${r.vendor||'—'}</td>
+      <td class="num">${nok(r.costNok)}</td>
+      <td>${faultPill(r.faultCategory)}</td>
+      <td class="mono">${r.insuranceClaim||'—'}</td>
+      <td class="num">${r.deductibleNok?nok(r.deductibleNok):'—'}</td>
+      <td><span class="badge b-${r.status==='DONE'?'green':r.status==='OPEN'?'amber':'gray'}">${r.status}</span></td>
+    </tr>`).join('') || '<tr><td colspan="10" class="text-muted text-center" style="padding:var(--s5)">No repairs on file.</td></tr>';
+}
+
+function renderFinance(p){
+  const d = p.driver, f = p.payroll;
+  document.getElementById('f-pct').textContent = `${Math.round((d.commissionPct||0)*100)}%`;
+  const mtd = f.lines.find(l=>l.label==='MTD payout')?.amountNok ?? 0;
+  const gross = f.lines.find(l=>l.label==='Gross trip revenue')?.amountNok ?? 0;
+  document.getElementById('f-rev').textContent = nok(gross);
+  document.getElementById('f-payout').textContent = nok(mtd);
+  document.getElementById('f-fleet').textContent = nok(gross - mtd);
+  document.getElementById('f-next').textContent = 'Friday 17:00';
+  document.getElementById('f-tbody').innerHTML = f.lines.map(l => `
+    <tr><td>${l.label}</td><td class="num" style="color:${(l.amountNok||0) < 0 ? 'var(--red)' : 'var(--t1)'}">${nok(l.amountNok)}</td>
+    <td class="text-muted">${l.note||''}</td></tr>`).join('');
+  document.getElementById('f-bene').textContent = d.name;
+  document.getElementById('f-bank').textContent = d.bankName || '—';
+  document.getElementById('f-acct').textContent = d.bankAccount || '—';
+  document.getElementById('f-bracket').textContent = d.employmentType === 'EMPLOYEE'
+    ? 'Trinnskatt + trygdeavgift (PAYE forskuddstrekk ~28.3%)'
+    : d.employmentType === 'ENK'
+      ? 'Personlig næringsinntekt — trinnskatt + trygdeavgift 11%'
+      : 'Selskapsskatt 22% (AS) — driver taxed on own salary/dividend';
+}
+
+// Tax granularity picker
+let currentGran = 'DAILY';
+function renderTax(p){
+  document.getElementById('tax-rules').textContent = (p.tax?.rulesVersion || 'NO-2026') + ' rules';
+  const g = p.tax?.[currentGran] || p.tax?.DAILY || { entries:[], vat:0, vatDeductible:0, withheld:0, employerNi:0, netToState:0 };
+  document.getElementById('t-vat').textContent   = nok(g.vat);
+  document.getElementById('t-vatd').textContent  = nok(g.vatDeductible);
+  document.getElementById('t-withheld').textContent = nok(g.withheld);
+  document.getElementById('t-withheld-sub').textContent = p.driver.employmentType === 'EMPLOYEE' ? 'forskuddstrekk (PAYE)' : 'not applicable (self-employed)';
+  document.getElementById('t-ni').textContent    = nok(g.employerNi);
+  document.getElementById('t-net').textContent   = nok(g.netToState);
+  document.getElementById('tax-tbody').innerHTML = (g.entries||[]).map(e => `
+    <tr>
+      <td>${dstr(e.periodStart)}</td>
+      <td><span class="badge b-${e.kind==='VAT_COLLECTED'?'green':e.kind==='VAT_DEDUCTIBLE'?'blue':e.kind==='INCOME_TAX_WITHHELD'?'amber':'purple'}">${e.kind.replace(/_/g,' ')}</span></td>
+      <td class="num">${nok(e.base)}</td>
+      <td class="num">${(e.rate*100).toFixed(1)}%</td>
+      <td class="num">${nok(e.amount)}</td>
+      <td class="mono">${e.vehicle || '—'}</td>
+      <td class="mono">${e.tripId || '—'}</td>
+    </tr>`).join('') || '<tr><td colspan="7" class="text-muted text-center" style="padding:var(--s5)">No tax entries for this period.</td></tr>';
+}
+function setPeriod(btn){
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentGran = btn.dataset.gran;
+  if (window._profile) renderTax(window._profile);
+}
+
+function renderAccounting(p){
+  document.getElementById('dep-tbody').innerHTML = (p.depreciation||[]).map(d => `
+    <tr><td>${dstr(d.periodStart)}</td><td class="mono">${d.vehicle}</td>
+    <td><span class="badge b-gray">${d.method.replace('_',' ')}</span></td>
+    <td class="num">${nok(d.openingValueNok)}</td>
+    <td class="num" style="color:var(--red)">-${nok(d.amountNok)}</td>
+    <td class="num">${nok(d.closingValueNok)}</td></tr>`).join('') || '<tr><td colspan="6" class="text-muted text-center" style="padding:var(--s5)">No depreciation entries.</td></tr>';
+
+  document.getElementById('cost-tbody').innerHTML = (p.fixedCosts||[]).map(c => `
+    <tr><td><span class="badge b-gray">${c.category}</span></td>
+    <td>${c.description}</td><td>${c.vendor||'—'}</td>
+    <td>${c.frequency}</td>
+    <td class="num" style="color:${(c.amountNok||0) < 0 ? 'var(--red)' : 'var(--t1)'}">${nok(c.amountNok)}</td></tr>`).join('');
+
+  if (p.driver.employmentType !== 'EMPLOYEE') {
+    document.getElementById('acc-payout').textContent = '7790 — Annen fremmed tjeneste (driver invoices fleet as ' + p.driver.employmentType + ')';
+  }
+}
+
+function renderAlerts(p){
+  const out = document.getElementById('alerts');
+  const msgs = [];
+  const licDays = daysTo(p.driver.licenseExpiry);
+  if (licDays!==null && licDays < 60) msgs.push({ cls: licDays<0?'red':'amber', text:`Driver licence ${licDays<0?'expired':'expires in '+licDays+' days'} (${dstr(p.driver.licenseExpiry)}) — request renewal.` });
+  for (const v of (p.vehicles||[])) {
+    const d = daysTo(v.insuranceExpiry);
+    if (d!==null && d < 45) msgs.push({ cls:d<0?'red':'amber', text:`Insurance for ${v.carId || v.plateNumber} ${d<0?'expired':'expires in '+d+'d'} — ${v.insuranceProvider}.` });
+    const k = daysTo(v.euKontrollNext);
+    if (k!==null && k < 60) msgs.push({ cls:k<0?'red':'amber', text:`EU-kontroll for ${v.carId || v.plateNumber} ${k<0?'overdue':'due in '+k+'d'}.` });
+  }
+  out.innerHTML = msgs.map(m => `<div class="soft-alert ${m.cls}">⚠ ${m.text}</div>`).join('');
+}
+
+function showTab(id, btn){
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+  history.replaceState(null,'', '?id=' + encodeURIComponent(driverId) + '#' + id);
+}
+
+function exportDriverCsv(){
+  const p = window._profile; if (!p) return;
+  const rows = [
+    ['field','value'],
+    ['id',p.driver.id],['name',p.driver.name],['email',p.driver.email],['phone',p.driver.phone],
+    ['address',p.driver.address||''],['personal_number',p.driver.personalNumber||''],
+    ['employment_type',p.driver.employmentType],['commission_pct',p.driver.commissionPct],
+    ['bank_name',p.driver.bankName||''],['bank_account',p.driver.bankAccount||''],
+    ['total_trips',p.driver.totalTrips||0],['rating',p.driver.rating||0],
+    ['mtd_payout_nok',p.driver.mtdPayoutNok||0]
+  ];
+  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const url = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  const a = document.createElement('a'); a.href = url; a.download = `${p.driver.id}-profile.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ──────── boot ────────
+(async () => {
+  const p = await loadProfile();
+  window._profile = p;
+  renderHero(p); renderAlerts(p);
+  renderIdentity(p); renderDocuments(p); renderVehicles(p);
+  renderOps(p); renderRepairs(p); renderFinance(p); renderTax(p); renderAccounting(p);
+
+  // Honour #tab hash on load.
+  const h = location.hash.replace('#','');
+  if (h) {
+    const btn = document.querySelector(`.tab[data-tab="${h}"]`);
+    if (btn) showTab(h, btn);
+  }
+  if (typeof FleetCurrency !== 'undefined') FleetCurrency.rerender?.();
+})();
+</script>
+</body>
+</html>

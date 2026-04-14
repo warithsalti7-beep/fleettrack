@@ -4349,7 +4349,11 @@ drivers.forEach(d=>{
   const shiftBadge=d.shift==='AM'?'<span class="badge b-blue">AM</span>':'<span class="badge b-purple">PM</span>';
   const sharedCar=drivers.filter(x=>x.car===d.car).length>1;
   const carCell=sharedCar?`<strong style="color:var(--amber)">${d.car}</strong> <span class="badge b-amber">2-shift</span>`:`<strong>${d.car}</strong>`;
-  tr.innerHTML=`<td>${d.r}</td><td><strong>${d.n}</strong></td><td>${carCell}</td><td>${d.brand}</td><td>${shiftBadge}</td><td>${d.comm}%</td><td><span class="badge b-purple">Bolt</span></td><td>${d.zone}</td><td><span class="badge ${tc}">${s}</span></td><td><span class="badge ${s>=60?'b-green':'b-red'}">${s>=60?'Active':'Watch'}</span></td>`;
+  // Link driver name to the admin profile drilldown. Drivers are keyed
+  // by id in the API, but the roster demo data uses `r` as a rank. We
+  // use `drv-<rank>` as the demo id; real data will pass the DB id.
+  const pid = d.id || ('drv-' + d.r);
+  tr.innerHTML=`<td>${d.r}</td><td><a href="/driver-profile?id=${encodeURIComponent(pid)}" style="color:var(--blue2);text-decoration:none;font-weight:600" title="Open driver profile">${d.n}</a></td><td>${carCell}</td><td>${d.brand}</td><td>${shiftBadge}</td><td>${d.comm}%</td><td><span class="badge b-purple">Bolt</span></td><td>${d.zone}</td><td><span class="badge ${tc}">${s}</span></td><td><span class="badge ${s>=60?'b-green':'b-red'}">${s>=60?'Active':'Watch'}</span></td>`;
   rosterTbody.appendChild(tr);
 });
 
