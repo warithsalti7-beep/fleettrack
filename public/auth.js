@@ -101,18 +101,26 @@ const FleetAuth = (() => {
   }
 
   function saveSession(user) {
-    // Honour admin role override at login-time too.
-    const effective = applyRoleOverride(user);
+    // Role is taken straight from the canonical user record. We intentionally
+    // DO NOT honour localStorage `ft_role_<id>` here — that would let a user
+    // elevate their own role in their own browser (by writing to localStorage
+    // in DevTools) and the client UI would show admin pages. Server-issued
+    // cookie is unaffected either way, so API calls will still be gated
+    // correctly, but we don't want a misleading client-side state.
+    //
+    // The `ft_role_<id>` mechanism remains available for the admin's
+    // Users & Permissions page to display a "pending" role reassignment,
+    // but it does NOT change anyone's effective session role.
     const session = {
-      userId: effective.id,
-      name:   effective.name,
-      email:  effective.email,
-      role:   effective.role,
-      avatar: effective.avatar,
-      permissions: effective.permissions || [],
-      carId:  effective.carId  || null,
-      brand:  effective.brand  || null,
-      shift:  effective.shift  || null,
+      userId: user.id,
+      name:   user.name,
+      email:  user.email,
+      role:   user.role,
+      avatar: user.avatar,
+      permissions: user.permissions || [],
+      carId:  user.carId  || null,
+      brand:  user.brand  || null,
+      shift:  user.shift  || null,
       loginAt: Date.now(),
       expiresAt: Date.now() + SESSION_TTL,
     };
@@ -203,11 +211,29 @@ const FleetAuth = (() => {
     clearSession();
     // Clear preview-as mode so the next admin doesn't inherit it
     try { localStorage.removeItem('ft_preview_as'); } catch(e){}
-    // Clear server-side session cookie (fire-and-forget)
+    // Clear server-side session cookie. Use sendBeacon if available because
+    // the browser is about to navigate away — fetch() may be aborted mid-flight.
+    let sent = false;
     try {
-      fetch('/api/auth/session', { method: 'DELETE', credentials: 'include', keepalive: true })
-        .catch(() => {});
+      if (navigator.sendBeacon) {
+        // sendBeacon uses POST; server route treats POST+{_action:'delete'} same as DELETE
+        const blob = new Blob(
+          [JSON.stringify({ _action: 'delete' })],
+          { type: 'application/json' },
+        );
+        sent = navigator.sendBeacon('/api/auth/session', blob);
+      }
     } catch(e){}
+    if (!sent) {
+      try {
+        // keepalive keeps the request alive across navigation
+        fetch('/api/auth/session', {
+          method: 'DELETE',
+          credentials: 'include',
+          keepalive: true,
+        }).catch(() => {});
+      } catch(e){}
+    }
     window.location.href = redirectTo || '../login.html';
   }
 

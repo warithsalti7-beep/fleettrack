@@ -27,7 +27,17 @@ const COOKIE_NAME = "ft_session";
 const MAX_AGE_MS = 8 * 60 * 60 * 1000; // 8 h
 
 function getSecret(): string {
-  return process.env.AUTH_SECRET || "dev-insecure-secret-please-set-AUTH_SECRET";
+  const s = process.env.AUTH_SECRET;
+  if (s && s.length >= 16) return s;
+  // In production, refuse to run with a weak/missing secret — otherwise an
+  // attacker can forge session cookies trivially. Dev/test falls back so
+  // local pnpm dev doesn't require env setup.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "AUTH_SECRET not configured (or < 16 chars). Set AUTH_SECRET in Vercel env vars to a long random string.",
+    );
+  }
+  return "dev-insecure-secret-please-set-AUTH_SECRET";
 }
 
 function b64urlEncode(bytes: Uint8Array): string {
@@ -93,19 +103,29 @@ export async function verifySession(
 }
 
 export function cookieHeader(token: string, maxAgeMs = MAX_AGE_MS): string {
+  // SameSite=Strict — fleet admin app has no cross-origin embedding use case
+  // and Strict blocks the largest class of CSRF attacks.
   const parts = [
     `${COOKIE_NAME}=${token}`,
     `Max-Age=${Math.floor(maxAgeMs / 1000)}`,
     `Path=/`,
     `HttpOnly`,
-    `SameSite=Lax`,
+    `SameSite=Strict`,
   ];
   if (process.env.NODE_ENV === "production") parts.push("Secure");
   return parts.join("; ");
 }
 
 export function clearCookieHeader(): string {
-  return `${COOKIE_NAME}=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax`;
+  const parts = [
+    `${COOKIE_NAME}=`,
+    `Max-Age=0`,
+    `Path=/`,
+    `HttpOnly`,
+    `SameSite=Strict`,
+  ];
+  if (process.env.NODE_ENV === "production") parts.push("Secure");
+  return parts.join("; ");
 }
 
 export const SESSION_COOKIE = COOKIE_NAME;

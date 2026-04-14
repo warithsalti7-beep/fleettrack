@@ -19,12 +19,24 @@
  */
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { subDays, startOfMonth, startOfDay, differenceInDays } from "date-fns";
+import { subDays, startOfMonth, startOfDay, differenceInDays, getDaysInMonth } from "date-fns";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const NOK_VAT_RATE = 0.12; // Norwegian ride-share reduced VAT rate
+
+/** Normalise a FixedCost row into monthly NOK regardless of its frequency. */
+function monthlyAmountNok(row: { amountNok: number; frequency: string }): number {
+  const amt = Math.abs(Number(row.amountNok || 0));
+  switch (row.frequency) {
+    case "MONTHLY":   return amt;
+    case "QUARTERLY": return amt / 3;
+    case "YEARLY":    return amt / 12;
+    case "ONCE":      return 0; // one-offs don't prorate monthly
+    default:          return amt;
+  }
+}
 
 export async function GET() {
   const now = new Date();
@@ -79,13 +91,13 @@ export async function GET() {
         where: { status: "COMPLETED", completedAt: { gte: startMtd } },
       }).catch(() => null),
       // FixedCost may not exist until migration applied; guard defensively.
-      (prisma as unknown as { fixedCost?: { findMany: (...a: unknown[]) => Promise<Array<{ monthlyNok: number }>> } })
+      (prisma as unknown as { fixedCost?: { findMany: (...a: unknown[]) => Promise<Array<{ amountNok: number; frequency: string; startDate: Date; endDate: Date | null }>> } })
         .fixedCost?.findMany({
           where: {
-            startedAt: { lte: now },
-            OR: [{ endedAt: null }, { endedAt: { gte: startMtd } }],
+            startDate: { lte: now },
+            OR: [{ endDate: null }, { endDate: { gte: startMtd } }],
           },
-          select: { monthlyNok: true },
+          select: { amountNok: true, frequency: true, startDate: true, endDate: true },
         })
         .catch(() => []) ?? Promise.resolve([]),
     ]);
@@ -108,16 +120,19 @@ export async function GET() {
 
     const mtdFuelCost = Number(mtdFuel?._sum?.totalCost ?? 0);
     const mtdMaintCost = Number(mtdMaint?._sum?.cost ?? 0);
+    // Normalise each fixed cost to its monthly-equivalent NOK (MONTHLY=x,
+    // QUARTERLY=x/3, YEARLY=x/12, ONCE=0). Skip rows that ended before MTD.
     const mtdFixedCosts = (activeFixedCosts || []).reduce(
-      (s: number, c: { monthlyNok: number }) => s + Number(c.monthlyNok || 0),
+      (s: number, c: { amountNok: number; frequency: string }) =>
+        s + monthlyAmountNok(c),
       0,
     );
 
     const mtdVariable = mtdFuelCost + mtdMaintCost;
     const mtdGross = mtdRevenue - mtdVariable;
-    // Approximate daily-prorated fixed costs based on calendar days elapsed MTD
+    // Prorate fixed costs by calendar days elapsed in the ACTUAL month length
     const daysElapsed = Math.max(1, differenceInDays(now, startMtd) + 1);
-    const daysInMonth = 30; // approximation; good enough for pace estimate
+    const daysInMonth = getDaysInMonth(now); // 28/29/30/31 as appropriate
     const prorataFixed = (mtdFixedCosts * daysElapsed) / daysInMonth;
     const mtdNet = mtdGross - prorataFixed;
     const marginPct = mtdRevenue > 0 ? (mtdNet / mtdRevenue) * 100 : 0;

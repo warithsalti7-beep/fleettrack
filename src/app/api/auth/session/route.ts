@@ -30,6 +30,14 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => null);
+
+    // navigator.sendBeacon can only send POST, so we accept POST with
+    // { _action: 'delete' } as a logout alias — needed for reliable
+    // logout when the browser is navigating away.
+    if (body && body._action === "delete") {
+      return DELETE();
+    }
+
     const email = typeof body?.email === "string" ? body.email : "";
     const password = typeof body?.password === "string" ? body.password : "";
 

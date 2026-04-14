@@ -18,13 +18,23 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// Per-table row cap — prevents a lambda OOM on huge fleets. 50k rows of
+// mid-sized data is ~15 MB of CSV which fits comfortably in lambda memory.
+// Callers should set up Neon PITR for real backups; this endpoint is for
+// "quick operator dump".
+const ROW_CAP = 50000;
+const SENTINEL = "### TABLE:";
+
 function toCsv(rows: unknown[]): string {
   if (!rows.length) return "";
   const first = rows[0] as Record<string, unknown>;
   const cols = Object.keys(first);
   const esc = (v: unknown) => {
     if (v == null) return "";
-    const s = v instanceof Date ? v.toISOString() : String(v);
+    let s = v instanceof Date ? v.toISOString() : String(v);
+    // Escape sentinel collisions defensively — any row value that contains
+    // "### TABLE:" would break split-on-sentinel restore. Quote + pad.
+    if (s.includes(SENTINEL)) s = s.split(SENTINEL).join("#​#​# TABLE:"); // zero-width joiners
     if (s.includes(",") || s.includes('"') || s.includes("\n")) {
       return '"' + s.replace(/"/g, '""') + '"';
     }
@@ -48,20 +58,30 @@ export async function GET(req: NextRequest) {
 
   try {
     const [users, drivers, vehicles, trips, maintenance, fuelLogs, shifts, fixedCosts, auditLogs] = await Promise.all([
-      prisma.user.findMany().catch(() => []),
-      prisma.driver.findMany().catch(() => []),
-      prisma.vehicle.findMany().catch(() => []),
-      prisma.trip.findMany().catch(() => []),
-      prisma.maintenance.findMany().catch(() => []),
-      prisma.fuelLog.findMany().catch(() => []),
+      prisma.user.findMany({ take: ROW_CAP }).catch(() => []),
+      prisma.driver.findMany({ take: ROW_CAP }).catch(() => []),
+      prisma.vehicle.findMany({ take: ROW_CAP }).catch(() => []),
+      prisma.trip.findMany({ take: ROW_CAP, orderBy: { startedAt: "desc" } }).catch(() => []),
+      prisma.maintenance.findMany({ take: ROW_CAP, orderBy: { scheduledAt: "desc" } }).catch(() => []),
+      prisma.fuelLog.findMany({ take: ROW_CAP, orderBy: { filledAt: "desc" } }).catch(() => []),
       // Optional tables that may not exist pre-migration
-      (prisma as unknown as { shift?: { findMany: () => Promise<unknown[]> } })
-        .shift?.findMany().catch(() => []) ?? Promise.resolve([]),
-      (prisma as unknown as { fixedCost?: { findMany: () => Promise<unknown[]> } })
-        .fixedCost?.findMany().catch(() => []) ?? Promise.resolve([]),
+      (prisma as unknown as { shift?: { findMany: (a: unknown) => Promise<unknown[]> } })
+        .shift?.findMany({ take: ROW_CAP }).catch(() => []) ?? Promise.resolve([]),
+      (prisma as unknown as { fixedCost?: { findMany: (a: unknown) => Promise<unknown[]> } })
+        .fixedCost?.findMany({ take: ROW_CAP }).catch(() => []) ?? Promise.resolve([]),
       (prisma as unknown as { auditLog?: { findMany: (a: unknown) => Promise<unknown[]> } })
         .auditLog?.findMany({ take: 10000, orderBy: { createdAt: "desc" } }).catch(() => []) ?? Promise.resolve([]),
     ]);
+
+    const truncated: string[] = [];
+    [["users", users], ["drivers", drivers], ["vehicles", vehicles],
+     ["trips", trips], ["maintenance", maintenance], ["fuel_logs", fuelLogs],
+     ["shifts", shifts], ["fixed_costs", fixedCosts], ["audit_logs", auditLogs]]
+      .forEach(([name, arr]) => {
+        if (Array.isArray(arr) && arr.length >= (name === "audit_logs" ? 10000 : ROW_CAP)) {
+          truncated.push(String(name));
+        }
+      });
 
     const blocks: { name: string; rows: unknown[] }[] = [
       { name: "users",        rows: users },
@@ -87,6 +107,7 @@ export async function GET(req: NextRequest) {
         "Content-Disposition": `attachment; filename="fleettrack-backup-${timestamp}.csv"`,
         "Cache-Control": "no-store",
         "X-Row-Counts": blocks.map((b) => `${b.name}:${b.rows.length}`).join(","),
+        ...(truncated.length ? { "X-Truncated": truncated.join(",") } : {}),
       },
     });
   } catch (err) {
