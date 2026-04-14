@@ -1,0 +1,6 @@
+car_id,make,model,year,color,plate_number,fuel_type,purchase_date,purchase_price_nok,current_mileage_km,lease_monthly_nok,insurance_monthly_nok,status
+TR2518,NIO,ET5,2024,Black,ZB12345,Electric,2024-01-15,485000,18230,0,1320,active
+TR2537,NIO,EL6,2024,White,ZB12346,Electric,2024-03-10,525000,15410,0,1380,active
+TR2540,NIO,ET5,2023,Grey,ZB12347,Electric,2023-06-01,485000,52100,0,1320,active
+TR2538,NIO,ET5,2024,Black,ZB12348,Electric,2024-02-10,485000,8400,0,1320,workshop
+TR2517,Tesla,Model S,2022,Red,ZB12349,Electric,2022-11-01,785000,92400,0,1620,no-driver

@@ -1,0 +1,3 @@
+name,email,phone,license_number,license_expiry,hire_date,car_id,shift,brand,commission_pct,status,address
+Olsztynski Mariusz Zbigniew,olsztynski@fleettrack.no,+47 900 11 111,NO-20148-91,2027-08-14,2024-01-15,TR2518,AM,NIO ET5,65,active,Storgata 1, Oslo
+Armand Ionut Neculaita,armand@fleettrack.no,+47 900 11 112,NO-21123-22,2026-11-20,2024-03-10,TR2537,AM,NIO EL6,65,active,Karl Johans gate 4, Oslo
