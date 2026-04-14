@@ -1,0 +1,8 @@
+# Files Vercel doesn't need to upload or build
+tests/
+playwright.config.ts
+playwright-report/
+test-results/
+backend/
+docker-compose*.yml
+.github/
