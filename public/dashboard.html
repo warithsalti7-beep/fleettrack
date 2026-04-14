@@ -3260,32 +3260,38 @@ if(tripLogTbody){
 // ── NAVIGATION ─────────────────────────────────────────
 // Core page switcher — no history side effects.
 function showPage(id,title,root){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  const pg=document.getElementById('page-'+id);
-  if(pg){pg.classList.add('active');window.scrollTo(0,0);}
-  const bc1=document.getElementById('bc-current'),bc2=document.getElementById('bc-root');
-  if(bc1)bc1.textContent=title||id;
-  if(bc2)bc2.textContent=root||'';
-  // Update active sidebar item based on page id
-  document.querySelectorAll('.nav-item.active,.subnav-item.active').forEach(n=>n.classList.remove('active'));
-  const link=document.querySelector('[data-page="'+id+'"]')||document.querySelector('[onclick*="go(\\''+id+'\\'"]');
-  if(link)link.classList.add('active');
+  try {
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    const pg=document.getElementById('page-'+id);
+    if(pg){pg.classList.add('active');window.scrollTo(0,0);}
+    const bc1=document.getElementById('bc-current'),bc2=document.getElementById('bc-root');
+    if(bc1)bc1.textContent=title||id;
+    if(bc2)bc2.textContent=root||'';
+    // Best-effort: mark matching nav item active. Skip if no data-page attr.
+    document.querySelectorAll('.nav-item.active,.subnav-item.active').forEach(n=>n.classList.remove('active'));
+    const link=document.querySelector('[data-page="'+id+'"]');
+    if(link)link.classList.add('active');
+  } catch(err){ console.error('showPage error:',err); }
 }
 
 // Public navigation — pushes a new history entry so browser Back/Forward work.
 function go(id,el,title,root){
   showPage(id,title,root);
   if(el){
-    document.querySelectorAll('.nav-item,.subnav-item').forEach(n=>n.classList.remove('active'));
-    el.classList.add('active');
+    try {
+      document.querySelectorAll('.nav-item,.subnav-item').forEach(n=>n.classList.remove('active'));
+      el.classList.add('active');
+    } catch(err){ console.error('go active err:',err); }
   }
-  const state={id,title,root};
-  const hash='#'+id;
-  if(location.hash!==hash){
-    history.pushState(state,'',hash);
-  } else {
-    history.replaceState(state,'',hash);
-  }
+  try {
+    const state={id:id,title:title||'',root:root||''};
+    const hash='#'+id;
+    if(location.hash!==hash){
+      history.pushState(state,'',hash);
+    } else {
+      history.replaceState(state,'',hash);
+    }
+  } catch(err){ console.error('history err:',err); }
 }
 
 // Handle browser Back/Forward
