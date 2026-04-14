@@ -176,7 +176,7 @@ const portalConfig = {
     title:    'Employee sign in',
     sub:      'Access your fleet operations tools. Contact your admin if you need access.',
     btnText:  'Sign in to Employee Portal',
-    dest:     'employee.html',
+    dest:     'dashboard.html',
     hint:     '<strong>Demo:</strong> dispatch@fleettrack.no / Dispatch2024!',
   },
   driver: {
@@ -277,20 +277,27 @@ async function handleLogin(e) {
 
 // Check URL params for error messages
 const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('error') === 'unauthorized') {
+const errorParam = urlParams.get('error');
+if (errorParam === 'unauthorized') {
+  // Clear stale session so the user can sign in fresh — otherwise the
+  // "already logged in" block below would redirect them straight back
+  // into the page that just rejected them (infinite loop).
+  try { FleetAuth.logout && localStorage.removeItem('ft_session'); } catch(e){}
   const banner = document.getElementById('error-banner');
-  banner.textContent = 'You do not have permission to access that page. Please sign in.';
+  banner.textContent = 'You do not have permission to access that page. Please sign in again.';
   banner.classList.add('visible');
 }
 // Pre-select portal from URL
 const portalParam = urlParams.get('portal');
 if (['admin','driver','employee'].includes(portalParam)) setPortal(portalParam);
 
-// If already logged in, redirect
-const existingSession = FleetAuth.getSession();
-if (existingSession) {
-  const dest = portalConfig[existingSession.role]?.dest;
-  if (dest) window.location.href = dest;
+// If already logged in AND no error is being shown, redirect to the correct portal.
+if (errorParam !== 'unauthorized') {
+  const existingSession = FleetAuth.getSession();
+  if (existingSession) {
+    const dest = portalConfig[existingSession.role]?.dest;
+    if (dest) window.location.href = dest;
+  }
 }
 </script>
 </body>

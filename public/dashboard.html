@@ -2475,19 +2475,237 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
 
 <!-- ═══ PAGE: USERS & PERMISSIONS ═══ -->
 <div class="page" id="page-settings-users">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Users & Permissions</div><div class="ph-sub">Control who can see and edit what in the dashboard</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Add User — not implemented yet')">+ Add User</button></div></div>
-  <div class="card"><div class="card-header"><div class="card-title">User Roles</div></div>
+  <div class="page-header">
+    <div class="ph-left"><div class="ph-title">Users &amp; Permissions</div><div class="ph-sub">Grant or revoke access per employee. Changes take effect on their next page load.</div></div>
+    <div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Invite user — email backend not connected yet. You can add users manually in public/auth.js DEMO_USERS for now.')">+ Invite User</button></div>
+  </div>
+
+  <style>
+    .perm-card { background:var(--bg2); border:1px solid var(--b1); border-radius:var(--r3); padding:var(--s4); margin-bottom:var(--s3); transition:border-color var(--fast); }
+    .perm-card:hover { border-color:var(--b2); }
+    .perm-card-head { display:flex; align-items:center; gap:var(--s3); margin-bottom:var(--s3); flex-wrap:wrap; }
+    .perm-avatar { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+    .perm-info { flex:1; min-width:150px; }
+    .perm-info-name { font-size:13px; font-weight:600; color:var(--t1); }
+    .perm-info-email { font-size:11.5px; color:var(--t3); font-family:var(--mono); }
+    .perm-actions { display:flex; gap:var(--s2); flex-wrap:wrap; }
+    .perm-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:var(--s2); }
+    .perm-chip { display:flex; align-items:center; justify-content:space-between; gap:var(--s2); background:var(--bg3); border:1px solid var(--b1); border-radius:var(--r2); padding:7px 10px; cursor:pointer; transition:all var(--fast); user-select:none; }
+    .perm-chip:hover { border-color:var(--b2); }
+    .perm-chip.on { background:var(--greenbg); border-color:var(--greenborder); }
+    .perm-chip.on .perm-chip-label { color:var(--green); }
+    .perm-chip-label { font-size:11px; font-family:var(--mono); color:var(--t2); }
+    .perm-sw { width:26px; height:14px; border-radius:7px; background:var(--bg5); position:relative; transition:background var(--mid); flex-shrink:0; }
+    .perm-sw::after { content:''; position:absolute; top:2px; left:2px; width:10px; height:10px; border-radius:50%; background:var(--t3); transition:transform var(--mid),background var(--mid); }
+    .perm-chip.on .perm-sw { background:var(--green); }
+    .perm-chip.on .perm-sw::after { transform:translateX(12px); background:#fff; }
+    .preview-bar { background:var(--bluebg); border:1px solid var(--blueborder); border-radius:var(--r3); padding:var(--s3) var(--s4); display:flex; align-items:center; gap:var(--s3); margin-bottom:var(--s4); flex-wrap:wrap; }
+  </style>
+
+  <!-- Preview-as bar -->
+  <div class="preview-bar">
+    <span style="font-size:12px;color:var(--t2)">Preview dashboard as:</span>
+    <select id="preview-as-select" class="tb-btn" style="cursor:pointer" onchange="previewAsUser(this.value)">
+      <option value="">— reset to self —</option>
+      <optgroup label="Employees" id="preview-emp-group"></optgroup>
+      <optgroup label="Drivers" id="preview-drv-group"></optgroup>
+    </select>
+    <span style="font-size:12px;color:var(--t3);flex:1">Applies permission filter to nav items. Refreshes your session view without logging out.</span>
+  </div>
+
+  <!-- Admins -->
+  <div class="card">
+    <div class="card-header"><div class="card-title">Administrators</div><div class="card-sub" id="admin-count">— loading</div></div>
+    <div id="admin-list"></div>
+  </div>
+
+  <!-- Employees (customizable) -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Employees</div>
+      <div style="display:flex;gap:var(--s2)">
+        <button class="btn btn-sm" onclick="permsResetAll()">Reset All</button>
+        <button class="btn btn-sm primary" onclick="permsSaveAll()">Save All</button>
+      </div>
+    </div>
+    <div id="employee-perm-list"></div>
+  </div>
+
+  <!-- Drivers (reference only) -->
+  <div class="card">
+    <div class="card-header"><div class="card-title">Drivers</div><div class="card-sub">Fixed access — drivers only see their own data. Manage car assignments in auth.js.</div></div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Access Level</th><th>Last Login</th><th>Status</th></tr></thead>
-      <tbody>
-        <tr><td>Fleet Manager</td><td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4528242b242220370523292020312c346b2b2a">[email&#160;protected]</a></td><td><span class="badge b-red">Admin</span></td><td>Full access</td><td>Today 09:14</td><td><span class="badge b-green">Active</span></td></tr>
-        <tr><td>Stefan (Owner)</td><td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f083849596919eb09f839c9f969c959584de9e9f">[email&#160;protected]</a></td><td><span class="badge b-purple">Owner</span></td><td>Full access + billing</td><td>Today 08:30</td><td><span class="badge b-green">Active</span></td></tr>
-        <tr><td>Dispatch Officer</td><td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a1c5c8d2d1c0d5c2c9e1ced2cdcec7cdc4c4d58fcfce">[email&#160;protected]</a></td><td><span class="badge b-blue">Dispatcher</span></td><td>Operations only</td><td>Yesterday</td><td><span class="badge b-green">Active</span></td></tr>
-        <tr><td>Accountant</td><td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e08183838f958e9493a09285878e938b8190ce8e8f">[email&#160;protected]</a></td><td><span class="badge b-teal">Finance</span></td><td>Financial pages only</td><td>3 days ago</td><td><span class="badge b-amber">Inactive</span></td></tr>
-      </tbody>
+      <thead><tr><th>Driver</th><th>Email</th><th>Car ID</th><th>Brand</th><th>Shift</th><th>Access</th></tr></thead>
+      <tbody id="driver-ref-body"></tbody>
     </table></div>
   </div>
 </div>
+
+<script>
+// ── Users & Permissions admin UI ──
+(function(){
+  if (typeof FleetAuth === 'undefined') return;
+
+  const ALL_PERMISSIONS = [
+    'view:drivers', 'view:vehicles', 'view:trips',
+    'view:alerts', 'view:financial', 'view:payroll',
+    'view:zones', 'manage:dispatch', 'manage:maintenance', 'export:reports',
+  ];
+
+  const loadPerms = (uid) => {
+    try { return JSON.parse(localStorage.getItem('ft_perms_' + uid) || 'null'); }
+    catch(e){ return null; }
+  };
+  const savePerms = (uid, perms) => {
+    try { localStorage.setItem('ft_perms_' + uid, JSON.stringify(perms)); } catch(e){}
+  };
+
+  function userCard(u, editable) {
+    const saved = loadPerms(u.id);
+    const current = saved || u.permissions || [];
+    const hasAll = current.includes('all');
+
+    const roleColors = {
+      admin:    ['var(--bluebg)','var(--blueborder)','var(--blue2)','b-red'],
+      employee: ['var(--purplebg)','var(--purpleborder)','var(--purple)','b-purple'],
+      driver:   ['var(--greenbg)','var(--greenborder)','var(--green)','b-green'],
+    };
+    const [bg, border, color, badgeCls] = roleColors[u.role] || ['var(--bg4)','var(--b2)','var(--t2)','b-gray'];
+
+    const chips = ALL_PERMISSIONS.map(p => {
+      const on = hasAll || current.includes(p);
+      const disabled = !editable ? 'style="pointer-events:none;opacity:0.6"' : '';
+      return `<div class="perm-chip ${on?'on':''}" data-perm="${p}" ${disabled} onclick="permsToggle(this,'${u.id}','${p}')" title="${on?'Revoke':'Grant'} ${p}">
+        <span class="perm-chip-label">${p}</span>
+        <div class="perm-sw"></div>
+      </div>`;
+    }).join('');
+
+    const actionBtns = editable ? `
+      <button class="btn btn-sm" onclick="permsGrantAll('${u.id}')">Grant all</button>
+      <button class="btn btn-sm" onclick="permsRevokeAll('${u.id}')">Revoke all</button>
+    ` : '<span style="font-size:11px;color:var(--t3);font-family:var(--mono)">full access (admin)</span>';
+
+    return `<div class="perm-card" id="permcard-${u.id}">
+      <div class="perm-card-head">
+        <div class="perm-avatar" style="background:${bg};border:1px solid ${border};color:${color}">${u.avatar||'?'}</div>
+        <div class="perm-info">
+          <div class="perm-info-name">${u.name}</div>
+          <div class="perm-info-email">${u.email}</div>
+        </div>
+        <span class="badge ${badgeCls}">${u.role}</span>
+        <div class="perm-actions">${actionBtns}</div>
+      </div>
+      <div class="perm-grid">${chips}</div>
+    </div>`;
+  }
+
+  function renderAll(){
+    const admins = FleetAuth.getUsersByRole('admin');
+    const emps   = FleetAuth.getUsersByRole('employee');
+    const drvs   = FleetAuth.getUsersByRole('driver');
+
+    document.getElementById('admin-count').textContent = admins.length + ' administrator' + (admins.length===1?'':'s');
+    document.getElementById('admin-list').innerHTML  = admins.map(u => userCard(u, false)).join('');
+    document.getElementById('employee-perm-list').innerHTML = emps.map(u => userCard(u, true)).join('') || '<p style="color:var(--t3);font-size:13px">No employees yet. Invite one to get started.</p>';
+
+    document.getElementById('driver-ref-body').innerHTML = drvs.map(d => `
+      <tr>
+        <td><strong>${d.name}</strong></td>
+        <td style="font-family:var(--mono);font-size:11.5px;color:var(--t2)">${d.email}</td>
+        <td style="font-family:var(--mono)">${d.carId||'—'}</td>
+        <td>${d.brand||'—'}</td>
+        <td><span class="badge ${d.shift==='AM'?'b-blue':d.shift==='PM'?'b-purple':'b-gray'}">${d.shift||'—'}</span></td>
+        <td><span class="badge b-gray">Own data only</span></td>
+      </tr>`).join('');
+
+    // Populate preview-as dropdown
+    const empGroup = document.getElementById('preview-emp-group');
+    const drvGroup = document.getElementById('preview-drv-group');
+    if (empGroup && drvGroup){
+      empGroup.innerHTML = emps.map(u => `<option value="${u.id}">${u.name} (${u.email})</option>`).join('');
+      drvGroup.innerHTML = drvs.map(u => `<option value="${u.id}">${u.name} (${u.carId||''})</option>`).join('');
+    }
+  }
+
+  // Public functions
+  window.permsToggle = function(el, uid, p){
+    el.classList.toggle('on');
+    // Persist immediately so employee portal sees updates next refresh
+    const card = document.getElementById('permcard-' + uid);
+    if (!card) return;
+    const on = [...card.querySelectorAll('.perm-chip.on')].map(c => c.dataset.perm);
+    savePerms(uid, on);
+    if (typeof Toast !== 'undefined') Toast.success('Saved: ' + uid + ' — ' + on.length + ' permission(s)');
+  };
+  window.permsGrantAll = function(uid){
+    const card = document.getElementById('permcard-' + uid);
+    card.querySelectorAll('.perm-chip').forEach(c => c.classList.add('on'));
+    savePerms(uid, ALL_PERMISSIONS);
+    Toast.success('All permissions granted to ' + uid);
+  };
+  window.permsRevokeAll = function(uid){
+    const card = document.getElementById('permcard-' + uid);
+    card.querySelectorAll('.perm-chip').forEach(c => c.classList.remove('on'));
+    savePerms(uid, []);
+    Toast.warning('All permissions revoked from ' + uid);
+  };
+  window.permsSaveAll = function(){
+    FleetAuth.getUsersByRole('employee').forEach(u => {
+      const card = document.getElementById('permcard-' + u.id);
+      if (!card) return;
+      const on = [...card.querySelectorAll('.perm-chip.on')].map(c => c.dataset.perm);
+      savePerms(u.id, on);
+    });
+    Toast.success('All employee permissions saved.');
+  };
+  window.permsResetAll = function(){
+    if (!confirm('Reset all employee permissions to defaults? Any customisations will be lost.')) return;
+    FleetAuth.getUsersByRole('employee').forEach(u => {
+      try { localStorage.removeItem('ft_perms_' + u.id); } catch(e){}
+    });
+    renderAll();
+    Toast.info('Reset complete.');
+  };
+
+  // Preview as — swap the active session's perms+role for viewing
+  window.previewAsUser = function(uid){
+    if (!uid){
+      try { localStorage.removeItem('ft_preview_as'); } catch(e){}
+      Toast.info('Preview reset. Reloading…');
+    } else {
+      try { localStorage.setItem('ft_preview_as', uid); } catch(e){}
+      Toast.info('Previewing as ' + uid + '. Reloading…');
+    }
+    setTimeout(() => location.reload(), 700);
+  };
+
+  // Only render when the admin actually opens the page (saves work)
+  let rendered = false;
+  function ensureRender(){
+    if (rendered) return;
+    rendered = true;
+    try { renderAll(); } catch(e){ console.error('users page render err:', e); }
+  }
+  // Render when page becomes active
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[onclick*="settings-users"]')) setTimeout(ensureRender, 50);
+  });
+  // Or immediately if already active / hash match
+  if (location.hash === '#settings-users' || document.getElementById('page-settings-users')?.classList.contains('active')) {
+    ensureRender();
+  }
+  // Also render when go() is called for this page
+  const origGo = window.go;
+  if (origGo) {
+    window.go = function(id){
+      const r = origGo.apply(this, arguments);
+      if (id === 'settings-users') ensureRender();
+      return r;
+    };
+  }
+})();
+</script>
 
 <!-- ═══ PAGE: DRIVER ACTIVITY LOG ═══ -->
 <div class="page" id="page-activity-log">
@@ -3097,12 +3315,164 @@ Current performance   = <span class="cur" data-nok="55430">55 430 kr</span> → 
 
 <script>
 // ── Auth guard ─────────────────────────────────────────────────────────────
-const _s=(typeof FleetAuth!=='undefined')?FleetAuth.requireAuth(['admin'],'./login.html?error=unauthorized'):null;
+// Allow both admin and employee roles; employees see a filtered nav.
+const _s=(typeof FleetAuth!=='undefined')?FleetAuth.requireAuth(['admin','employee'],'./login.html?error=unauthorized'):null;
+
+// Support "Preview as <user>" from the admin Users & Permissions page.
+// ft_preview_as stores a userId whose perms and role we should simulate.
+function _getEffectiveContext(){
+  const base = { role: _s?.role, userId: _s?.userId, name: _s?.name, perms: _s?.permissions || [] };
+  if (!_s || _s.role !== 'admin') return base; // only admins can preview
+  let previewId = null;
+  try { previewId = localStorage.getItem('ft_preview_as'); } catch(e){}
+  if (!previewId) return base;
+  const all = (typeof FleetAuth !== 'undefined') ? FleetAuth.getAllUsers() : [];
+  const target = all.find(u => u.id === previewId);
+  if (!target) return base;
+  let perms = target.permissions || [];
+  try {
+    const saved = JSON.parse(localStorage.getItem('ft_perms_' + target.id) || 'null');
+    if (saved) perms = saved;
+  } catch(e){}
+  return { role: target.role, userId: target.id, name: target.name + ' (preview)', perms: perms, previewFrom: _s.userId };
+}
+const _ctx = _getEffectiveContext();
+
+// If employee (real or previewed): resolve their saved perm overrides.
+function _employeePerms(){
+  if (_ctx.role === 'admin') return null; // admin sees all
+  let perms = _ctx.perms || [];
+  if (_ctx.role === 'employee' && _ctx.userId){
+    try {
+      const saved = JSON.parse(localStorage.getItem('ft_perms_' + _ctx.userId) || 'null');
+      if (saved) perms = saved;
+    } catch(e){}
+  }
+  return perms;
+}
+
+// Permission-gate the sidebar nav for non-admins.
+function _applyRoleFilter(){
+  if (_ctx.role === 'admin') return;
+  const perms = _employeePerms() || [];
+  const canAll = perms.includes('all');
+  const can = (p) => canAll || perms.includes(p);
+
+  // Map onclick-target page ids to required permissions.
+  // null = admin-only (hide completely for non-admins)
+  const gate = {
+    // Command centre & main dashboards
+    'command-centre': 'any',
+    'financial': 'view:financial',
+    'efficiency': 'any',
+    'platforms': 'any',
+    'zones': 'view:zones',
+    'alerts-page': 'view:alerts',
+    'compliance': 'any',
+    'kpis': 'any',
+    'datamodel': null,
+    // Drivers
+    'drivers': 'view:drivers',
+    'driver-roster': 'view:drivers',
+    'driver-performance': 'view:drivers',
+    'driver-shifts': 'view:drivers',
+    'driver-compliance': 'view:drivers',
+    'driver-payroll': 'view:payroll',
+    'driver-coaching': 'view:drivers',
+    // Vehicles
+    'vehicles': 'view:vehicles',
+    'vehicle-fleet': 'view:vehicles',
+    'vehicle-performance': 'view:vehicles',
+    'vehicle-maintenance': 'manage:maintenance',
+    'vehicle-fuel': 'view:vehicles',
+    'vehicle-telematics': 'view:vehicles',
+    'vehicle-insurance': 'view:vehicles',
+    // Trips / dispatch
+    'trips': 'view:trips',
+    'trip-log': 'view:trips',
+    'trip-history': 'view:trips',
+    'trip-cancellations': 'view:trips',
+    'trip-disputes': 'view:trips',
+    'trip-receipts': 'view:trips',
+    'dispatch': 'manage:dispatch',
+    'dispatch-live': 'manage:dispatch',
+    'dispatch-zones': 'manage:dispatch',
+    'dispatch-repositioning': 'manage:dispatch',
+    'dispatch-queue': 'manage:dispatch',
+    // Finance / costs
+    'finance-daily': 'view:financial',
+    'finance-weekly': 'view:financial',
+    'finance-monthly': 'view:financial',
+    'finance-breakeven': 'view:financial',
+    'costs': 'view:financial',
+    'cost-fuel': 'view:financial',
+    'cost-maintenance': 'view:financial',
+    'cost-fixed': 'view:financial',
+    'cost-penalties': 'view:financial',
+    'payments': 'view:financial',
+    'invoicing': 'view:financial',
+    // Analytics / reports
+    'peak-hours': 'any',
+    'revenue-analysis': 'view:financial',
+    'forecasting': 'view:financial',
+    'reports': 'export:reports',
+    // Other
+    'incidents': 'any',
+    'ratings': 'any',
+    'complaints': 'any',
+    'safety': 'any',
+    'audits': null,
+    'customer-accounts': 'view:financial',
+    'activity-log': 'view:drivers',
+    'norway-costs': 'view:financial',
+    'dashboard-checklist': null,
+    // Admin-only settings
+    'settings': null,
+    'settings-api': null,
+    'settings-notifications': null,
+    'settings-users': null,
+  };
+
+  document.querySelectorAll('.nav-item, .subnav-item').forEach(item => {
+    const onclick = item.getAttribute('onclick') || '';
+    const m = onclick.match(/go\(['"]([a-z0-9_-]+)['"]/);
+    if (!m) return;
+    const id = m[1];
+    const req = gate[id];
+    if (req === undefined) return; // unknown, leave alone
+    if (req === null) { item.style.display = 'none'; return; }
+    if (req === 'any') return; // keep
+    if (!can(req)) item.style.display = 'none';
+  });
+
+  // Hide top-level parents whose whole subnav is hidden
+  document.querySelectorAll('.nav-item').forEach(parent => {
+    const subId = (parent.getAttribute('onclick')||'').match(/toggleSub\(['"]([^'"]+)['"]/);
+    if (!subId) return;
+    const sub = document.getElementById(subId[1]);
+    if (!sub) return;
+    const visible = [...sub.querySelectorAll('.subnav-item')].some(s => s.style.display !== 'none');
+    if (!visible) parent.style.display = 'none';
+  });
+}
+
+// Preview-mode banner (when an admin is viewing as another user)
+function _injectPreviewBanner(){
+  if (!_ctx.previewFrom) return;
+  const banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:10000;background:var(--amberbg);border-bottom:1px solid var(--amberborder);color:var(--amber);padding:6px 14px;font-size:12px;font-family:var(--mono);display:flex;align-items:center;justify-content:center;gap:10px';
+  banner.innerHTML = `👁 Previewing as <strong>${_ctx.name}</strong> (${_ctx.role}) — <a href="#" onclick="localStorage.removeItem('ft_preview_as');location.reload();return false" style="color:var(--blue2);text-decoration:underline">exit preview</a>`;
+  document.body.appendChild(banner);
+  document.body.style.paddingTop = '30px';
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   if(_s){
     const av=document.getElementById('sb-avatar'),nm=document.getElementById('sb-name');
-    if(av)av.textContent=_s.avatar||'AD';
-    if(nm)nm.textContent=_s.name||'Admin';
+    if(av)av.textContent=(_ctx.role==='admin'&&!_ctx.previewFrom)?(_s.avatar||'AD'):(_ctx.role==='employee'?(_ctx.name||'EM').substring(0,2).toUpperCase():'PV');
+    if(nm)nm.textContent=_ctx.name||_s.name||'User';
+    _applyRoleFilter();
+    _injectPreviewBanner();
   }
 });
 
