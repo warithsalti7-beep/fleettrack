@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
+<title>FleetTrack — Photo → CSV Import</title>
+<link rel="stylesheet" href="./design-system.css">
+<style>
+  body { padding: var(--s5); max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 var(--s1); }
+  .sub { color: var(--t2); margin-bottom: var(--s5); font-size: 13px; }
+  .drop { border: 2px dashed var(--b2); border-radius: var(--r3); padding: var(--s6); text-align: center; transition: all var(--fast); cursor: pointer; background: var(--bg2); margin-bottom: var(--s4); }
+  .drop.hover { border-color: var(--blue); background: var(--bg3); }
+  .drop h2 { margin: 0 0 8px; font-size: 16px; color: var(--t1); }
+  .drop p { margin: 0; color: var(--t3); font-size: 13px; }
+  input[type=file] { display: none; }
+  .queue { display: grid; gap: var(--s3); margin-bottom: var(--s4); }
+  .item { display: grid; grid-template-columns: 120px 1fr auto; gap: var(--s3); align-items: center; padding: var(--s3); background: var(--bg2); border: 1px solid var(--b1); border-radius: var(--r2); }
+  .item img { width: 120px; height: 90px; object-fit: cover; border-radius: var(--r2); background: var(--bg3); }
+  .item .info { font-size: 13px; color: var(--t2); }
+  .item .info strong { color: var(--t1); }
+  .status { font-size: 12px; padding: 2px 8px; border-radius: 10px; }
+  .s-pending { background: var(--bg3); color: var(--t3); }
+  .s-processing { background: #fef3c7; color: #92400e; }
+  .s-ok { background: #d1fae5; color: #065f46; }
+  .s-err { background: #fee2e2; color: #991b1b; }
+  .preview { margin-top: var(--s4); padding: var(--s3); background: var(--bg2); border: 1px solid var(--b1); border-radius: var(--r3); font-size: 12px; max-height: 400px; overflow: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  th, td { padding: 4px 8px; border-bottom: 1px solid var(--b1); text-align: left; }
+  th { background: var(--bg3); font-weight: 600; color: var(--t2); position: sticky; top: 0; }
+  td { color: var(--t2); white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+  .actions { display: flex; gap: var(--s2); margin-top: var(--s4); }
+  .btn { padding: 10px 16px; border-radius: var(--r2); border: 1px solid var(--b2); background: var(--bg2); color: var(--t1); cursor: pointer; font-size: 13px; font-weight: 500; }
+  .btn.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .warn { background: #fef3c7; border: 1px solid #fcd34d; padding: var(--s3); border-radius: var(--r2); font-size: 13px; color: #92400e; margin: var(--s3) 0; }
+  .ok { background: #d1fae5; border: 1px solid #6ee7b7; padding: var(--s3); border-radius: var(--r2); font-size: 13px; color: #065f46; margin: var(--s3) 0; }
+  .err { background: #fee2e2; border: 1px solid #fca5a5; padding: var(--s3); border-radius: var(--r2); font-size: 13px; color: #991b1b; margin: var(--s3) 0; }
+  .hint { background: var(--bg3); border-radius: var(--r2); padding: var(--s3); margin-bottom: var(--s4); font-size: 12.5px; color: var(--t2); }
+  .hint strong { color: var(--t1); }
+</style>
+</head>
+<body>
+
+<h1>📸 Photo → CSV Import</h1>
+<div class="sub">
+  Upload photos of daily driver sheets, fuel receipts, workshop invoices, or platform screenshots.
+  Claude Vision extracts the data, you review, then import to the dashboard.
+  <a href="./dashboard" style="float:right">← Back to dashboard</a>
+</div>
+
+<div class="hint">
+  <strong>What works best:</strong> clear photos of handwritten or printed data — driver logs, fuel-card receipts, Bolt/Uber week summary screenshots, workshop invoices. One photo per upload works too; batch also works.<br>
+  <strong>Auth required:</strong> you must be signed in as admin. Open <a href="./login" target="_blank">/login</a> in a tab first if not.
+</div>
+
+<label class="drop" id="drop">
+  <input type="file" id="file" accept="image/*" multiple>
+  <h2>Drop photos here, or click to select</h2>
+  <p>JPEG, PNG, WebP. Multiple at once OK. Max ~10 MB each.</p>
+</label>
+
+<div class="queue" id="queue"></div>
+<div id="banners"></div>
+
+<div class="actions" id="actions" style="display:none">
+  <button class="btn primary" id="importBtn">Import accepted rows to dashboard</button>
+  <button class="btn" id="downloadBtn">⬇ Download combined CSV</button>
+  <button class="btn" id="clearBtn">Clear all</button>
+</div>
+
+<div class="preview" id="preview" style="display:none"></div>
+
+<script>
+const q = [];          // { file, base64, rows, summary, unmatched, status }
+let seed = null;
+
+async function readAsBase64(file) {
+  return new Promise((res) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.readAsDataURL(file);
+  });
+}
+
+function setStatus(idx, status, label) {
+  const el = document.querySelector(`[data-idx="${idx}"] .status`);
+  if (!el) return;
+  el.className = 'status s-' + status;
+  el.textContent = label;
+}
+
+function redraw() {
+  const qEl = document.getElementById('queue');
+  qEl.innerHTML = q.map((it, i) => `
+    <div class="item" data-idx="${i}">
+      <img src="${it.dataUrl}">
+      <div class="info">
+        <div><strong>${escapeHtml(it.file.name)}</strong> · ${(it.file.size/1024).toFixed(0)} KB</div>
+        <div>${it.summary ? escapeHtml(it.summary) : '—'}</div>
+        <div>${it.rows ? `<strong>${it.rows.length}</strong> rows extracted` : ''}
+          ${it.unmatched && it.unmatched.length ? ` · <span style="color:var(--red)">${it.unmatched.length} unmatched</span>` : ''}</div>
+      </div>
+      <span class="status s-${it.status.tone}">${it.status.label}</span>
+    </div>
+  `).join('');
+  document.getElementById('actions').style.display = q.some(it => it.rows && it.rows.length) ? 'flex' : 'none';
+  renderPreview();
+}
+
+function escapeHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function combinedRows() {
+  return q.filter(it => it.rows && it.rows.length).flatMap(it => it.rows);
+}
+
+function renderPreview() {
+  const rows = combinedRows();
+  const el = document.getElementById('preview');
+  if (!rows.length) { el.style.display = 'none'; return; }
+  const cols = ['record_type','date','time','driver_email','car_id','platform','fare_nok','distance_km','total_cost_nok','type','description'];
+  el.style.display = 'block';
+  el.innerHTML = `<strong>Preview (${rows.length} rows):</strong>
+    <table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>
+    ${rows.slice(0, 50).map(r => `<tr>${cols.map(c => `<td>${escapeHtml(r[c]||'')}</td>`).join('')}</tr>`).join('')}
+    </tbody></table>${rows.length>50?`<div style="margin-top:8px;color:var(--t3)">...and ${rows.length-50} more</div>`:''}`;
+}
+
+async function processItem(idx) {
+  const it = q[idx];
+  it.status = { tone:'processing', label:'Processing…' };
+  redraw();
+  try {
+    const res = await fetch('/api/ocr/extract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ image: it.dataUrl }),
+    });
+    const j = await res.json();
+    if (!res.ok) {
+      it.status = { tone:'err', label:'Error: ' + (j.error || res.status) };
+      redraw();
+      return;
+    }
+    it.summary = j.summary;
+    it.rows = j.rows || [];
+    it.unmatched = j.unmatched || [];
+    it.status = { tone:'ok', label: `${it.rows.length} rows` };
+    redraw();
+  } catch (e) {
+    it.status = { tone:'err', label: 'Network error' };
+    redraw();
+  }
+}
+
+async function addFiles(files) {
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) continue;
+    const dataUrl = await readAsBase64(file);
+    q.push({ file, dataUrl, rows: null, summary: '', unmatched: [], status: { tone:'pending', label:'Pending' } });
+  }
+  redraw();
+  // Process sequentially to respect API rate limits
+  for (let i = 0; i < q.length; i++) {
+    if (q[i].status.tone === 'pending') await processItem(i);
+  }
+}
+
+// Drag/drop
+const drop = document.getElementById('drop');
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('hover'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('hover'); }));
+drop.addEventListener('drop', e => addFiles(Array.from(e.dataTransfer.files)));
+document.getElementById('file').addEventListener('change', e => addFiles(Array.from(e.target.files)));
+
+document.getElementById('clearBtn').addEventListener('click', () => { q.length = 0; redraw(); document.getElementById('banners').innerHTML = ''; });
+
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  const rows = combinedRows();
+  if (!rows.length) return;
+  const cols = ['record_type','date','time','driver_email','car_id','shift_start','shift_end','hours_online','zone','platform','pickup_address','dropoff_address','distance_km','duration_min','fare_nok','payment_method','rating','status','liters_or_kwh','price_per_unit_nok','total_cost_nok','mileage_km','station','type','description','workshop','notes'];
+  const esc = v => v==null ? '' : /[,"\n]/.test(String(v)) ? `"${String(v).replace(/"/g,'""')}"` : String(v);
+  const csv = cols.join(',') + '\n' + rows.map(r => cols.map(c=>esc(r[c])).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `photo-import-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('importBtn').addEventListener('click', async () => {
+  const rows = combinedRows();
+  if (!rows.length) return;
+  const banners = document.getElementById('banners');
+  banners.innerHTML = '<div class="warn">Paste your SEED_TOKEN to import (stored in Vercel env):</div>';
+  if (!seed) seed = prompt('SEED_TOKEN:');
+  if (!seed) return;
+  const cols = ['record_type','date','time','driver_email','car_id','shift_start','shift_end','hours_online','zone','platform','pickup_address','dropoff_address','distance_km','duration_min','fare_nok','payment_method','rating','status','liters_or_kwh','price_per_unit_nok','total_cost_nok','mileage_km','station','type','description','workshop','notes'];
+  const esc = v => v==null ? '' : /[,"\n]/.test(String(v)) ? `"${String(v).replace(/"/g,'""')}"` : String(v);
+  const csv = cols.join(',') + '\n' + rows.map(r => cols.map(c=>esc(r[c])).join(',')).join('\n');
+  banners.innerHTML = '<div class="warn">Importing…</div>';
+  try {
+    const res = await fetch('/api/import/bulk?token=' + encodeURIComponent(seed), {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/csv' },
+      credentials: 'include',
+      body: csv,
+    });
+    const report = await res.json();
+    if (res.ok && report.ok) {
+      banners.innerHTML = `<div class="ok">✅ Imported successfully. ${JSON.stringify(report.counts)}</div>`;
+    } else {
+      banners.innerHTML = `<div class="err">❌ Import had errors. ${report.errors?.length||0} rows failed. <pre style="font-size:11px;max-height:200px;overflow:auto">${escapeHtml(JSON.stringify(report.errors||report, null, 2))}</pre></div>`;
+    }
+  } catch (e) {
+    banners.innerHTML = `<div class="err">Network error: ${e.message}</div>`;
+  }
+});
+</script>
+
+</body>
+</html>
