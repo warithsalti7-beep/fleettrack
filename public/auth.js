@@ -11,6 +11,47 @@
  * Claude Code will wire this to a real backend.
  */
 
+// ── Sentry error monitoring (loads async on first error) ───────────────
+(function loadSentry(){
+  if (window.__sentryLoaded) return;
+  window.__sentryLoaded = true;
+  const s = document.createElement('script');
+  s.src = 'https://js.sentry-cdn.com/42763199881812ceccc81884f1381002.min.js';
+  s.crossOrigin = 'anonymous';
+  s.async = true;
+  s.onload = () => {
+    try {
+      if (window.Sentry && window.Sentry.init) {
+        window.Sentry.onLoad(() => {
+          window.Sentry.init({
+            dsn: 'https://42763199881812ceccc81884f1381002@o4511217410048000.ingest.us.sentry.io/4511217411686400',
+            environment: location.hostname === 'localhost' ? 'development' : 'production',
+            // Attach session info if we have one
+            initialScope: (() => {
+              try {
+                const sess = JSON.parse(localStorage.getItem('ft_session') || 'null');
+                return sess ? {
+                  user: { id: sess.userId, email: sess.email, role: sess.role, username: sess.name },
+                } : {};
+              } catch(e){ return {}; }
+            })(),
+            // Keep release noise low; increase later when we want full replay
+            tracesSampleRate: 0.1,
+            replaysSessionSampleRate: 0,
+            replaysOnErrorSampleRate: 1.0,
+            ignoreErrors: [
+              // Browser quirks that aren't actionable
+              'ResizeObserver loop limit exceeded',
+              'Non-Error promise rejection captured',
+            ],
+          });
+        });
+      }
+    } catch(e){}
+  };
+  document.head.appendChild(s);
+})();
+
 const FleetAuth = (() => {
 
   // ── Demo user database (replace with real API calls) ──────────────

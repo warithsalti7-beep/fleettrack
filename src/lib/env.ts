@@ -11,10 +11,23 @@
  */
 
 type RequiredKey = "DATABASE_URL";
-type OptionalKey = "SEED_TOKEN" | "AUTH_SECRET" | "OPENAI_API_KEY" | "RESEND_API_KEY";
+type OptionalKey =
+  | "SEED_TOKEN"
+  | "AUTH_SECRET"
+  | "OPENAI_API_KEY"
+  | "ANTHROPIC_API_KEY"
+  | "RESEND_API_KEY"
+  | "SENTRY_DSN";
 
 const REQUIRED: RequiredKey[] = ["DATABASE_URL"];
-const OPTIONAL: OptionalKey[] = ["SEED_TOKEN", "AUTH_SECRET", "OPENAI_API_KEY", "RESEND_API_KEY"];
+const OPTIONAL: OptionalKey[] = [
+  "SEED_TOKEN",
+  "AUTH_SECRET",
+  "OPENAI_API_KEY",
+  "ANTHROPIC_API_KEY",
+  "RESEND_API_KEY",
+  "SENTRY_DSN",
+];
 
 type Env = Record<RequiredKey, string> & Partial<Record<OptionalKey, string>>;
 
