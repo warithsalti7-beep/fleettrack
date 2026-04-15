@@ -1,6 +1,7 @@
 {
   "framework": "nextjs",
-"buildCommand": "prisma generate && prisma db push --accept-data-loss && pnpm build",
+  "// buildCommand note": "We DO NOT run `prisma db push` or `prisma migrate deploy` during Vercel builds. The build environment may not have DB connectivity (IP allowlist, transient Neon outage, long-running migration) and a build-time DB call would fail the whole deploy. Schema is pushed out-of-band — either via `pnpm prisma db push` from a developer terminal, or via the Neon SQL Editor, or via a dedicated deploy hook. See docs/CLEAR_DEMO.md for the pattern.",
+  "buildCommand": "prisma generate && pnpm build",
   "installCommand": "pnpm install",
   "outputDirectory": ".next",
   "headers": [

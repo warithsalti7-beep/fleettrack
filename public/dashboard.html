@@ -1130,7 +1130,7 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
   <div class="logo-area">
     <div class="logo-name">FleetTrack</div>
     <div class="logo-tag">FLEET MANAGEMENT SYSTEM</div>
-    <div class="fleet-badge"><span class="live-dot"></span>19 Drivers · Live</div>
+    <div class="fleet-badge"><span class="live-dot"></span><span data-kpi="driversTotal">—</span> Drivers · Live</div>
   </div>
 
   <div class="nav-scroll">
@@ -1540,7 +1540,7 @@ Why the re-weighting: v1 let drivers cherry-pick long fares and avoid peaks
 without penalty. v2 folds in customer rating and safety events so a
 high-revenue / low-rating / harsh-braking driver no longer scores 90.</div>
   </div>
-  <div class="card"><div class="card-header"><div class="card-title">All 19 Drivers — Ranked</div></div>
+  <div class="card"><div class="card-header"><div class="card-title">All Drivers — Ranked</div></div>
     <div class="tbl-wrap"><table id="rpt-driver-performance">
       <thead><tr><th>#</th><th>Driver</th><th>Car ID</th><th>Shift</th><th>Revenue</th><th>Rev/Hr</th><th>Trips/Hr</th><th>Accept%</th><th>Cancel%</th><th>Idle%</th><th>Util%</th><th>Score</th><th>Tier</th><th>Trend</th></tr></thead>
       <tbody id="perf-tbody"></tbody>

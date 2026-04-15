@@ -54,7 +54,14 @@ export async function GET() {
     safe(() => prisma.trip.aggregate({ _count: true, _sum: { fare: true, distance: true }, where: { status: "COMPLETED", completedAt: { gte: today } } }), {} as Aggregates),
     safe(() => prisma.trip.aggregate({ _count: true, _sum: { fare: true }, where: { status: "COMPLETED", completedAt: { gte: mtd } } }), {} as Aggregates),
     safe(() => prisma.trip.count({ where: { status: "CANCELLED", createdAt: { gte: today } } }), 0),
-    safe(() => prisma.trip.groupBy({ by: ["externalPlatform" as never], _count: true, _sum: { fare: true }, where: { status: "COMPLETED", completedAt: { gte: today } } }) as never, [] as Array<{ externalPlatform: string | null; _count: number; _sum: { fare: number | null } }>),
+    // groupBy on externalPlatform may fail if the column hasn't been
+    // added yet to production (the schema has it but `prisma db push`
+    // hasn't run there). safe() catches and returns [].
+    safe(
+      () => (prisma.trip as never as { groupBy: (a: unknown) => Promise<Array<{ externalPlatform: string | null; _count: number; _sum: { fare: number | null } }>> })
+        .groupBy({ by: ["externalPlatform"], _count: true, _sum: { fare: true }, where: { status: "COMPLETED", completedAt: { gte: today } } }),
+      [] as Array<{ externalPlatform: string | null; _count: number; _sum: { fare: number | null } }>,
+    ),
     safe(() => prisma.fuelLog.aggregate({ _sum: { totalCost: true, liters: true } }), {} as Aggregates),
     safe(() => prisma.fuelLog.aggregate({ _sum: { totalCost: true }, where: { filledAt: { gte: today } } }), {} as Aggregates),
     safe(() => prisma.fuelLog.aggregate({ _sum: { totalCost: true }, where: { filledAt: { gte: mtd } } }), {} as Aggregates),
