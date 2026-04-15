@@ -7,6 +7,33 @@ ends with a single prioritised fix list ranked by **impact on real-world
 fleet & driver performance**._
 
 _Audit date: 2026-04-14 · post-commit `7a753e4`._
+_Update 2026-04-15 · items resolved in commits `6b09975` → this one
+are marked **✅ DONE** inline. Integration-dependent items (Tesla /
+NIO / Smartcar / Samsara / Bolt / Uber) remain deferred until API
+keys are issued._
+
+## Resolved this sprint — quick summary
+
+| Audit item | Commit | Status |
+|---|---|---|
+| Server-side auth middleware on /api/* | `6b09975` | ✅ `src/middleware.ts` + `src/lib/api-guards.ts` |
+| Trip idempotency via `(externalPlatform, externalId)` UPSERT | `6b09975` | ✅ |
+| FuelLog / Shift / Maintenance / FixedCost idempotency | `5e751f1` | ✅ Natural-key upsert everywhere |
+| Imports additive — no DELETEs, re-upload safe | `5e751f1` | ✅ Guaranteed by contract (see `import.ts` header) |
+| Strip PII from Sentry payloads | `6b09975` | ✅ `redactPii()` |
+| Rate-limit helper | `6b09975` | ✅ `rateLimit()` |
+| `@@index([status, completedAt])` on Trip | `6b09975` | ✅ |
+| Data-model gaps G1–G10 | `6b09975` | ✅ `externalId`, `TripCharge`, `Incident`, `DriverEvent`, `TelematicsSample`, `ImportLog`, Shift clock-in |
+| Unified design across 6 portal pages | `5e751f1`, `bd1a32a` | ✅ `ft-shell.css` shared |
+| Overview alerts → action rows (Call / Reposition / Snooze) | `bd1a32a` | ✅ |
+| Driver-profile action row | `bd1a32a` | ✅ Call, Email, Toggle status, Reassign vehicle, Commission, Suspend |
+| Ctrl-K quick-jump search | `bd1a32a` | ✅ Drivers + vehicles + pages |
+| Import History page + `/api/import/history` | `bd1a32a` | ✅ |
+| Scoring formula v2 — rating + safety + peak-hour + punctuality | this commit | ✅ `scoreV2` in dashboard.html |
+
+Deferred (awaiting integration keys): Samsara/Tesla/NIO/Smartcar
+polling, webhook receivers, real-time WebSocket gateway, reconciliation
+job, Google Maps caching.
 
 ---
 

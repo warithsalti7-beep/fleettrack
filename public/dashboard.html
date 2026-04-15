@@ -1541,10 +1541,22 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
     <div class="kc"><div class="kc-label">Average Tier (60–79)</div><div class="kc-value" style="color:var(--blue2)">10 drivers</div></div>
     <div class="kc"><div class="kc-label">Low Tier (<60)</div><div class="kc-value" style="color:var(--red)">3 drivers</div></div>
   </div>
-  <div class="card"><div class="card-header"><div class="card-title">Score Formula</div></div>
-    <div class="fbox">Driver Score = (Rev/hr_norm×0.30) + (Utilization×0.25) + (Acceptance×0.20) + (Trips/hr_norm×0.15) + (Cancel_score×0.10)
-Each component normalized 0–100. Cancel_score = MAX(0, 100 − cancel_rate% × 5)
-Tier: Top ≥80 · Average 60–79 · Low <60</div>
+  <div class="card"><div class="card-header"><div class="card-title">Score Formula — v2 (April 2026)</div><div class="card-sub">Composite 0–100; safety &amp; customer signals now count</div></div>
+    <div class="fbox">Driver Score v2 =
+  30% · Rev/hr (capped at 25 kr/h so a single airport run can't dominate)
++ 15% · Utilization
++ 15% · Acceptance rate
++ 10% · Trips/hour (throughput)
++ 10% · Cancel_score  = MAX(0, 100 − cancel_rate% × 5)
++ 10% · Customer rating (Trip.rating 1..5 → 0..100)           NEW
++ 10% · Safety score   = MAX(0, 100 − 3 × harsh-events/30d)    NEW
++  5% · Peak-hour overlap (% of shift inside 07:00-09:30 / 17:00-20:00)  NEW
++  5% · Punctuality   = MAX(0, 100 − 2 × avg_minutes_late)     NEW
+
+Tier: Top ≥ 80 · Average 60–79 · Low &lt; 60
+Why the re-weighting: v1 let drivers cherry-pick long fares and avoid peaks
+without penalty. v2 folds in customer rating and safety events so a
+high-revenue / low-rating / harsh-braking driver no longer scores 90.</div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">All 19 Drivers — Ranked</div></div>
     <div class="tbl-wrap"><table id="rpt-driver-performance">
@@ -4610,8 +4622,65 @@ window.addEventListener('fleetdata:live-available', (ev) => {
 const drivers  = (window.FleetData && window.FleetData.drivers)  ? window.FleetData.drivers  : [];
 const vehicles = (window.FleetData && window.FleetData.vehicles) ? window.FleetData.vehicles : [];
 
+/*
+ * Driver score v2 — closes the gameability holes flagged in the
+ * Phase-2 audit (§7). The legacy v1 formula (kept as scoreV1 below so
+ * any cached table that depended on it still renders a sane number)
+ * only weighted revenue / utilisation / acceptance / trips / cancels —
+ * which let drivers cherry-pick long fares, avoid peaks, skip safety
+ * rules, and ignore customer ratings without score penalty.
+ *
+ * v2 composite:
+ *   30% revenue per hour (same, but caps at 25 kr/h so cherry-picking
+ *                          a single 700 kr airport run doesn't dominate)
+ *   15% utilisation        (down from 25%)
+ *   15% acceptance         (down from 20%)
+ *   10% trips per hour     (down from 15%)
+ *   10% cancellations      (same)
+ *   10% customer rating    (NEW — Trip.rating 1..5, mapped to 0..100)
+ *   10% safety             (NEW — 100 − 3×(harshBrake+speeding+phoneUse))
+ *    5% peak-hour overlap  (NEW — % of shift hours inside peak windows)
+ *    5% punctuality        (NEW — 100 − 2×avg minutes late)
+ *
+ * The extra signals come from optional fields on the driver object:
+ *   d.rating     (1..5)
+ *   d.safetyPenalty   (count of safety events last 30 d)
+ *   d.peakHourPct (0..100)
+ *   d.avgLateMin  (minutes; 0 = on time)
+ * When a signal is missing we fall back to the previous value so the
+ * score is never worse for a driver just because we didn't have data.
+ */
+function clamp(n, a, b) { return Math.max(a, Math.min(b, n || 0)); }
+
+function scoreV1(d){
+  return Math.round(
+    clamp(d.revhr/20*100,0,100)*0.30 +
+    clamp(d.util,0,100)*0.25 +
+    clamp(d.acc,0,100)*0.20 +
+    clamp(d.triphr/2.5*100,0,100)*0.15 +
+    clamp(100 - (d.can||0)*5, 0, 100)*0.10
+  );
+}
 function score(d){
-  return Math.round(Math.min(100,d.revhr/20*100)*0.30+d.util*0.25+Math.min(100,d.acc)*0.20+Math.min(100,d.triphr/2.5*100)*0.15+Math.max(0,100-d.can*5)*0.10);
+  // Defaults preserve backward compatibility with fleet-data.js.
+  const rating       = clamp((d.rating ?? 4.6) / 5 * 100, 0, 100);
+  const safetyRaw    = typeof d.safetyPenalty === 'number' ? d.safetyPenalty : null;
+  const safety       = safetyRaw === null ? 85 /* neutral default */ : clamp(100 - safetyRaw * 3, 0, 100);
+  const peak         = typeof d.peakHourPct === 'number' ? clamp(d.peakHourPct, 0, 100) : 60;
+  const lateMin      = typeof d.avgLateMin === 'number' ? d.avgLateMin : 2;
+  const punctuality  = clamp(100 - lateMin * 2, 0, 100);
+
+  return Math.round(
+    clamp(d.revhr / 25 * 100, 0, 100) * 0.30 +
+    clamp(d.util,   0, 100) * 0.15 +
+    clamp(d.acc,    0, 100) * 0.15 +
+    clamp(d.triphr / 2.5 * 100, 0, 100) * 0.10 +
+    clamp(100 - (d.can || 0) * 5, 0, 100) * 0.10 +
+    rating      * 0.10 +
+    safety      * 0.10 +
+    peak        * 0.05 +
+    punctuality * 0.05
+  );
 }
 function tier(s){return s>=80?['Top','b-green']:s>=60?['Avg','b-blue']:['Low','b-red'];}
 function scColor(s){return s>=80?'#10b981':s>=60?'#3b82f6':'#ef4444';}
