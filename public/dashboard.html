@@ -9,6 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="./fleet-data.js"></script>
 <script src="./auth.js"></script>
+<script src="./dashboard-live.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ══════════════════════════════════════════════════════
@@ -1342,7 +1343,7 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
         id="sb-signout"
         title="Sign out"
         aria-label="Sign out"
-        onclick="event.stopPropagation(); FleetAuth.logout('./login.html')"
+        onclick="event.stopPropagation(); FleetAuth.logout('/login')"
         style="background:none;border:1px solid var(--b1);color:var(--t3);font-size:14px;cursor:pointer;padding:6px 8px;border-radius:var(--r2);transition:all var(--fast);flex-shrink:0"
         onmouseover="this.style.borderColor='var(--redborder)';this.style.color='var(--red)';this.style.background='var(--redbg)'"
         onmouseout="this.style.borderColor='var(--b1)';this.style.color='var(--t3)';this.style.background='none'"
@@ -3089,7 +3090,7 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     const sess = FleetAuth.getSession();
     if (sess && sess.userId === uid && sess.role !== newRole){
       if (confirm('You just changed your own role. Sign out now to apply?')){
-        FleetAuth.logout('./login.html');
+        FleetAuth.logout('/login');
         return;
       }
     }
@@ -3165,7 +3166,7 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     if (!/[0-9]/.test(pw)) pw = pw.slice(0,-1) + '7';
     document.getElementById('au-password').value = pw;
   };
-  window.submitAddUser = function(){
+  window.submitAddUser = async function(){
     const name = document.getElementById('au-name').value.trim();
     const email = document.getElementById('au-email').value.trim();
     const password = document.getElementById('au-password').value;
@@ -3178,20 +3179,23 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     if (!/[A-Z]/.test(password)){ showErr('Password must contain an uppercase letter.'); return; }
     if (!/[0-9]/.test(password)){ showErr('Password must contain a number.'); return; }
     const payload = { name, email, password, role };
-    if (role === 'driver'){
-      payload.carId = document.getElementById('au-carid').value.trim() || null;
-      payload.shift = document.getElementById('au-shift').value;
-    }
-    const res = FleetAuth.addCustomUser(payload);
+    const res = await FleetAuth.addCustomUser(payload);
     if (!res.ok){ showErr(res.error || 'Could not create user.'); return; }
     Toast.success('User created: ' + res.user.email + '. They can sign in now.');
     closeAddUserModal();
+    await FleetAuth.hydrateUsers(true);
     renderAll();
   };
-  window.deleteUser = function(userId, email){
+  window.deleteUser = async function(userId, email){
     if (!confirm('Delete user ' + email + '? This removes them + any permission overrides. This cannot be undone.')) return;
-    const res = FleetAuth.removeCustomUser(userId);
-    if (res.ok){ Toast.warning('User deleted: ' + email); renderAll(); }
+    const res = await FleetAuth.removeCustomUser(userId);
+    if (res.ok){
+      Toast.warning('User deleted: ' + email);
+      await FleetAuth.hydrateUsers(true);
+      renderAll();
+    } else {
+      Toast.error('Could not delete user.');
+    }
   };
 
   // Preview as — swap the active session's perms+role for viewing
@@ -3211,8 +3215,12 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
   function ensureRender(){
     if (rendered) return;
     rendered = true;
-    try { renderAll(); } catch(e){ console.error('users page render err:', e); }
+    FleetAuth.hydrateUsers()
+      .then(() => { try { renderAll(); } catch(e){ console.error('users page render err:', e); } })
+      .catch(() => { try { renderAll(); } catch(e){} });
   }
+  // Re-render whenever the users cache updates (created/deleted).
+  window.addEventListener('auth:users:updated', () => { if (rendered) try { renderAll(); } catch(e){} });
   // Render when page becomes active
   document.addEventListener('click', (e) => {
     if (e.target.closest('[onclick*="settings-users"]')) setTimeout(ensureRender, 50);
@@ -4055,7 +4063,7 @@ Current performance   = <span class="cur" data-nok="55430">55 430 kr</span> → 
 <script>
 // ── Auth guard ─────────────────────────────────────────────────────────────
 // Allow both admin and employee roles; employees see a filtered nav.
-const _s=(typeof FleetAuth!=='undefined')?FleetAuth.requireAuth(['admin','employee'],'./login.html?error=unauthorized'):null;
+const _s=(typeof FleetAuth!=='undefined')?FleetAuth.requireAuth(['admin','employee'],'/login?error=unauthorized'):null;
 
 // Support "Preview as <user>" from the admin Users & Permissions page.
 // ft_preview_as stores a userId whose perms and role we should simulate.
@@ -4236,7 +4244,7 @@ function _injectProfilePage(){
         <div class="info-row" style="display:flex;justify-content:space-between;padding:var(--s2) 0;border-bottom:1px solid var(--b1);font-size:13px"><span style="color:var(--t2)">Role</span><span style="color:var(--t1);font-weight:500">${roleLabel}</span></div>
         <div class="info-row" style="display:flex;justify-content:space-between;padding:var(--s2) 0;border-bottom:1px solid var(--b1);font-size:13px"><span style="color:var(--t2)">User ID</span><span style="color:var(--t1);font-family:var(--mono);font-size:11.5px">${_s?.userId||'—'}</span></div>
         <div class="info-row" style="display:flex;justify-content:space-between;padding:var(--s2) 0;font-size:13px"><span style="color:var(--t2)">Session expires</span><span style="color:var(--t1);font-family:var(--mono);font-size:11.5px" id="my-session-exp">—</span></div>
-        <button class="btn" style="margin-top:var(--s4);color:var(--red);border-color:var(--redborder);width:100%" onclick="FleetAuth.logout('./login.html')">Sign out</button>
+        <button class="btn" style="margin-top:var(--s4);color:var(--red);border-color:var(--redborder);width:100%" onclick="FleetAuth.logout('/login')">Sign out</button>
       </div>
       <div class="card">
         <div class="card-header"><div class="card-title">Your access</div><div class="card-sub">${_ctx.role==='admin'?'Full access':perms.length+' permission(s)'}</div></div>

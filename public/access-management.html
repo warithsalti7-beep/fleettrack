@@ -69,7 +69,7 @@ body { padding: var(--s5); max-width: 1200px; margin: 0 auto; }
 <script src="./auth.js"></script>
 <script>
 // Guard — admin only
-const session = FleetAuth.requireAuth(['admin'], './login.html?error=unauthorized');
+const session = FleetAuth.requireAuth(['admin'], '/login?error=unauthorized');
 
 const ALL_PERMISSIONS = [
   'view:drivers', 'view:trips', 'view:vehicles', 'view:alerts',
@@ -117,25 +117,35 @@ function buildUserCard(user, editable) {
   </div>`;
 }
 
-// Render employees
-const empList = document.getElementById('employee-list');
-FleetAuth.getUsersByRole('employee').forEach(u => {
-  empList.innerHTML += buildUserCard(u, true);
-});
+function renderLists(){
+  const empList = document.getElementById('employee-list');
+  const emps = FleetAuth.getUsersByRole('employee');
+  if (!emps.length) {
+    empList.innerHTML = '<div class="card" style="padding:var(--s5);text-align:center;color:var(--t3);font-size:13px">No employees yet. Use <strong>Add User</strong> in the dashboard to create one.</div>';
+  } else {
+    empList.innerHTML = emps.map(u => buildUserCard(u, true)).join('');
+  }
 
-// Render drivers (read-only reference)
-const drvList = document.getElementById('driver-list');
-drvList.innerHTML = `<div class="tbl-wrap"><table>
-  <thead><tr><th>Driver</th><th>Email</th><th>Car ID</th><th>Brand</th><th>Shift</th><th>Access</th></tr></thead>
-  <tbody>${FleetAuth.getUsersByRole('driver').map(d=>`<tr>
-    <td><strong>${d.name}</strong></td>
-    <td style="font-family:var(--mono);font-size:11.5px;color:var(--t2)">${d.email}</td>
-    <td style="font-family:var(--mono)">${d.carId||'—'}</td>
-    <td>${d.brand||'—'}</td>
-    <td><span class="badge ${d.shift==='AM'?'b-blue':'b-purple'}">${d.shift||'—'}</span></td>
-    <td><span class="badge b-gray">Own data only</span></td>
-  </tr>`).join('')}</tbody>
-</table></div>`;
+  const drvList = document.getElementById('driver-list');
+  const drvs = FleetAuth.getUsersByRole('driver');
+  if (!drvs.length) {
+    drvList.innerHTML = '<p style="font-size:13px;color:var(--t3)">No driver login accounts yet.</p>';
+  } else {
+    drvList.innerHTML = `<div class="tbl-wrap"><table>
+      <thead><tr><th>Driver</th><th>Email</th><th>Access</th></tr></thead>
+      <tbody>${drvs.map(d=>`<tr>
+        <td><strong>${d.name}</strong></td>
+        <td style="font-family:var(--mono);font-size:11.5px;color:var(--t2)">${d.email}</td>
+        <td><span class="badge b-gray">Own data only</span></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+}
+
+// Initial render (may be empty) then re-render when users hydrate.
+renderLists();
+FleetAuth.hydrateUsers().then(renderLists);
+window.addEventListener('auth:users:updated', renderLists);
 
 // Toggle permission
 function togglePerm(el, userId, perm) {

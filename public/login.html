@@ -142,18 +142,16 @@ body::before { content:''; position:fixed; inset:0; background:radial-gradient(e
       </button>
     </form>
 
-    <!-- Demo credentials hint -->
-    <div class="demo-hint" id="demo-hint">
-      <p><strong>Demo admin:</strong> admin@fleettrack.no / Admin2024!<br>
-         <strong>Demo driver:</strong> driver@fleettrack.no / Driver2024!<br>
-         <strong>Demo employee:</strong> employee@fleettrack.no / Employee2024!</p>
+    <!-- First-time setup hint (only shown when DEMO_HINT_VISIBLE is true) -->
+    <div class="demo-hint" id="demo-hint" style="display:none">
+      <p id="demo-hint-text"></p>
     </div>
   </div>
 
   <div class="footer-links">
     <a href="mailto:admin@fleettrack.no">Contact admin</a> ·
-    <span>v1.0.0</span> · 
-    <span>© 2025 FleetTrack</span>
+    <span id="ft-build-id">—</span> ·
+    <span id="ft-year">2026</span> <span>FleetTrack</span>
   </div>
 
 </div>
@@ -170,8 +168,7 @@ const portalConfig = {
     title:    'Welcome back',
     sub:      'Sign in to access the admin dashboard and fleet management tools.',
     btnText:  'Sign in to Admin Portal',
-    dest:     'dashboard.html',
-    hint:     '<strong>Demo:</strong> admin@fleettrack.no / Admin2024!',
+    dest:     '/dashboard',
   },
   employee: {
     badge:    '👤 Employee Portal',
@@ -179,8 +176,7 @@ const portalConfig = {
     title:    'Employee sign in',
     sub:      'Access your fleet operations tools. Contact your admin if you need access.',
     btnText:  'Sign in to Employee Portal',
-    dest:     'dashboard.html',
-    hint:     '<strong>Demo:</strong> employee@fleettrack.no / Employee2024!',
+    dest:     '/dashboard',
   },
   driver: {
     badge:    '🚗 Driver Portal',
@@ -188,8 +184,7 @@ const portalConfig = {
     title:    'Driver sign in',
     sub:      'View your shifts, trips, earnings and performance stats.',
     btnText:  'Sign in to Driver Portal',
-    dest:     'driver.html',
-    hint:     '<strong>Demo:</strong> driver@fleettrack.no / Driver2024!',
+    dest:     '/driver',
   },
 };
 
@@ -211,7 +206,6 @@ function setPortal(p) {
   document.getElementById('login-title').textContent = cfg.title;
   document.getElementById('login-sub').textContent   = cfg.sub;
   document.getElementById('login-btn').textContent   = cfg.btnText;
-  document.getElementById('demo-hint').innerHTML = '<p>' + cfg.hint + '</p>';
   // Clear errors
   document.getElementById('error-banner').classList.remove('visible');
 }
@@ -249,10 +243,7 @@ async function handleLogin(e) {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Signing in…';
 
-  // Simulate network delay (remove in production — real fetch() goes here)
-  await new Promise(r => setTimeout(r, 700));
-
-  const result = FleetAuth.login(email, password);
+  const result = await FleetAuth.login(email, password);
 
   if (!result.ok) {
     btn.disabled = false;
@@ -277,6 +268,15 @@ async function handleLogin(e) {
   btn.innerHTML = '✓ Redirecting…';
   window.location.href = portalConfig[currentPortal].dest;
 }
+
+// Footer build id + year (pulls /api/health which surfaces the build sha)
+(function fillFooter(){
+  try { document.getElementById('ft-year').textContent = String(new Date().getFullYear()); } catch(e){}
+  fetch('/api/health', { credentials: 'same-origin' })
+    .then(r => r.ok ? r.json() : null)
+    .then(j => { if (j && j.sha) { const el = document.getElementById('ft-build-id'); if (el) el.textContent = 'build ' + String(j.sha).slice(0,7); } })
+    .catch(() => {});
+})();
 
 // Check URL params for error messages
 const urlParams = new URLSearchParams(window.location.search);
@@ -324,7 +324,7 @@ if (['admin','driver','employee'].includes(portalParam)) setPortal(portalParam);
       const dest = portalConfig[existingSession.role]?.dest;
       // Don't redirect to where we just came from (same-tab ping-pong)
       const ref = document.referrer || '';
-      const comingFromDest = ref && dest && ref.indexOf('/' + dest.replace('.html','')) > -1;
+      const comingFromDest = ref && dest && ref.indexOf(dest) > -1;
       if (dest && !comingFromDest) {
         window.location.href = dest;
       } else if (comingFromDest){

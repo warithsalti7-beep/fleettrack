@@ -1,14 +1,21 @@
 /**
- * FleetTrack Auth System v1.0
- * Shared across admin / driver / employee portals
+ * FleetTrack Auth System v2.0
  *
- * IMPORTANT: This is a FRONTEND-ONLY demo auth system.
- * In production, replace all localStorage logic with:
- *   - Backend JWT tokens (Node.js / Python / etc.)
- *   - Secure httpOnly cookies
- *   - Server-side session validation on every request
+ * v1 stored passwords + sessions in localStorage (demo only, trivially
+ * bypassable). v2 is a thin client over real server endpoints:
  *
- * Claude Code will wire this to a real backend.
+ *   POST /api/auth/login   { email, password } -> Set-Cookie ft_session
+ *   POST /api/auth/logout                      -> clears cookie
+ *   GET  /api/auth/me                          -> { user } or 401
+ *
+ * A read-only *mirror* of the session is cached in localStorage so that
+ * page-top `FleetAuth.getSession()` stays synchronous (dashboard/driver
+ * pages depend on that). The mirror is re-validated against the server
+ * on every page load via refreshSession(); if the server says the cookie
+ * is gone, the mirror is cleared and the user is bounced to /login.
+ *
+ * This file also hosts: Toast, FleetCurrency, FleetTheme, CSV helpers.
+ * Kept in one file so every page gets them with a single <script> tag.
  */
 
 // ── Sentry error monitoring (loads async on first error) ───────────────
@@ -26,7 +33,6 @@
           window.Sentry.init({
             dsn: 'https://42763199881812ceccc81884f1381002@o4511217410048000.ingest.us.sentry.io/4511217411686400',
             environment: location.hostname === 'localhost' ? 'development' : 'production',
-            // Attach session info if we have one
             initialScope: (() => {
               try {
                 const sess = JSON.parse(localStorage.getItem('ft_session') || 'null');
@@ -35,12 +41,10 @@
                 } : {};
               } catch(e){ return {}; }
             })(),
-            // Keep release noise low; increase later when we want full replay
             tracesSampleRate: 0.1,
             replaysSessionSampleRate: 0,
             replaysOnErrorSampleRate: 1.0,
             ignoreErrors: [
-              // Browser quirks that aren't actionable
               'ResizeObserver loop limit exceeded',
               'Non-Error promise rejection captured',
             ],
@@ -54,197 +58,237 @@
 
 const FleetAuth = (() => {
 
-  // ── Demo user database (replace with real API calls) ──────────────
-  const DEMO_USERS = [
-    // One login account per role — simplified for easier testing.
-    // Additional drivers exist as fleet data (public/fleet-data.js) but
-    // don't have login accounts by default. Create more via admin
-    // Users & Permissions page as needed.
-    { id:'admin-1', email:'admin@fleettrack.no',    password:'Admin2024!',    name:'Fleet Admin',          role:'admin',    avatar:'FA', permissions:['all'] },
-    { id:'emp-1',   email:'employee@fleettrack.no', password:'Employee2024!', name:'Dispatch Officer',     role:'employee', avatar:'DO',
-      permissions:['view:drivers','view:trips','view:zones','manage:dispatch','view:alerts'] },
-    { id:'drv-1',   email:'driver@fleettrack.no',   password:'Driver2024!',   name:'Olsztynski Mariusz Zbigniew', role:'driver', avatar:'OM', carId:'TR2518', brand:'NIO ET5', shift:'AM' },
-  ];
-
-  // ── Session management ─────────────────────────────────────────────
+  // Mirror key — plain sessionless snapshot of the server session so page
+  // guards can run synchronously. Security is enforced by the server
+  // ft_session httpOnly cookie; the mirror is advisory only.
   const SESSION_KEY = 'ft_session';
-  const SESSION_TTL = 8 * 60 * 60 * 1000; // 8 hours
 
-  // Admin can reassign a user's role at runtime via the Users & Permissions
-  // page. Overrides live in localStorage keyed by user id. Applied when a
-  // session is created and also when getAllUsers() / getUsersByRole() are read.
-  function getRoleOverride(uid){
-    try { return localStorage.getItem('ft_role_' + uid) || null; } catch(e){ return null; }
-  }
-  function setRoleOverride(uid, role){
-    try {
-      if (role) localStorage.setItem('ft_role_' + uid, role);
-      else localStorage.removeItem('ft_role_' + uid);
-    } catch(e){}
-  }
-
-  // Role definitions — what permissions each role defaults to.
+  // ── Role defaults (permissions are UI affordances, real checks on server)
   const ROLE_DEFAULT_PERMS = {
     admin:    ['all'],
-    employee: [], // blank by default — admin assigns
-    driver:   [], // drivers have fixed self-only access, perms ignored
+    employee: [],
+    driver:   [],
   };
 
-  function applyRoleOverride(user){
-    const override = getRoleOverride(user.id);
-    if (!override || override === user.role) return user;
+  function initialsOf(nameOrEmail){
+    if (!nameOrEmail) return 'FT';
+    const parts = String(nameOrEmail).split(/[\s@._-]+/).filter(Boolean);
+    const first = parts[0] ? parts[0][0] : '';
+    const last = parts.length > 1 ? parts[parts.length-1][0] : (parts[0] ? parts[0][1] : '');
+    return (first + (last || '')).toUpperCase().slice(0, 2) || 'FT';
+  }
+
+  function mirrorFromUser(u){
+    if (!u) return null;
+    const permOverride = (()=>{ try { return JSON.parse(localStorage.getItem('ft_perms_'+u.id) || 'null'); } catch(e){ return null; } })();
     return {
-      ...user,
-      role: override,
-      permissions: ROLE_DEFAULT_PERMS[override] !== undefined ? ROLE_DEFAULT_PERMS[override] : user.permissions,
-    };
-  }
-
-  function saveSession(user) {
-    // Honour admin role override at login-time too.
-    const effective = applyRoleOverride(user);
-    const session = {
-      userId: effective.id,
-      name:   effective.name,
-      email:  effective.email,
-      role:   effective.role,
-      avatar: effective.avatar,
-      permissions: effective.permissions || [],
-      carId:  effective.carId  || null,
-      brand:  effective.brand  || null,
-      shift:  effective.shift  || null,
+      userId: u.id,
+      name:   u.name || u.email,
+      email:  u.email,
+      role:   u.role,
+      avatar: initialsOf(u.name || u.email),
+      permissions: permOverride || (ROLE_DEFAULT_PERMS[u.role] || []),
+      // Driver-only metadata that legacy UI code reads; empty until
+      // server /api/users exposes it.
+      carId:  null, brand: null, shift: null,
       loginAt: Date.now(),
-      expiresAt: Date.now() + SESSION_TTL,
     };
-    try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch(e) {}
-    return session;
   }
 
-  function getSession() {
+  function readMirror(){
+    try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch(e){ return null; }
+  }
+  function writeMirror(m){
     try {
-      const raw = localStorage.getItem(SESSION_KEY);
-      if (!raw) return null;
-      const s = JSON.parse(raw);
-      if (Date.now() > s.expiresAt) { clearSession(); return null; }
-      return s;
-    } catch(e) { return null; }
-  }
-
-  function clearSession() {
-    try { localStorage.removeItem(SESSION_KEY); } catch(e) {}
-  }
-
-  // ── Custom users (created by admin at runtime) ────────────────────
-  // Stored in localStorage under 'ft_custom_users'. Merged with DEMO_USERS
-  // on every read so newly-created users can log in without a rebuild.
-  const CUSTOM_USERS_KEY = 'ft_custom_users';
-  function loadCustomUsers(){
-    try { return JSON.parse(localStorage.getItem(CUSTOM_USERS_KEY) || '[]') || []; }
-    catch(e){ return []; }
-  }
-  function saveCustomUsers(list){
-    try { localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify(list)); } catch(e){}
-  }
-  function allUsersRaw(){
-    return [...DEMO_USERS, ...loadCustomUsers()];
-  }
-  function addCustomUser(u){
-    // u: { name, email, password, role, avatar?, permissions? }
-    if (!u || !u.email || !u.password) return { ok:false, error:'Email and password are required.' };
-    if (!u.name) return { ok:false, error:'Name is required.' };
-    if (!['admin','employee','driver'].includes(u.role)) return { ok:false, error:'Invalid role.' };
-    if (allUsersRaw().find(x => x.email.toLowerCase() === u.email.toLowerCase())){
-      return { ok:false, error:'A user with that email already exists.' };
-    }
-    const id = 'usr-' + Date.now().toString(36);
-    const avatar = (u.name.split(/\s+/).map(p=>p[0]).join('').substring(0,2) || 'US').toUpperCase();
-    const defaultPerms = u.role==='admin'?['all']:u.role==='employee'?[]:[];
-    const rec = {
-      id,
-      name: u.name.trim(),
-      email: u.email.trim().toLowerCase(),
-      password: u.password,
-      role: u.role,
-      avatar: u.avatar || avatar,
-      permissions: u.permissions || defaultPerms,
-      carId: u.carId || null,
-      brand: u.brand || null,
-      shift: u.shift || null,
-      createdAt: Date.now(),
-      createdByAdmin: true,
-    };
-    const list = loadCustomUsers();
-    list.push(rec);
-    saveCustomUsers(list);
-    return { ok:true, user: rec };
-  }
-  function removeCustomUser(userId){
-    const list = loadCustomUsers().filter(u => u.id !== userId);
-    saveCustomUsers(list);
-    // Clean up any role / perm overrides for this user
-    try {
-      localStorage.removeItem('ft_perms_' + userId);
-      localStorage.removeItem('ft_role_' + userId);
+      if (m) localStorage.setItem(SESSION_KEY, JSON.stringify(m));
+      else   localStorage.removeItem(SESSION_KEY);
     } catch(e){}
-    return { ok:true };
   }
 
-  // ── Core auth functions ────────────────────────────────────────────
-  function login(email, password) {
-    const user = allUsersRaw().find(u =>
-      u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
-    if (!user) return { ok: false, error: 'Invalid email or password.' };
-    const session = saveSession(user);
-    return { ok: true, session };
-  }
-
-  function logout(redirectTo) {
-    clearSession();
-    window.location.href = redirectTo || '../login.html';
-  }
-
-  function requireAuth(allowedRoles, redirectTo) {
-    const session = getSession();
-    if (!session) {
-      window.location.href = redirectTo || '../login.html';
-      return null;
+  // ── Login / logout ────────────────────────────────────────────────
+  async function login(email, password){
+    try {
+      const r = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ email, password }),
+      });
+      if (r.status === 429) {
+        let j = {}; try { j = await r.json(); } catch(e){}
+        const wait = j.retryAfterSec ? (' Try again in '+j.retryAfterSec+'s.') : '';
+        return { ok: false, error: 'Too many login attempts.' + wait };
+      }
+      if (r.status === 401) return { ok: false, error: 'Invalid email or password.' };
+      if (!r.ok) return { ok: false, error: 'Login failed. Please try again.' };
+      const data = await r.json();
+      const mirror = mirrorFromUser(data.user);
+      writeMirror(mirror);
+      return { ok: true, session: mirror };
+    } catch (e) {
+      return { ok: false, error: 'Network error. Check your connection and try again.' };
     }
-    if (allowedRoles && !allowedRoles.includes(session.role)) {
-      window.location.href = redirectTo || '../login.html?error=unauthorized';
-      return null;
+  }
+
+  async function logout(redirectTo){
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+    } catch(e){}
+    writeMirror(null);
+    try { localStorage.removeItem('ft_preview_as'); } catch(e){}
+    window.location.href = redirectTo || '/login';
+  }
+
+  // ── Session access ───────────────────────────────────────────────
+  function getSession(){ return readMirror(); }
+
+  async function refreshSession(){
+    try {
+      const r = await fetch('/api/auth/me', { credentials: 'same-origin', cache: 'no-store' });
+      if (r.status === 401) { writeMirror(null); return null; }
+      if (!r.ok) return readMirror(); // transient: keep mirror
+      const { user } = await r.json();
+      const m = mirrorFromUser(user);
+      writeMirror(m);
+      return m;
+    } catch(e){
+      return readMirror();
     }
-    return session;
   }
 
-  function hasPermission(permission) {
-    const session = getSession();
-    if (!session) return false;
-    if (session.role === 'admin') return true;
-    return session.permissions.includes(permission) || session.permissions.includes('all');
+  function requireAuth(allowedRoles, redirectTo){
+    const mirror = readMirror();
+    const bounce = (why) => {
+      const url = redirectTo || ('/login' + (why ? '?error='+encodeURIComponent(why) : ''));
+      window.location.href = url;
+    };
+    if (!mirror) { bounce(); return null; }
+    if (allowedRoles && !allowedRoles.includes(mirror.role)) { bounce('unauthorized'); return null; }
+
+    // Background validation — if the server disagrees, redirect.
+    refreshSession().then((fresh) => {
+      if (!fresh) { bounce(); return; }
+      if (allowedRoles && !allowedRoles.includes(fresh.role)) { bounce('unauthorized'); }
+    }).catch(() => { /* keep mirror on transient error */ });
+
+    return mirror;
   }
 
-  // ── Password helpers ───────────────────────────────────────────────
-  function validatePassword(pw) {
-    if (pw.length < 8) return 'Password must be at least 8 characters.';
+  function hasPermission(permission){
+    const s = readMirror();
+    if (!s) return false;
+    if (s.role === 'admin') return true;
+    return (s.permissions || []).includes(permission) || (s.permissions || []).includes('all');
+  }
+
+  function validatePassword(pw){
+    if (!pw || pw.length < 8) return 'Password must be at least 8 characters.';
     if (!/[A-Z]/.test(pw)) return 'Password must contain at least one uppercase letter.';
     if (!/[0-9]/.test(pw)) return 'Password must contain at least one number.';
     return null;
   }
 
-  // ── Get all users (admin only) — role overrides applied ───────────
-  function getAllUsers() {
-    return allUsersRaw().map(u => {
-      const effective = applyRoleOverride(u);
-      return { ...effective, password: '••••••••' };
-    });
-  }
-  function getUsersByRole(role) { return getAllUsers().filter(u => u.role === role); }
+  // ── Admin-only user management (server-backed) ──────────────────
+  // Cache so legacy synchronous call sites (dashboard.html admin panel)
+  // don't have to be rewritten as async. hydrateUsers() runs on demand
+  // and fires an `auth:users:updated` event once the list is fresh.
+  let _usersCache = [];
+  let _usersHydrated = false;
+  let _hydrating = null;
 
-  // ── Public API ─────────────────────────────────────────────────────
-  return { login, logout, requireAuth, getSession, hasPermission, validatePassword, getAllUsers, getUsersByRole, setRoleOverride, getRoleOverride, addCustomUser, removeCustomUser };
+  function mapServerUser(u){
+    // Legacy UI expects an `avatar` field (initials) and a permissions list.
+    const permOverride = (()=>{ try { return JSON.parse(localStorage.getItem('ft_perms_'+u.id) || 'null'); } catch(e){ return null; } })();
+    return {
+      id: u.id,
+      email: u.email,
+      name: u.name || u.email,
+      role: u.role,
+      avatar: initialsOf(u.name || u.email),
+      permissions: permOverride || (ROLE_DEFAULT_PERMS[u.role] || []),
+      createdAt: u.createdAt,
+      lastLoginAt: u.lastLoginAt || null,
+      carId: null, brand: null, shift: null,
+    };
+  }
+
+  function hydrateUsers(force){
+    if (_hydrating && !force) return _hydrating;
+    _hydrating = fetch('/api/users', { credentials: 'same-origin', cache: 'no-store' })
+      .then(r => r.ok ? r.json() : [])
+      .then(list => {
+        _usersCache = Array.isArray(list) ? list.map(mapServerUser) : [];
+        _usersHydrated = true;
+        try { window.dispatchEvent(new CustomEvent('auth:users:updated', { detail: { count: _usersCache.length } })); } catch(e){}
+        return _usersCache;
+      })
+      .catch(() => _usersCache)
+      .finally(() => { _hydrating = null; });
+    return _hydrating;
+  }
+
+  function getAllUsers(){
+    if (!_usersHydrated) hydrateUsers();
+    return _usersCache.slice();
+  }
+  function getUsersByRole(role){
+    if (!_usersHydrated) hydrateUsers();
+    return _usersCache.filter(u => u.role === role);
+  }
+
+  async function addCustomUser(u){
+    if (!u || !u.email || !u.password) return { ok:false, error:'Email and password are required.' };
+    if (!u.name) return { ok:false, error:'Name is required.' };
+    if (!['admin','employee','driver'].includes(u.role)) return { ok:false, error:'Invalid role.' };
+    try {
+      const r = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(u),
+      });
+      if (r.ok) { const user = await r.json(); return { ok: true, user }; }
+      let detail = ''; try { detail = (await r.json()).detail || ''; } catch(e){}
+      return { ok: false, error: detail || ('Request failed ('+r.status+')') };
+    } catch(e){ return { ok:false, error:'Network error.' }; }
+  }
+
+  async function removeCustomUser(userId){
+    try {
+      const r = await fetch('/api/users/' + encodeURIComponent(userId), {
+        method: 'DELETE', credentials: 'same-origin',
+      });
+      return { ok: r.ok || r.status === 204 };
+    } catch(e){ return { ok:false }; }
+  }
+
+  // ── Role override (local-only; server role is authoritative) ────
+  function setRoleOverride(uid, role){
+    // v2 no longer supports client-side role overrides — use
+    // PATCH /api/users/:id { role } instead. Kept as a no-op so legacy
+    // UI code doesn't throw; returns a descriptive warning.
+    if (typeof Toast !== 'undefined') {
+      Toast.warning('Role changes are saved via server — use the Edit button.');
+    }
+    return false;
+  }
+  function getRoleOverride(){ return null; }
+
+  return {
+    login, logout, getSession, refreshSession, requireAuth, hasPermission, validatePassword,
+    getAllUsers, getUsersByRole, hydrateUsers, addCustomUser, removeCustomUser,
+    setRoleOverride, getRoleOverride,
+  };
 
 })();
+
+// On first load, sync the mirror with the server so stale mirrors from
+// v1 get cleared before any page-guard runs. Only fires when there is a
+// mirror present (i.e. we're potentially already "logged in").
+if (typeof FleetAuth !== 'undefined' && typeof window !== 'undefined') {
+  const hasMirror = (() => { try { return !!localStorage.getItem('ft_session'); } catch(e){ return false; } })();
+  if (hasMirror) { FleetAuth.refreshSession().catch(() => {}); }
+}
 
 // ── Toast notification system ──────────────────────────────────────
 const Toast = (() => {
@@ -285,9 +329,7 @@ const FleetCurrency=(()=>{
   const KEY='ft_currency',RATE=0.087;
   const get=()=>{try{return localStorage.getItem(KEY)||'NOK';}catch(e){return 'NOK';}};
   const set=c=>{try{localStorage.setItem(KEY,c);}catch(e){}};
-  // Norwegian style formatting with thin-space thousand separators
   function fmtNum(n){
-    // Use 2 decimals for small absolute values (<10) so per-km / per-trip costs display sensibly
     const abs=Math.abs(n);
     if(abs>0 && abs<10) return n.toFixed(2).replace('.',',');
     return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'\u202F');
@@ -339,7 +381,6 @@ const FleetTheme = (()=>{
     btn.onclick = toggle;
     document.body.appendChild(btn);
   }
-  // Apply immediately so there's no FOUC (flash of unstyled content)
   apply();
   return { get, set, toggle, apply, injectToggle };
 })();
@@ -363,7 +404,6 @@ function exportTableToCSV(tableSelector, filename){
   if(typeof Toast!=='undefined') Toast.success('Exported: '+a.download);
 }
 
-// Export the nearest table within the same page/panel as the clicked button.
 function exportNearestTable(btn, prefix){
   const scope = btn.closest('.page, .tab-panel, .card, section') || document.body;
   const table = scope.querySelector('table') || document.querySelector('.page.active table') || document.querySelector('table');
@@ -371,8 +411,6 @@ function exportNearestTable(btn, prefix){
   exportTableToCSV(table, (prefix||'export')+'-'+date+'.csv');
 }
 
-// Download a specific report as CSV (used from the Reports & Exports page).
-// Handles the currency-format spans so exported numbers match the on-screen currency.
 function reportDownload(tableSelector, filenamePrefix){
   const table = document.querySelector(tableSelector);
   if(!table){
@@ -380,8 +418,6 @@ function reportDownload(tableSelector, filenamePrefix){
     else alert('Report not available');
     return;
   }
-  // Force FleetCurrency to re-render any .cur spans inside the hidden table so the
-  // CSV reflects the user's currently selected currency.
   if(typeof FleetCurrency!=='undefined' && typeof FleetCurrency.rerender==='function'){
     try{ FleetCurrency.rerender(); } catch(e){}
   }

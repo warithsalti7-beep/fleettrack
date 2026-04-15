@@ -1,7 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireStaff } from "@/lib/auth-guard";
 
-export async function GET() {
+export const runtime = "nodejs";
+
+export async function GET(request: NextRequest) {
+  const gate = await requireStaff(request);
+  if (!gate.ok) return gate.response;
   const records = await prisma.maintenance.findMany({
     orderBy: { scheduledAt: "asc" },
     include: {
