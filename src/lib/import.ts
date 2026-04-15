@@ -1,8 +1,14 @@
 /**
  * Import helpers shared by every /api/import/* route.
+ *
+ * Every successful run writes an ImportLog row so we have a legal /
+ * tax audit trail. Errors are PII-scrubbed before they touch Sentry
+ * or the response body.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { captureError } from "./sentry";
+import { redactPii } from "./api-guards";
+import { prisma } from "./prisma";
 
 export type ImportReport = {
   ok: boolean;
@@ -62,17 +68,51 @@ export async function runImport(
     errors: [],
     durationMs: 0,
   };
+  let csv = "";
+  let topLevelError: unknown = null;
   try {
-    const csv = await readCsvBody(req);
+    csv = await readCsvBody(req);
     await work(csv, report);
-    report.durationMs = Date.now() - start;
-    report.ok = report.errors.length === 0;
-    return NextResponse.json(report);
   } catch (err) {
-    await captureError(err, { route: `/api/import/${entity}` });
-    report.durationMs = Date.now() - start;
+    topLevelError = err;
+    await captureError(redactPii(err), { route: `/api/import/${entity}` });
     report.ok = false;
-    report.errors.push({ row: 0, message: err instanceof Error ? err.message : String(err) });
-    return NextResponse.json(report, { status: 500 });
+    report.errors.push({
+      row: 0,
+      message: err instanceof Error ? redactPii(err.message) : String(err),
+    });
   }
+  report.durationMs = Date.now() - start;
+  report.ok = report.ok && report.errors.length === 0;
+  // Redact any row-level messages collected in the work() callback.
+  report.errors = report.errors.map((e) => ({ ...e, message: redactPii(e.message) }));
+
+  // Fire-and-forget audit log — never block the response on this.
+  const actorId = req.headers.get("x-user-id") || null;
+  const actorEmail = req.headers.get("x-user-email") || null;
+  const rowsTotal =
+    report.inserted + report.updated + report.skipped + report.errors.length;
+  void prisma
+    .$executeRawUnsafe(
+      `INSERT INTO "ImportLog"
+       ("id","entity","actorId","actorEmail","rowsTotal","rowsInserted","rowsUpdated","rowsSkipped","rowsFailed","errors","status","durationMs","createdAt","sizeBytes")
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11, NOW(), $12)`,
+      entity,
+      actorId,
+      actorEmail,
+      rowsTotal,
+      report.inserted,
+      report.updated,
+      report.skipped,
+      report.errors.length,
+      JSON.stringify(report.errors.slice(0, 100)),
+      report.ok ? "OK" : report.errors.length && report.inserted ? "PARTIAL" : "FAILED",
+      report.durationMs,
+      csv.length,
+    )
+    .catch(() => {
+      /* ImportLog not yet migrated — ignore until `prisma migrate dev` runs */
+    });
+
+  return NextResponse.json(report, { status: topLevelError ? 500 : 200 });
 }

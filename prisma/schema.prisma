@@ -153,8 +153,18 @@ model Shift {
   driverId        String
   vehicleId       String
   shiftDate       DateTime
-  startTime       String   // "HH:MM"
-  endTime         String   // "HH:MM"
+  startTime       String   // "HH:MM" — scheduled window start
+  endTime         String   // "HH:MM" — scheduled window end
+  // Actual clock-in / clock-out timestamps. Nullable so the row can be
+  // created the night before and filled in as the shift happens. The
+  // delta between `clockInAt` and scheduled `startTime` is the
+  // punctuality signal used by the driver scorecard.
+  clockInAt       DateTime?
+  clockOutAt      DateTime?
+  // First real trip of the shift — proves the driver was actually
+  // working, not just clocked in. Populated by the import pipeline
+  // when it first sees a trip whose `startedAt` falls inside this shift.
+  firstTripAt     DateTime?
   hoursOnline     Float?
   zone            String?
   platformPrimary String?
@@ -164,6 +174,7 @@ model Shift {
   vehicle         Vehicle  @relation(fields: [vehicleId], references: [id])
 
   @@index([shiftDate, driverId])
+  @@index([clockInAt])
 }
 
 model DriverVehicle {
@@ -180,6 +191,12 @@ model Trip {
   driverId       String
   vehicleId      String
   status         String    @default("PENDING")
+  // Platform that originated the trip, for idempotent imports.
+  // BOLT | UBER | YANGO | NORGESTAXI | DISPATCH | MANUAL
+  externalPlatform String?
+  // Platform-native trip id (e.g. Bolt order number). Combined with
+  // externalPlatform it makes re-uploading the same CSV a no-op.
+  externalId     String?
   pickupAddress  String
   dropoffAddress String
   pickupLat      Float?
@@ -188,16 +205,43 @@ model Trip {
   dropoffLng     Float?
   distance       Float?
   duration       Int?
+  // DEPRECATED legacy single-number fare kept for compatibility.
+  // New trips populate TripCharge rows instead; `fare` is then the
+  // sum of all charges — cached for quick queries.
   fare           Float?
   paymentMethod  String    @default("CASH")
   startedAt      DateTime?
   completedAt    DateTime?
   rating         Float?
+  // Free-text cancellation reason when status=CANCELLED. One of:
+  // DRIVER_DECLINED | DRIVER_NO_SHOW | RIDER_CANCELLED | PLATFORM_CANCELLED
+  cancelReason   String?
   notes          String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   driver         Driver    @relation(fields: [driverId], references: [id])
   vehicle        Vehicle   @relation(fields: [vehicleId], references: [id])
+  charges        TripCharge[]
+
+  @@unique([externalPlatform, externalId])
+  @@index([status, completedAt])
+  @@index([driverId, completedAt])
+  @@index([vehicleId, completedAt])
+}
+
+/// Line-item breakdown of a Trip's total fare. Lets the dashboard
+/// answer "what % of revenue is surge?" or "which driver gets the most
+/// tips?" without hacky fare math. Sum of `amountNok` where
+/// kind ∈ {BASE, DISTANCE, TIME, SURGE, TOLL, TIP} = gross to driver;
+/// kind = PLATFORM_FEE is negative and nets out to payout-base.
+model TripCharge {
+  id        String  @id @default(cuid())
+  tripId    String
+  kind      String  // BASE | DISTANCE | TIME | SURGE | TOLL | TIP | PLATFORM_FEE | DISCOUNT
+  amountNok Float
+  trip      Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
 }
 
 model Maintenance {
@@ -226,8 +270,14 @@ model FuelLog {
   mileageAtFill Int
   station       String?
   filledAt      DateTime @default(now())
+  // Idempotency: source = MANUAL | CIRCLEK_CSV | SHELL_CSV | YX_CSV | API
+  source        String   @default("MANUAL")
+  externalId    String?
   createdAt     DateTime @default(now())
   vehicle       Vehicle  @relation(fields: [vehicleId], references: [id])
+
+  @@unique([source, externalId])
+  @@index([vehicleId, filledAt])
 }
 
 /// Recurring / one-off non-trip costs that feed the P&L.
@@ -508,6 +558,106 @@ model Employee {
   updatedAt      DateTime @updatedAt
 
   @@index([role, active])
+}
+
+/// One row per import run. Stores what was uploaded, by whom, how many
+/// rows succeeded/failed, the file hash, and a pointer to structured
+/// error details. Required for tax / regulatory traceability in Norway.
+model ImportLog {
+  id            String   @id @default(cuid())
+  entity        String   // drivers | vehicles | trips | shifts | fuel_logs | maintenance | fixed_costs | users | extra_km | ...
+  actorId       String?  // User.id
+  actorEmail    String?
+  fileName      String?
+  fileHash      String?  // sha256 of the uploaded bytes; catches re-uploads
+  sizeBytes     Int?
+  rowsTotal     Int      @default(0)
+  rowsInserted Int       @default(0)
+  rowsUpdated  Int       @default(0)
+  rowsSkipped  Int       @default(0)
+  rowsFailed   Int       @default(0)
+  errors       Json?     // array of { row, field, message }
+  status       String    @default("OK") // OK | PARTIAL | FAILED
+  durationMs   Int?
+  createdAt    DateTime  @default(now())
+
+  @@index([entity, createdAt])
+  @@index([actorId])
+}
+
+/// Customer-initiated feedback or operational incident. Populated from
+/// platform ratings (Bolt/Uber), rider complaints posted through
+/// support, and driver-reported incidents (crash, safety concern).
+/// Links back to a specific Trip when possible so analytics can tie
+/// ratings + disputes to the revenue event they relate to.
+model Incident {
+  id          String    @id @default(cuid())
+  driverId    String?
+  vehicleId   String?
+  tripId      String?
+  occurredAt  DateTime
+  // COMPLAINT | LOW_RATING | CRASH | SAFETY_CONCERN | DISPUTE | PROPERTY_DAMAGE
+  kind        String
+  // 1..5 for LOW_RATING, else LOW | MEDIUM | HIGH
+  severity    String
+  description String
+  reporter    String?   // customer | driver | ops | platform
+  status      String    @default("OPEN") // OPEN | IN_REVIEW | RESOLVED | DISMISSED
+  resolvedAt  DateTime?
+  resolution  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([driverId, occurredAt])
+  @@index([vehicleId, occurredAt])
+  @@index([status])
+}
+
+/// Driving-behaviour event sourced from telematics (Samsara OBD,
+/// Smartcar, Tesla API). Feeds the safety side of the driver score.
+/// `source + externalId` is unique so re-ingestion is idempotent.
+model DriverEvent {
+  id          String   @id @default(cuid())
+  driverId    String?
+  vehicleId   String
+  occurredAt  DateTime
+  // HARSH_BRAKE | HARSH_ACCEL | SPEEDING | IDLE_OVER | SEATBELT_OFF | PHONE_USE | HARSH_CORNER
+  kind        String
+  severity    String   // LOW | MEDIUM | HIGH
+  latitude    Float?
+  longitude   Float?
+  speedKph    Float?
+  source      String   // SAMSARA | TESLA | NIO | SMARTCAR | MANUAL
+  externalId  String?
+  createdAt   DateTime @default(now())
+
+  @@unique([source, externalId])
+  @@index([driverId, occurredAt])
+  @@index([vehicleId, occurredAt])
+}
+
+/// Raw telematics sample — GPS + vehicle state. Stored at 10-60 s
+/// cadence; at fleet scale this table gets large (150 M rows / year
+/// for 500 vehicles at 10 s). Partition by `sampledAt` in production
+/// and keep only 90 days hot.
+model TelematicsSample {
+  id          String   @id @default(cuid())
+  vehicleId   String
+  source      String   // SAMSARA | TESLA | NIO | SMARTCAR
+  sampledAt   DateTime
+  latitude    Float
+  longitude   Float
+  speedKph    Float?
+  heading     Float?
+  odometerKm  Float?
+  batteryPct  Float?   // EVs
+  fuelPct     Float?   // ICE
+  ignitionOn  Boolean?
+  externalId  String?
+  createdAt   DateTime @default(now())
+
+  @@unique([source, externalId])
+  @@index([vehicleId, sampledAt])
 }
 
 /// Append-only audit log of admin actions (import runs, permission

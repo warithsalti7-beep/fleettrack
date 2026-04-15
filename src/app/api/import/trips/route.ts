@@ -56,23 +56,46 @@ export async function POST(req: NextRequest) {
         const completedAt = duration
           ? new Date(startedAt.getTime() + duration * 60_000)
           : null;
-        await prisma.trip.create({
-          data: {
-            driverId,
-            vehicleId,
-            pickupAddress: asStr(r.pickup_address) || "",
-            dropoffAddress: asStr(r.dropoff_address) || "",
-            distance: asFloat(r.distance_km),
-            duration,
-            fare: asFloat(r.fare_nok),
-            paymentMethod: (asStr(r.payment_method) || "CARD").toUpperCase(),
-            rating: asFloat(r.rating),
-            status: (asStr(r.status) || "COMPLETED").toUpperCase(),
-            startedAt,
-            completedAt,
-          },
-        });
-        report.inserted++;
+
+        // Idempotency: when the CSV carries an external platform id we
+        // upsert instead of blindly creating. Re-uploading the same
+        // Bolt / Uber export is then a no-op. Rows without an external
+        // id fall back to plain create (same as before).
+        const externalPlatform = asStr(r.platform)?.toUpperCase() || null;
+        const externalId =
+          asStr(r.external_id) || asStr(r.platform_trip_id) || null;
+        const data = {
+          driverId,
+          vehicleId,
+          externalPlatform,
+          externalId,
+          pickupAddress: asStr(r.pickup_address) || "",
+          dropoffAddress: asStr(r.dropoff_address) || "",
+          distance: asFloat(r.distance_km),
+          duration,
+          fare: asFloat(r.fare_nok),
+          paymentMethod: (asStr(r.payment_method) || "CARD").toUpperCase(),
+          rating: asFloat(r.rating),
+          status: (asStr(r.status) || "COMPLETED").toUpperCase(),
+          cancelReason: asStr(r.cancel_reason) || null,
+          startedAt,
+          completedAt,
+        };
+        if (externalPlatform && externalId) {
+          const existing = await prisma.trip.findUnique({
+            where: { externalPlatform_externalId: { externalPlatform, externalId } },
+          }).catch(() => null);
+          if (existing) {
+            await prisma.trip.update({ where: { id: existing.id }, data });
+            report.updated++;
+          } else {
+            await prisma.trip.create({ data });
+            report.inserted++;
+          }
+        } else {
+          await prisma.trip.create({ data });
+          report.inserted++;
+        }
       } catch (e) {
         report.errors.push({
           row: i + 2,
