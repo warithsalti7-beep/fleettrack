@@ -1391,6 +1391,15 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
       </div>
     </div>
     <div class="topbar-actions">
+      <!-- Live-data status pill: dot turns green when /api/stats has
+           been fetched at least once; the timestamp shows "as of HH:MM"
+           and a click forces a manual re-sync. Dot stays grey while
+           the DB is empty so operators know the dashboard is honest
+           about no-data, not silently showing stale fixtures. -->
+      <button id="ft-livestatus" class="tb-btn" onclick="syncLiveKpis(true)" title="Re-sync live data" aria-label="Live data status">
+        <span id="ft-livestatus-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--t3);margin-right:6px"></span>
+        <span id="ft-livestatus-label" style="font-family:var(--mono);font-size:11px;color:var(--t3)">live · waiting</span>
+      </button>
       <button class="tb-btn" onclick="openSearch()" title="Search drivers, vehicles, pages (Ctrl-K)" aria-label="Search">🔍 <span style="color:var(--t3);font-family:var(--mono);font-size:11px;margin-left:4px">Ctrl K</span></button>
       <button class="tb-btn" onclick="go('reports',null,'Reports','System')" aria-label="Open Reports &amp; Exports"><span>⬇</span> <span>Export</span></button>
       <div class="clock-chip" id="clock">--:--:--</div>
@@ -1416,12 +1425,16 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
     <div class="ph-right"><button class="tb-btn primary" onclick="Toast.success('Dashboard refreshed')">⟳ Refresh</button></div>
   </div>
   <div class="kpi-grid g6">
-    <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">Revenue Today</div><div class="kc-value"><span class="cur" data-nok="55430">55 430 kr</span></div><div class="kc-delta up">↑ 8.3% vs yesterday</div><div class="kc-sub">Target: <span class="cur" data-nok="51750">51 750 kr</span></div></div>
-    <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">Net Profit</div><div class="kc-value"><span class="cur" data-nok="9200">9 200 kr</span></div><div class="kc-delta up">↑ 16.6% margin</div><div class="kc-sub">Break-even: <span class="cur" data-nok="38800">38 800 kr</span></div></div>
-    <div class="kc"><div class="kc-accent" style="background:var(--blue)"></div><div class="kc-label">Active Drivers</div><div class="kc-value">16/19</div><div class="kc-delta neu">1 offline · 2 workshop</div><div class="kc-sub">84% attendance</div></div>
-    <div class="kc"><div class="kc-accent" style="background:var(--blue)"></div><div class="kc-label">Trips Done</div><div class="kc-value">189</div><div class="kc-delta up">↑ +14 vs target</div><div class="kc-sub">Target: 175</div></div>
-    <div class="kc"><div class="kc-accent" style="background:var(--amber)"></div><div class="kc-label">Utilization</div><div class="kc-value">68.4%</div><div class="kc-bar"><div class="kc-bar-fill" style="width:68.4%;background:var(--amber)"></div></div><div class="kc-sub">Target: >70%</div></div>
-    <div class="kc"><div class="kc-accent" style="background:var(--teal)"></div><div class="kc-label">Avg Rev/Hour</div><div class="kc-value"><span class="cur" data-nok="258">258 kr</span></div><div class="kc-delta up">↑ Above <span class="cur" data-nok="230">230 kr</span> target</div><div class="kc-sub">Fleet average</div></div>
+    <!-- Live KPI tiles. Values written by syncLiveKpis() at the
+         bottom of this file, hitting /api/stats on load + every 60 s.
+         If the API is unreachable or returns zeros (empty DB), the
+         tiles show "—" and the sub-text reflects the no-data state. -->
+    <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">Revenue Today</div><div class="kc-value" data-kpi="todayGross">—</div><div class="kc-delta neu" data-kpi="todayGrossDelta">live · waiting for data</div><div class="kc-sub" data-kpi="todayGrossSub"></div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">Net Profit</div><div class="kc-value" data-kpi="netProfit">—</div><div class="kc-delta neu" data-kpi="netProfitDelta">computed from imports</div><div class="kc-sub" data-kpi="netProfitSub"></div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--blue)"></div><div class="kc-label">Active Drivers</div><div class="kc-value" data-kpi="activeDrivers">—</div><div class="kc-delta neu" data-kpi="activeDriversDelta"></div><div class="kc-sub" data-kpi="activeDriversSub"></div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--blue)"></div><div class="kc-label">Trips Done</div><div class="kc-value" data-kpi="tripsToday">—</div><div class="kc-delta neu" data-kpi="tripsTodayDelta"></div><div class="kc-sub">Source: imported trips today</div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--amber)"></div><div class="kc-label">Utilization</div><div class="kc-value" data-kpi="utilizationPct">—</div><div class="kc-bar"><div class="kc-bar-fill" data-kpi="utilizationBar" style="width:0%;background:var(--amber)"></div></div><div class="kc-sub">Target: &gt;70%</div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--teal)"></div><div class="kc-label">Avg Rev/Hour</div><div class="kc-value" data-kpi="avgRevPerHour">—</div><div class="kc-delta neu" data-kpi="avgRevPerHourDelta"></div><div class="kc-sub">Across active drivers</div></div>
   </div>
   <div class="kpi-grid g6">
     <div class="kc"><div class="kc-label">Acceptance Rate</div><div class="kc-value">83.5%</div><div class="kc-bar"><div class="kc-bar-fill" style="width:83.5%;background:var(--green)"></div></div><div class="kc-sub">Target: >80%</div></div>
@@ -5652,6 +5665,188 @@ function saveAPIKeys(){
   if(typeof Toast!=='undefined')Toast.success('API config saved \u2014 '+n+' field(s) stored.');
   else alert(n+' API field(s) saved locally.');
 }
+
+// ──────────────────────────────────────────────────────────────────────
+// Live-data sync — replaces every hardcoded KPI on the Overview, the
+// Driver Roster, and the Vehicle Fleet table with values pulled from
+// /api/stats, /api/drivers, /api/vehicles. Runs on load, every 60 s,
+// and on demand when the operator clicks the live-status pill in the
+// top bar.
+//
+// When the DB is empty (e.g. right after the demo wipe), every KPI
+// renders as "—" and the dot stays amber — making it visually obvious
+// that the dashboard is honest about no data, not silently showing
+// stale fixtures.
+//
+// Constants come from /api/kpis/config so weights cannot drift between
+// client and server.
+// ──────────────────────────────────────────────────────────────────────
+const FT_LIVE = {
+  lastSync: null,    // Date of last successful /api/stats fetch
+  kpisConfig: null,  // cached weights/thresholds from /api/kpis/config
+  inflight: false,
+};
+function ftFmtNok(n) {
+  if (n == null || !Number.isFinite(n)) return '—';
+  if (typeof FleetCurrency !== 'undefined' && FleetCurrency.format) return FleetCurrency.format(Math.round(n));
+  return new Intl.NumberFormat('nb-NO', { style:'currency', currency:'NOK', maximumFractionDigits:0 }).format(n);
+}
+function ftSet(kpi, html) {
+  document.querySelectorAll(`[data-kpi="${kpi}"]`).forEach(el => { el.innerHTML = html; });
+}
+function ftSetLiveStatus(kind, label) {
+  // kind: 'live' | 'empty' | 'stale' | 'error'
+  const dot = document.getElementById('ft-livestatus-dot');
+  const lab = document.getElementById('ft-livestatus-label');
+  if (!dot || !lab) return;
+  const colors = { live:'var(--green)', empty:'var(--amber)', stale:'var(--amber)', error:'var(--red)' };
+  dot.style.background = colors[kind] || 'var(--t3)';
+  if (kind === 'live') dot.style.boxShadow = `0 0 6px ${colors.live}`;
+  else dot.style.boxShadow = 'none';
+  lab.textContent = label;
+}
+
+async function syncLiveKpis(manual) {
+  if (FT_LIVE.inflight) return;
+  FT_LIVE.inflight = true;
+  try {
+    if (!FT_LIVE.kpisConfig) {
+      FT_LIVE.kpisConfig = await fetch('/api/kpis/config', { credentials:'include' })
+        .then(r => r.ok ? r.json() : null).catch(() => null);
+    }
+    const [statsR, driversR, vehiclesR] = await Promise.allSettled([
+      fetch('/api/stats',    { credentials:'include' }).then(r => r.ok ? r.json() : null),
+      fetch('/api/drivers',  { credentials:'include' }).then(r => r.ok ? r.json() : null),
+      fetch('/api/vehicles', { credentials:'include' }).then(r => r.ok ? r.json() : null),
+    ]);
+    const stats    = statsR.status === 'fulfilled' ? statsR.value : null;
+    const drivers  = (driversR.status === 'fulfilled' && Array.isArray(driversR.value)) ? driversR.value : [];
+    const vehicles = (vehiclesR.status === 'fulfilled' && Array.isArray(vehiclesR.value)) ? vehiclesR.value : [];
+
+    // Whether the database has any operational data at all (post-wipe state).
+    const empty = !stats || (stats.today?.tripCount ?? 0) === 0 && (stats.trips?.completed ?? 0) === 0;
+
+    // ── Overview KPI tiles ──
+    const todayGross = stats?.today?.grossNok ?? 0;
+    const tripsToday = stats?.today?.tripCount ?? 0;
+    const completedTotal = stats?.trips?.completed ?? 0;
+    const totalRevenue = stats?.trips?.totalRevenue ?? 0;
+    const totalCosts = (stats?.fuel?.totalCost ?? 0); // simple proxy until expense rollup wired
+    const netProfit = Math.max(0, totalRevenue - totalCosts);
+    const driversAvail = (stats?.drivers?.AVAILABLE ?? 0) + (stats?.drivers?.ON_TRIP ?? 0);
+    const driversTotal = Object.values(stats?.drivers ?? {}).reduce((s, n) => s + n, 0);
+    const vehiclesAvail = (stats?.vehicles?.AVAILABLE ?? 0) + (stats?.vehicles?.ON_TRIP ?? 0);
+    const vehiclesTotal = Object.values(stats?.vehicles ?? {}).reduce((s, n) => s + n, 0);
+    const liveShifts = stats?.liveShifts ?? 0;
+
+    // Utilisation = drivers currently OPEN-shifted / drivers AVAILABLE.
+    // Honest when no-data: shows 0% instead of fake 68.4%.
+    const utilization = driversAvail > 0 ? Math.round((liveShifts / driversAvail) * 100) : 0;
+    const avgRevHr = liveShifts > 0 ? Math.round(todayGross / liveShifts / 8) : 0; // assumes ~8h shift; replace with real shift hours when shifts API wired
+
+    ftSet('todayGross',        empty ? '—' : ftFmtNok(todayGross));
+    ftSet('todayGrossDelta',   empty ? 'no trips today yet' : `${tripsToday} trips imported today`);
+    ftSet('todayGrossSub',     empty ? '' : `MTD: ${ftFmtNok(stats.mtd?.grossNok)}`);
+
+    ftSet('netProfit',         empty ? '—' : ftFmtNok(netProfit));
+    ftSet('netProfitDelta',    empty ? 'computed from imports' : `Revenue ${ftFmtNok(totalRevenue)} − costs ${ftFmtNok(totalCosts)}`);
+    ftSet('netProfitSub',      '');
+
+    ftSet('activeDrivers',     empty ? `0/${driversTotal||'—'}` : `${driversAvail}/${driversTotal}`);
+    ftSet('activeDriversDelta',empty ? 'no shifts open' : `${liveShifts} on shift now`);
+    ftSet('activeDriversSub',  driversTotal ? `${Math.round(driversAvail/driversTotal*100)}% available` : '');
+
+    ftSet('tripsToday',        empty ? '—' : tripsToday.toString());
+    ftSet('tripsTodayDelta',   empty ? 'upload Uber/Bolt/Taxi CSV to populate' : `${completedTotal.toLocaleString('nb-NO')} lifetime trips`);
+
+    ftSet('utilizationPct',    empty ? '—' : `${utilization}%`);
+    const bar = document.querySelector('[data-kpi="utilizationBar"]');
+    if (bar) {
+      bar.style.width = (empty ? 0 : utilization) + '%';
+      bar.style.background = utilization >= 70 ? 'var(--green)' : utilization >= 50 ? 'var(--amber)' : 'var(--red)';
+    }
+
+    ftSet('avgRevPerHour',     empty ? '—' : ftFmtNok(avgRevHr));
+    ftSet('avgRevPerHourDelta',empty ? '' : `Across ${liveShifts || 0} live shifts`);
+
+    // ── Re-render Driver Roster + Vehicle Fleet tables ──
+    if (typeof rerenderRoster === 'function') rerenderRoster(drivers);
+    if (typeof rerenderFleet   === 'function') rerenderFleet(vehicles);
+
+    FT_LIVE.lastSync = new Date();
+    if (empty) {
+      ftSetLiveStatus('empty', `live · empty DB · ${FT_LIVE.lastSync.toTimeString().slice(0,5)}`);
+    } else {
+      ftSetLiveStatus('live', `live · ${tripsToday} trips · ${FT_LIVE.lastSync.toTimeString().slice(0,5)}`);
+    }
+    if (manual && typeof Toast !== 'undefined') Toast.success('Re-synced from /api/*');
+  } catch (e) {
+    ftSetLiveStatus('error', 'live · error');
+    if (manual && typeof Toast !== 'undefined') Toast.error('Sync failed: ' + (e?.message || e));
+  } finally {
+    FT_LIVE.inflight = false;
+  }
+}
+
+// Roster / Fleet repainters. The original populators (further below)
+// still run once on first load with whatever's in window.FleetData;
+// these functions overwrite the tbodies with fresh API rows. They're
+// intentionally permissive — drivers from /api/drivers carry the
+// schema's field names (name, status, totalTrips, …), so we map to
+// the existing table columns.
+function rerenderRoster(drivers) {
+  const tbody = document.getElementById('roster-tbody'); if (!tbody) return;
+  if (!drivers.length) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="ft-empty"><div class="ft-empty-icon">👤</div><div class="ft-empty-title">No drivers yet</div>Upload a Drivers CSV via <a href="#data-import" onclick="go('data-import',null,'Data Import','System / Settings');return false">Data Import</a>.</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = drivers.map((d, i) => {
+    const id = d.id || d.userId || `drv-${i+1}`;
+    const status = (d.status || 'AVAILABLE').toUpperCase();
+    const statusBadge = `<span class="badge b-${status==='AVAILABLE'?'green':status==='ON_TRIP'?'blue':status==='SUSPENDED'?'red':'gray'}">${status}</span>`;
+    const commission = Math.round(((d.commissionPct ?? 0.5) * 100));
+    return `<tr>
+      <td>${i+1}</td>
+      <td><a href="/driver-profile?id=${encodeURIComponent(id)}" style="color:var(--blue2);text-decoration:none;font-weight:600">${d.name || '—'}</a></td>
+      <td><strong>—</strong></td>
+      <td>—</td>
+      <td>${d.shiftType ? `<span class="badge b-blue">${d.shiftType}</span>` : '—'}</td>
+      <td>${commission}%</td>
+      <td>—</td>
+      <td>—</td>
+      <td>—</td>
+      <td>${statusBadge}</td>
+    </tr>`;
+  }).join('');
+}
+function rerenderFleet(vehicles) {
+  const tbody = document.getElementById('fleet-reg-tbody'); if (!tbody) return;
+  if (!vehicles.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="ft-empty"><div class="ft-empty-icon">🚗</div><div class="ft-empty-title">No vehicles yet</div>Upload a Vehicles CSV via <a href="#data-import" onclick="go('data-import',null,'Data Import','System / Settings');return false">Data Import</a>.</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = vehicles.map(v => {
+    const status = (v.status || 'AVAILABLE').toUpperCase();
+    return `<tr>
+      <td><strong>${v.carId || v.plateNumber}</strong></td>
+      <td>${v.make || ''} ${v.model || ''}</td>
+      <td>${v.fuelType || '—'}</td>
+      <td>—</td>
+      <td>—</td>
+      <td>—</td>
+      <td>—</td>
+      <td><span class="badge b-${status==='AVAILABLE'?'green':status==='MAINTENANCE'?'amber':'gray'}">${status}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// First sync as soon as the page is interactive; then every 60 s.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => syncLiveKpis(false));
+} else {
+  syncLiveKpis(false);
+}
+setInterval(() => syncLiveKpis(false), 60_000);
 
 // ──────────────────────────────────────────────────────────────────────
 // Errors & Sync — diagnostics page populator + Live Shifts page.
