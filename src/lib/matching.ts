@@ -53,7 +53,7 @@ export async function matchDriver(query: {
 }): Promise<DriverMatch> {
   if (query.externalDriverCode) {
     const d = await prisma.driver
-      .findUnique({ where: { externalDriverCode: query.externalDriverCode } })
+      .findUnique({ where: { externalDriverCode: query.externalDriverCode } as never })
       .catch(() => null);
     if (d) return { driverId: d.id, confidence: "HIGH", reason: "externalDriverCode" };
   }
@@ -105,7 +105,7 @@ export async function matchVehicle(query: {
   const plateN = normalizePlate(query.plate);
   if (plateN) {
     const byNorm = await prisma.vehicle
-      .findUnique({ where: { plateNormalized: plateN } })
+      .findUnique({ where: { plateNormalized: plateN } as never })
       .catch(() => null);
     if (byNorm) return { vehicleId: byNorm.id, confidence: "HIGH", reason: "plateNormalized" };
     // Legacy fallback for rows imported before plateNormalized was added.
@@ -120,7 +120,7 @@ export async function matchVehicle(query: {
     if (byRaw) return { vehicleId: byRaw.id, confidence: "HIGH", reason: "plateNumber" };
   }
   if (query.vin) {
-    const v = await prisma.vehicle.findUnique({ where: { vin: query.vin } }).catch(() => null);
+    const v = await prisma.vehicle.findUnique({ where: { vin: query.vin } as never }).catch(() => null);
     if (v) return { vehicleId: v.id, confidence: "HIGH", reason: "vin" };
   }
   return { vehicleId: null, confidence: "NONE", reason: "no-match" };

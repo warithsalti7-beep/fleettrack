@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
         };
         if (externalPlatform && externalId) {
           const existing = await prisma.trip.findUnique({
-            where: { externalPlatform_externalId: { externalPlatform, externalId } },
+            where: { externalPlatform_externalId: { externalPlatform, externalId } } as never,
           }).catch(() => null);
           if (existing) {
             await prisma.trip.update({ where: { id: existing.id }, data });

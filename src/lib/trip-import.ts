@@ -234,8 +234,14 @@ export async function normalizeIntoTrip(
 
   let tripId: string | null = null;
   if (externalId) {
+    // Cast to never to bypass strict compound-key types — both
+    // (externalPlatform, externalId) are nullable in the schema so
+    // Prisma's generated input expects { externalPlatform: string;
+    // externalId: string } but in some Prisma versions emits the type
+    // as nullable. We've already null-guarded above with `if (externalId)`
+    // and `externalPlatform` is `Source` (a string union).
     const existing = await prisma.trip
-      .findUnique({ where: { externalPlatform_externalId: { externalPlatform, externalId } } })
+      .findUnique({ where: { externalPlatform_externalId: { externalPlatform, externalId } } as never })
       .catch(() => null);
     if (existing) {
       await prisma.trip.update({ where: { id: existing.id }, data });
