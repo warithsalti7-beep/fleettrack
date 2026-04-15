@@ -24,6 +24,20 @@ model Driver {
   email          String          @unique
   phone          String
   address        String?
+  // Platform-native driver code when the owner/dispatcher has one
+  // (e.g. Bolt partner driver id, Uber driver uuid, taxi meter pairing
+  // id). Lets trip imports match to the right Driver row without
+  // relying on fuzzy name matching.
+  externalDriverCode String?  @unique
+  // How the fleet engaged the driver contractually. ENK / AS / EMPLOYEE
+  // is kept in `employmentType` below; contractType adds the commercial
+  // angle. FULL_TIME | PART_TIME | CASUAL | TRIAL | null.
+  contractType       String?
+  // How payouts are made. WEEKLY_SWEEP | MONTHLY_INVOICE | SAME_DAY | null.
+  payoutScheme       String?
+  // AM | PM | NIGHT | FLEX — redundant with Shift.startTime but fast
+  // for filters on the roster page.
+  shiftType          String?
   // Norwegian personal / D-number (fødselsnummer or D-nummer), 11 digits.
   // Stored server-side only; never expose to client without auth scope.
   personalNumber String?         @unique
@@ -94,6 +108,14 @@ model Vehicle {
   id                    String          @id @default(cuid())
   carId                 String?         @unique   // Internal fleet tag e.g. TR2518
   plateNumber           String          @unique
+  // Uppercase, whitespace-stripped, hyphen-stripped copy of the plate
+  // used for fuzzy matching in CSV imports. Written by
+  // src/lib/matching.ts#normalizePlate() on every create/update.
+  plateNormalized       String?         @unique
+  vin                   String?         @unique
+  // OWNED | LEASED | FINANCED | DRIVER_OWNED
+  ownershipType         String?
+  taxiLicenseExpiry     DateTime?
   make                  String
   model                 String
   year                  Int
@@ -169,12 +191,19 @@ model Shift {
   zone            String?
   platformPrimary String?
   status          String   @default("completed")
+  // Where the shift row came from. APP = driver tapped Start/Stop in
+  // the portal (live). MANUAL = dispatcher created it by hand.
+  // IMPORT = loaded from a bulk CSV. SYSTEM = inferred from trip data.
+  // Affects merge priority: a live APP shift wins over a later IMPORT
+  // row for the same (driverId, shiftDate, startTime).
+  source          String   @default("IMPORT")
   createdAt       DateTime @default(now())
   driver          Driver   @relation(fields: [driverId], references: [id])
   vehicle         Vehicle  @relation(fields: [vehicleId], references: [id])
 
   @@index([shiftDate, driverId])
   @@index([clockInAt])
+  @@index([driverId, status])
 }
 
 model DriverVehicle {
@@ -658,6 +687,202 @@ model TelematicsSample {
 
   @@unique([source, externalId])
   @@index([vehicleId, sampledAt])
+}
+
+/// ────────────────────────────────────────────────────────────────
+/// Raw per-source trip staging tables
+/// ────────────────────────────────────────────────────────────────
+/// The spec requires Uber / Bolt / Taxi imports to stay visibly
+/// separate at the ingestion layer. Each uploaded row is parked here
+/// *as-is* before being normalised into the shared `Trip` table.
+/// Owners can re-run normalisation, inspect the original payload, or
+/// roll back a specific batch without touching other sources' data.
+///
+/// `rawPayload` keeps the original CSV row as JSON so nothing is lost
+/// when the normaliser evolves. `normalizedTripId` points to the Trip
+/// row that consumed this raw row (null until the normaliser has run
+/// on it). `importBatchId` groups all rows that came from one upload
+/// so the UI can show "Bolt batch 2026-04-14T08:02 — 312 rows".
+model UberRawTrip {
+  id                   String   @id @default(cuid())
+  importBatchId        String
+  fileName             String?
+  importedAt           DateTime @default(now())
+  rowNumber            Int
+  rawPayload           Json
+  parseStatus          String   @default("PARSED") // PARSED | FAILED
+  normalizationStatus  String   @default("PENDING") // PENDING | NORMALIZED | FAILED | SKIPPED_DUP
+  errorMessage         String?
+  // Uber-specific parsed-but-still-raw columns that make querying easy
+  // without touching the JSON. Populated by the parser when it can.
+  uberTripUuid         String?
+  driverEmail          String?
+  driverName           String?
+  vehiclePlate         String?
+  tripStartAt          DateTime?
+  tripEndAt            DateTime?
+  grossFare            Float?
+  platformFee          Float?
+  driverEarnings       Float?
+  tips                 Float?
+  tolls                Float?
+  distanceKm           Float?
+  durationMin          Int?
+  pickupAddress        String?
+  dropoffAddress       String?
+  currency             String?
+  normalizedTripId     String?  @unique
+
+  @@unique([uberTripUuid])
+  @@index([importBatchId])
+  @@index([normalizationStatus])
+}
+
+model BoltRawTrip {
+  id                   String   @id @default(cuid())
+  importBatchId        String
+  fileName             String?
+  importedAt           DateTime @default(now())
+  rowNumber            Int
+  rawPayload           Json
+  parseStatus          String   @default("PARSED")
+  normalizationStatus  String   @default("PENDING")
+  errorMessage         String?
+  boltOrderId          String?
+  driverEmail          String?
+  driverName           String?
+  vehiclePlate         String?
+  tripStartAt          DateTime?
+  tripEndAt            DateTime?
+  grossFare            Float?
+  platformFee          Float?
+  driverEarnings       Float?
+  tips                 Float?
+  tolls                Float?
+  distanceKm           Float?
+  durationMin          Int?
+  pickupAddress        String?
+  dropoffAddress       String?
+  currency             String?
+  cancellationFee      Float?
+  normalizedTripId     String?  @unique
+
+  @@unique([boltOrderId])
+  @@index([importBatchId])
+  @@index([normalizationStatus])
+}
+
+/// Covers Norgestaxi / 07000 / dispatch-meter exports. The shape is
+/// looser than Uber/Bolt because Norwegian taxi meter dumps vary
+/// between makers — we keep `meterReceiptId` as the best dedupe key
+/// and the whole row in `rawPayload`.
+model TaxiRawTrip {
+  id                   String   @id @default(cuid())
+  importBatchId        String
+  fileName             String?
+  importedAt           DateTime @default(now())
+  rowNumber            Int
+  rawPayload           Json
+  parseStatus          String   @default("PARSED")
+  normalizationStatus  String   @default("PENDING")
+  errorMessage         String?
+  meterReceiptId       String?
+  driverName           String?
+  vehiclePlate         String?
+  tripStartAt          DateTime?
+  tripEndAt            DateTime?
+  grossFare            Float?
+  tips                 Float?
+  tolls                Float?
+  distanceKm           Float?
+  durationMin          Int?
+  paymentType          String?
+  normalizedTripId     String?  @unique
+
+  @@unique([meterReceiptId])
+  @@index([importBatchId])
+  @@index([normalizationStatus])
+}
+
+/// Driver settlement / payout row as it arrived from the source
+/// (Bolt weekly sheet, Uber weekly sheet, dispatcher spreadsheet).
+/// The normalised Settlement below is what dashboards read.
+model SettlementRawRow {
+  id             String   @id @default(cuid())
+  importBatchId  String
+  source         String   // BOLT | UBER | DISPATCHER | MANUAL
+  fileName       String?
+  importedAt     DateTime @default(now())
+  rowNumber      Int
+  rawPayload     Json
+  parseStatus    String   @default("PARSED")
+  errorMessage   String?
+  driverEmail    String?
+  periodStart    DateTime?
+  periodEnd      DateTime?
+  grossRevenue   Float?
+  platformCommission Float?
+  netRevenue     Float?
+  bonusTotal     Float?
+  deductionsTotal Float?
+  payoutTotal    Float?
+  vatTotal       Float?
+  normalizedSettlementId String?  @unique
+
+  @@index([importBatchId])
+  @@index([source, periodStart])
+}
+
+/// Normalised settlement — the single source of truth for weekly
+/// payouts on driver dashboards. Deduped on (driverId, source,
+/// periodStart, periodEnd) so re-importing the same sheet is a no-op.
+model Settlement {
+  id             String   @id @default(cuid())
+  driverId       String
+  source         String   // BOLT | UBER | DISPATCHER | MANUAL
+  periodStart    DateTime
+  periodEnd      DateTime
+  grossRevenue   Float
+  platformCommission Float  @default(0)
+  netRevenue     Float
+  bonusTotal     Float    @default(0)
+  deductionsTotal Float   @default(0)
+  payoutTotal    Float
+  vatTotal       Float?
+  status         String   @default("FINAL")   // DRAFT | FINAL | PAID | CANCELLED
+  importBatchId  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([driverId, source, periodStart, periodEnd])
+  @@index([driverId, periodStart])
+  @@index([source, periodStart])
+}
+
+/// Rows surfaced in the new "Errors & Sync" page. Every nightly
+/// diagnostics job writes here; the UI lets a dispatcher mark one
+/// RESOLVED / DISMISSED. Idempotent via `fingerprint` so the same
+/// issue re-detected on the next run doesn't duplicate.
+model DataIssue {
+  id          String   @id @default(cuid())
+  kind        String   // DUP_TRIP | DUP_DRIVER | DUP_VEHICLE | TRIP_NO_DRIVER |
+                       // TRIP_NO_VEHICLE | OPEN_SHIFT_STALE | TRIP_OUTSIDE_SHIFT |
+                       // INACTIVE_DRIVER_NEW_TRIP | INACTIVE_VEHICLE_NEW_TRIP |
+                       // IMPORT_ROW_FAILED | NEGATIVE_FARE | TOTALS_MISMATCH |
+                       // STALE_ACTIVE_DRIVER | PLATE_COLLISION | OTHER
+  severity    String   @default("MEDIUM") // LOW | MEDIUM | HIGH | CRITICAL
+  entityRef   String?  // "driver:<id>" | "vehicle:<id>" | "trip:<id>" | "shift:<id>"
+  batchRef    String?  // ImportLog / raw-table batch id
+  details     Json?
+  suggestion  String?
+  fingerprint String   @unique
+  status      String   @default("OPEN") // OPEN | RESOLVED | DISMISSED
+  openedAt    DateTime @default(now())
+  resolvedAt  DateTime?
+  resolvedBy  String?
+
+  @@index([status, severity])
+  @@index([kind])
 }
 
 /// Append-only audit log of admin actions (import runs, permission
