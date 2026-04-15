@@ -32,11 +32,23 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (err) return NextResponse.json({ error: "validation_failed", detail: err }, { status: 400 });
     data.passwordHash = await hashPassword(body.password);
   }
+  if (body.permissions !== undefined) {
+    if (body.permissions === null) {
+      data.permissions = null;
+    } else if (Array.isArray(body.permissions) && body.permissions.every((p) => typeof p === "string")) {
+      data.permissions = body.permissions as string[];
+    } else {
+      return NextResponse.json(
+        { error: "validation_failed", detail: "permissions must be null or an array of strings" },
+        { status: 400 },
+      );
+    }
+  }
 
   const user = await prisma.user.update({
     where: { id },
     data,
-    select: { id: true, email: true, name: true, role: true, updatedAt: true },
+    select: { id: true, email: true, name: true, role: true, permissions: true, updatedAt: true },
   });
 
   await writeAudit({

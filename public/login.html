@@ -10,6 +10,7 @@
 <style>
 body { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:var(--s4); background:var(--bg); }
 body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse 80% 60% at 50% -10%, rgba(59,127,245,0.12) 0%, transparent 70%); pointer-events:none; }
+[data-theme="light"] body::before { background:radial-gradient(ellipse 80% 60% at 50% -10%, rgba(37,99,235,0.08) 0%, transparent 70%); }
 
 .login-wrap { width:100%; max-width:420px; position:relative; z-index:1; }
 
@@ -268,6 +269,9 @@ async function handleLogin(e) {
   btn.innerHTML = '✓ Redirecting…';
   window.location.href = portalConfig[currentPortal].dest;
 }
+
+// Inject the theme toggle so visitors can switch dark/light before logging in.
+if (typeof FleetTheme !== 'undefined') FleetTheme.injectToggle();
 
 // Footer build id + year (pulls /api/health which surfaces the build sha)
 (function fillFooter(){

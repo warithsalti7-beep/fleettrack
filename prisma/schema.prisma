@@ -16,6 +16,10 @@ model User {
   name         String?
   role         String   @default("employee")
   passwordHash String
+  /// Per-user permission grants. JSON array of strings like
+  /// ["view:drivers","manage:dispatch","export:reports"]. Overrides the
+  /// role defaults. Admins ignore this list (they have "all").
+  permissions  Json?
   driverId     String?  // optional link to Driver record (role=driver)
   lastLoginAt  DateTime?
   createdAt    DateTime @default(now())

@@ -1,18 +1,26 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireStaff } from "@/lib/auth-guard";
+import { csvResponse, parseExportPage, rowsToCsv } from "@/lib/export-helpers";
 
 export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
   const gate = await requireStaff(request);
   if (!gate.ok) return gate.response;
-  const records = await prisma.maintenance.findMany({
-    orderBy: { scheduledAt: "asc" },
-    include: {
-      vehicle: { select: { plateNumber: true, make: true, model: true } },
-    },
-  });
+
+  const url = new URL(request.url);
+  const { limit, offset } = parseExportPage(url);
+
+  const [records, total] = await Promise.all([
+    prisma.maintenance.findMany({
+      orderBy: { scheduledAt: "asc" },
+      skip: offset,
+      take: limit,
+      include: { vehicle: { select: { plateNumber: true, make: true, model: true } } },
+    }),
+    prisma.maintenance.count(),
+  ]);
 
   const rows = [
     ["ID", "Vehicle", "Plate", "Type", "Description", "Priority", "Status", "Scheduled", "Completed", "Cost", "Technician"],
@@ -31,12 +39,5 @@ export async function GET(request: NextRequest) {
     ]),
   ];
 
-  const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
-
-  return new NextResponse(csv, {
-    headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="maintenance-${new Date().toISOString().slice(0, 10)}.csv"`,
-    },
-  });
+  return csvResponse("maintenance", rowsToCsv(rows), total);
 }

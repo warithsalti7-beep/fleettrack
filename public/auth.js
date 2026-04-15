@@ -80,16 +80,21 @@ const FleetAuth = (() => {
 
   function mirrorFromUser(u){
     if (!u) return null;
-    const permOverride = (()=>{ try { return JSON.parse(localStorage.getItem('ft_perms_'+u.id) || 'null'); } catch(e){ return null; } })();
+    // Server-supplied permissions take precedence. Legacy localStorage
+    // overrides (ft_perms_<id>) are still read as a fallback so the
+    // old admin UI keeps working until all permission writes go to
+    // /api/users/:id PATCH.
+    const serverPerms = Array.isArray(u.permissions) ? u.permissions : null;
+    const legacyOverride = (()=>{ try { return JSON.parse(localStorage.getItem('ft_perms_'+u.id) || 'null'); } catch(e){ return null; } })();
+    const permissions = serverPerms || legacyOverride || (ROLE_DEFAULT_PERMS[u.role] || []);
     return {
       userId: u.id,
       name:   u.name || u.email,
       email:  u.email,
       role:   u.role,
       avatar: initialsOf(u.name || u.email),
-      permissions: permOverride || (ROLE_DEFAULT_PERMS[u.role] || []),
-      // Driver-only metadata that legacy UI code reads; empty until
-      // server /api/users exposes it.
+      permissions,
+      // Driver-only metadata; empty until the server exposes shift/car.
       carId:  null, brand: null, shift: null,
       loginAt: Date.now(),
     };
@@ -366,7 +371,14 @@ const FleetTheme = (()=>{
     try { localStorage.setItem(KEY, t); } catch(e){}
     document.documentElement.setAttribute('data-theme', t);
   };
-  const toggle = () => { set(get()==='dark' ? 'light' : 'dark'); const b=document.getElementById('ft-theme-btn'); if(b) b.textContent = get()==='dark' ? '☾' : '☀'; };
+  const toggle = () => {
+    set(get()==='dark' ? 'light' : 'dark');
+    const b = document.getElementById('ft-theme-btn');
+    if (b) {
+      b.textContent = get()==='dark' ? '☾' : '☀';
+      b.setAttribute('aria-label', 'Switch to ' + (get()==='dark' ? 'light' : 'dark') + ' theme');
+    }
+  };
   function apply(){ document.documentElement.setAttribute('data-theme', get()); }
   function injectToggle(){
     if (document.getElementById('ft-theme-btn')) return;

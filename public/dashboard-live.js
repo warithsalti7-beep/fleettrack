@@ -20,12 +20,34 @@
 
   // Canonical hardcoded numbers that used to be baked into dashboard.html.
   // We swap any .cur[data-nok="<value>"] that matches one of these for the
-  // live KPI. This is a best-effort bridge; not every tile has a mapping.
+  // live KPI. This is a best-effort bridge; not every tile has a mapping —
+  // the long-term solution is to make the dashboard fully data-driven.
   const CANONICAL_TO_KPI = {
     55430: 'revenueToday',
     47115: 'netRevenue',
      9200: 'netProfit',
     38800: 'breakEven',
+    // P&L "pace" tile (see line 1419 in dashboard.html): "On track for 59 800 kr EOD"
+    // We don't have a live pace calc yet; leave as-is until /api/stats/pace exists.
+  };
+
+  // Plain-text KPI mappings for tiles that aren't inside a .cur span.
+  // Matches by element id OR by a data-kpi attribute (preferred for new work).
+  const TEXT_KPI_ELEMENTS = {
+    'kpi-trips-today':    (k) => k.tripsToday,
+    'kpi-drivers-active': (k) => k.driversActive + ' / ' + k.driversTotal,
+    'kpi-vehicles-road':  (k) => k.vehiclesOnRoad + ' / ' + k.vehiclesTotal,
+    'kpi-margin':         (k) => (k.marginPct||0).toFixed(1) + '%',
+    // Direct-passthrough KPIs used by subtitle text (`data-kpi="driversTotal"`).
+    'driversTotal':       (k) => String(k.driversTotal),
+    'driversActive':      (k) => String(k.driversActive),
+    'vehiclesTotal':      (k) => String(k.vehiclesTotal),
+    'vehiclesOnRoad':     (k) => String(k.vehiclesOnRoad),
+    'vehiclesShop':       (k) => String(k.vehiclesShop),
+    'vehiclesIdle':       (k) => String(k.vehiclesIdle),
+    'tripsToday':         (k) => String(k.tripsToday),
+    'avgTripFare':        (k) => (k.avgTripFare||0).toFixed(2),
+    'marginPct':          (k) => (k.marginPct||0).toFixed(1) + '%',
   };
 
   function banner(message, tone){
@@ -48,6 +70,8 @@
     if (!kpis) return;
     let replaced = 0;
     document.querySelectorAll('.cur[data-nok]').forEach(el => {
+      // Skip if another script already flagged this tile as live.
+      if (el.dataset.live === '1') return;
       const v = parseFloat(el.dataset.nok);
       const kpiName = CANONICAL_TO_KPI[v];
       if (!kpiName) return;
@@ -57,6 +81,16 @@
       el.dataset.live = '1';
       replaced++;
     });
+
+    // Text-only KPI tiles keyed by id or data-kpi attribute.
+    Object.entries(TEXT_KPI_ELEMENTS).forEach(([id, fn]) => {
+      const byId = document.getElementById(id);
+      const byAttr = document.querySelectorAll('[data-kpi="'+id+'"]');
+      const value = fn(kpis);
+      if (byId) byId.textContent = value;
+      byAttr.forEach(el => { el.textContent = value; });
+    });
+
     if (replaced && typeof FleetCurrency !== 'undefined' && FleetCurrency.rerender) FleetCurrency.rerender();
   }
 

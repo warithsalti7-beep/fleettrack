@@ -268,7 +268,7 @@ body { background:var(--bg); min-height:100vh; }
         <div style="font-size:13px;color:var(--t2);display:flex;justify-content:space-between;padding:var(--s2) 0"><span>Role</span><span class="badge b-green">Driver</span></div>
       </div>
       <button class="btn btn-full" style="margin-top:var(--s3);border-color:var(--redborder);color:var(--red)" onclick="FleetAuth.logout('/login?portal=driver')">Sign Out</button>
-      <div style="text-align:center;margin-top:var(--s5);font-size:12px;color:var(--t3)">FleetTrack Driver Portal v1.0<br>© 2025 FleetTrack</div>
+      <div style="text-align:center;margin-top:var(--s5);font-size:12px;color:var(--t3)">FleetTrack Driver Portal · <span id="d-build-id">—</span><br><span id="d-year">2026</span> FleetTrack</div>
     </div>
 
   </div>
@@ -497,6 +497,13 @@ function showTab(id, btn) {
 }
 FleetCurrency.rerender();
 FleetCurrency.injectToggle(); if(typeof FleetTheme!=="undefined")FleetTheme.injectToggle();
+
+// Fill in build id + current year in the footer.
+try { document.getElementById('d-year').textContent = String(new Date().getFullYear()); } catch(e){}
+fetch('/api/health', { credentials: 'same-origin' })
+  .then(r => r.ok ? r.json() : null)
+  .then(j => { if (j && j.sha) { const el = document.getElementById('d-build-id'); if (el) el.textContent = 'build ' + String(j.sha).slice(0,7); } })
+  .catch(() => {});
 </script>
 </body>
 </html>

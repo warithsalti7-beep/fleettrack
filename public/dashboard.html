@@ -10,6 +10,7 @@
 <script src="./fleet-data.js"></script>
 <script src="./auth.js"></script>
 <script src="./dashboard-live.js" defer></script>
+<script src="./fleet-forms.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ══════════════════════════════════════════════════════
@@ -80,6 +81,41 @@
   --fast: 0.1s ease;
   --mid:  0.2s ease;
   --slow: 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ── LIGHT THEME OVERRIDES ─────────────────────────────────
+   Toggled at runtime via document.documentElement.dataset.theme
+   which FleetTheme (auth.js) writes on page load. Only the
+   surface / border / text tokens flip — brand + semantic colors
+   stay identical, and shadows change to lighter-mode drop-shadows.
+   ─────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg:  #f7f8fb;
+  --bg2: #ffffff;
+  --bg3: #f1f3f8;
+  --bg4: #e7eaf1;
+  --bg5: #dde1ea;
+  --bg6: #cfd5e0;
+
+  --b1: rgba(15,23,42,0.06);
+  --b2: rgba(15,23,42,0.11);
+  --b3: rgba(15,23,42,0.20);
+  --b4: rgba(15,23,42,0.30);
+
+  --t1: #0f172a;
+  --t2: #475569;
+  --t3: #64748b;
+  --t4: #94a3b8;
+
+  /* Slightly different brand blue pairing to keep contrast on white */
+  --blue2: #2563eb;
+
+  --shadow-sm: 0 1px 3px rgba(15,23,42,0.08);
+  --shadow-md: 0 4px 16px rgba(15,23,42,0.10), 0 2px 4px rgba(15,23,42,0.06);
+  --shadow-lg: 0 12px 40px rgba(15,23,42,0.14);
+  --shadow-glow-blue: 0 0 20px rgba(59,127,245,0.22);
+
+  color-scheme: light;
 }
 
 /* ── RESET & BASE ─────────────────────────────────── */
@@ -1448,7 +1484,7 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
 
 <!-- ═══ PAGE: DRIVER ROSTER ═══ -->
 <div class="page" id="page-driver-roster">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Driver Roster & Profiles</div><div class="ph-sub">Complete driver database — 19 registered drivers</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Add Driver — not implemented yet')">+ Add Driver</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Driver Roster & Profiles</div><div class="ph-sub">Complete driver database — <span data-kpi="driversTotal">—</span> registered drivers</div></div><div class="ph-right"><button class="tb-btn primary" onclick="openAddDriverModal()">+ Add Driver</button></div></div>
   <div class="kpi-grid g4">
     <div class="kc"><div class="kc-label">Total Registered</div><div class="kc-value">19</div></div>
     <div class="kc"><div class="kc-label">Active Today</div><div class="kc-value" style="color:var(--green)">16</div></div>
@@ -1501,7 +1537,7 @@ Tier: Top ≥80 · Average 60–79 · Low <60</div>
 
 <!-- ═══ PAGE: DRIVER SHIFTS ═══ -->
 <div class="page" id="page-driver-shifts">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Shifts & Scheduling</div><div class="ph-sub">Shift allocation, attendance, and demand-aligned scheduling</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('New Shift — not implemented yet')">+ New Shift</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Shifts & Scheduling</div><div class="ph-sub">Shift allocation, attendance, and demand-aligned scheduling</div></div><div class="ph-right"><button class="tb-btn primary" onclick="openNewShiftModal()">+ New Shift</button></div></div>
   <div class="kpi-grid g5">
     <div class="kc"><div class="kc-label">Today's Scheduled</div><div class="kc-value">19</div></div>
     <div class="kc"><div class="kc-label">Confirmed Present</div><div class="kc-value" style="color:var(--green)">16</div></div>
@@ -1596,7 +1632,7 @@ Tier: Top ≥80 · Average 60–79 · Low <60</div>
 
 <!-- ═══ PAGE: VEHICLES ═══ -->
 <div class="page" id="page-vehicle-fleet">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Fleet Register</div><div class="ph-sub">All 14 vehicles — specs, assignment, and operational status</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Add Vehicle — not implemented yet')">+ Add Vehicle</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Fleet Register</div><div class="ph-sub">All <span data-kpi="vehiclesTotal">—</span> vehicles — specs, assignment, and operational status</div></div><div class="ph-right"><button class="tb-btn primary" onclick="openAddVehicleModal()">+ Add Vehicle</button></div></div>
   <div class="kpi-grid g5">
     <div class="kc"><div class="kc-label">Total Fleet</div><div class="kc-value">14</div></div>
     <div class="kc"><div class="kc-label">In Service</div><div class="kc-value" style="color:var(--green)">11</div></div>
@@ -1647,7 +1683,7 @@ Cost/km = (fuel + maintenance + depreciation) / total_km</div>
 
 <!-- ═══ PAGE: VEHICLE MAINTENANCE ═══ -->
 <div class="page" id="page-vehicle-maintenance">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Maintenance Tracker</div><div class="ph-sub">Scheduled, active, and historical maintenance — zero unplanned downtime goal</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Log Service — not implemented yet')">+ Log Service</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Maintenance Tracker</div><div class="ph-sub">Scheduled, active, and historical maintenance — zero unplanned downtime goal</div></div><div class="ph-right"><button class="tb-btn primary" onclick="openLogServiceModal()">+ Log Service</button></div></div>
   <div class="kpi-grid g5">
     <div class="kc"><div class="kc-label">Currently in Workshop</div><div class="kc-value" style="color:var(--amber)">2</div></div>
     <div class="kc"><div class="kc-label">Due Within 500km</div><div class="kc-value" style="color:var(--amber)">3</div></div>
@@ -1941,7 +1977,7 @@ Weekend rule: City Centre +30% allocation Friday–Saturday 18:00+</div>
 
 <!-- ═══ PAGE: INCIDENTS ═══ -->
 <div class="page" id="page-incidents">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Incidents & Accidents</div><div class="ph-sub">Accident reporting, claims management, and safety audit trail</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Report Incident — not implemented yet')">+ Report Incident</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Incidents & Accidents</div><div class="ph-sub">Accident reporting, claims management, and safety audit trail</div></div><div class="ph-right"><button class="tb-btn primary" onclick="openReportIncidentModal()">+ Report Incident</button></div></div>
   <div class="kpi-grid g5">
     <div class="kc"><div class="kc-label">Open Incidents</div><div class="kc-value" style="color:var(--red)">1</div></div>
     <div class="kc"><div class="kc-label">MTD Total Incidents</div><div class="kc-value">3</div></div>
@@ -1985,7 +2021,7 @@ Weekend rule: City Centre +30% allocation Friday–Saturday 18:00+</div>
 
 <!-- ═══ PAGE: COMPLAINTS ═══ -->
 <div class="page" id="page-complaints">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Complaints & Resolution</div><div class="ph-sub">Customer complaints, investigation status, and resolution tracking</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Log Complaint — not implemented yet')">+ Log Complaint</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Complaints & Resolution</div><div class="ph-sub">Customer complaints, investigation status, and resolution tracking</div></div><div class="ph-right"><button class="tb-btn primary" onclick="openLogComplaintModal()">+ Log Complaint</button></div></div>
   <div class="kpi-grid g4">
     <div class="kc"><div class="kc-label">Open Complaints</div><div class="kc-value" style="color:var(--amber)">3</div></div>
     <div class="kc"><div class="kc-label">Resolved MTD</div><div class="kc-value" style="color:var(--green)">11</div></div>
@@ -2939,12 +2975,33 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     'view:zones', 'manage:dispatch', 'manage:maintenance', 'export:reports',
   ];
 
+  // Permissions now live on the server (User.permissions JSON column).
+  // loadPerms reads from the cached user record; savePerms PATCHes
+  // /api/users/:id so changes persist across sessions and devices.
+  // localStorage is still written as an offline fallback and as a
+  // best-effort "take effect immediately" hint for the current tab.
   const loadPerms = (uid) => {
+    const cached = (FleetAuth.getAllUsers() || []).find(x => x.id === uid);
+    if (cached && Array.isArray(cached.permissions)) return cached.permissions;
     try { return JSON.parse(localStorage.getItem('ft_perms_' + uid) || 'null'); }
     catch(e){ return null; }
   };
   const savePerms = (uid, perms) => {
     try { localStorage.setItem('ft_perms_' + uid, JSON.stringify(perms)); } catch(e){}
+    // Fire-and-forget server save. Errors surface via Toast; failure
+    // does not block the UI toggle because localStorage still carries it.
+    fetch('/api/users/' + encodeURIComponent(uid), {
+      method: 'PATCH',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ permissions: perms }),
+    }).then(r => {
+      if (!r.ok && typeof Toast !== 'undefined') {
+        Toast.error('Could not save permissions server-side (offline?). Stored locally for now.');
+      }
+    }).catch(() => {
+      if (typeof Toast !== 'undefined') Toast.warning('Saved locally — will retry next time you reload.');
+    });
   };
 
   function userCard(u, editable) {
@@ -4336,98 +4393,194 @@ window.addEventListener('fleetdata:live-available', (ev) => {
 // No-driver cars: TR2517, TR731, TV1409721
 // Workshop cars: TR2538, TR3338
 
-// Drivers / vehicles live in public/fleet-data.js (single source of truth)
-// FleetData.load() can later swap to /api/drivers + /api/vehicles for live DB data.
-const drivers  = (window.FleetData && window.FleetData.drivers)  ? window.FleetData.drivers  : [];
-const vehicles = (window.FleetData && window.FleetData.vehicles) ? window.FleetData.vehicles : [];
+// ── Live table population ───────────────────────────────────────────
+// Tables render from FleetData.drivers / FleetData.vehicles and real
+// /api/trips data. renderFleetTables() runs on fleetdata:ready /
+// fleetdata:updated so changes in the DB show up without a reload.
+//
+// Amounts coming from the Prisma API are already in NOK — no locale
+// conversion needed. If a driver has no aggregated performance numbers
+// yet (rev, revhr, triphr all zero) the row renders with "—" rather
+// than a misleading score of 0.
+let drivers = [];
+let vehicles = [];
 
 function score(d){
-  return Math.round(Math.min(100,d.revhr/20*100)*0.30+d.util*0.25+Math.min(100,d.acc)*0.20+Math.min(100,d.triphr/2.5*100)*0.15+Math.max(0,100-d.can*5)*0.10);
+  if (!d || !Number.isFinite(d.revhr) || d.revhr <= 0) return 0;
+  return Math.round(
+    Math.min(100, d.revhr/20*100) * 0.30 +
+    (d.util||0) * 0.25 +
+    Math.min(100, d.acc||0) * 0.20 +
+    Math.min(100, (d.triphr||0)/2.5*100) * 0.15 +
+    Math.max(0, 100 - (d.can||0)*5) * 0.10
+  );
 }
 function tier(s){return s>=80?['Top','b-green']:s>=60?['Avg','b-blue']:['Low','b-red'];}
 function scColor(s){return s>=80?'#10b981':s>=60?'#3b82f6':'#ef4444';}
-function profitColor(p){return p>=0?'#10b981':'#ef4444';}
 function vstatus(p){return p>100?['Top','b-green']:p>30?['Avg','b-blue']:p>0?['Watch','b-amber']:['Loss','b-red'];}
 
-// Populate DRIVER ROSTER
-const rosterTbody=document.getElementById('roster-tbody');
-drivers.forEach(d=>{
-  const s=score(d);const[t,tc]=tier(s);
-  const tr=document.createElement('tr');
-  const shiftBadge=d.shift==='AM'?'<span class="badge b-blue">AM</span>':'<span class="badge b-purple">PM</span>';
-  const sharedCar=drivers.filter(x=>x.car===d.car).length>1;
-  const carCell=sharedCar?`<strong style="color:var(--amber)">${d.car}</strong> <span class="badge b-amber">2-shift</span>`:`<strong>${d.car}</strong>`;
-  tr.innerHTML=`<td>${d.r}</td><td><strong>${d.n}</strong></td><td>${carCell}</td><td>${d.brand}</td><td>${shiftBadge}</td><td>${d.comm}%</td><td><span class="badge b-purple">Bolt</span></td><td>${d.zone}</td><td><span class="badge ${tc}">${s}</span></td><td><span class="badge ${s>=60?'b-green':'b-red'}">${s>=60?'Active':'Watch'}</span></td>`;
-  rosterTbody.appendChild(tr);
-});
+function emptyTbodyMessage(cols, msg){
+  return `<tr><td colspan="${cols}" style="text-align:center;color:var(--t3);font-size:13px;padding:var(--s7)">${msg}</td></tr>`;
+}
 
-// Populate PERFORMANCE TABLE
-const perfTbody=document.getElementById('perf-tbody');
-drivers.forEach(d=>{
-  const s=score(d);const[t,tc]=tier(s);
-  const tr=document.createElement('tr');
-  if(s<40)tr.classList.add('tr-red');
-  else if(s<60)tr.classList.add('tr-amber');
-  const trend=d.r<=6?'↑':d.r<=13?'→':'↓';
-  const shiftBadge=d.shift==='AM'?'<span class="badge b-blue">AM</span>':'<span class="badge b-purple">PM</span>';
-  const sharedCar=drivers.filter(x=>x.car===d.car).length>1;
-  const carCell=sharedCar?`<span style="color:var(--amber);font-weight:600">${d.car}</span>`:`${d.car}`;
-  const drev=Math.round(d.rev*11.5);const drevhr=Math.round(d.revhr*11.5);
-  tr.innerHTML=`<td>${d.r}</td><td>${d.n}</td><td>${carCell}</td><td>${shiftBadge}</td><td><span class="cur" data-nok="${drev}">${FleetCurrency.format(drev)}</span></td><td><span class="cur" data-nok="${drevhr}">${FleetCurrency.format(drevhr)}</span></td><td>${d.triphr.toFixed(1)}</td><td>${d.acc}%</td><td>${d.can}%</td><td>${d.idle}%</td><td>${d.util}%</td>
-  <td><div class="sbar-wrap"><span class="sbar-num">${s}</span><div class="sbar"><div class="sbar-fill" style="width:${s}%;background:${scColor(s)}"></div></div></div></td>
-  <td><span class="badge ${tc}">${t}</span></td><td style="color:${trend==='↑'?'var(--green)':trend==='→'?'var(--amber)':'var(--red)'}">${trend}</td>`;
-  perfTbody.appendChild(tr);
-});
+function renderDriverTables(){
+  const rosterTbody=document.getElementById('roster-tbody');
+  if (rosterTbody){
+    rosterTbody.innerHTML = '';
+    if (!drivers.length){
+      rosterTbody.innerHTML = emptyTbodyMessage(10, 'No drivers yet. Import from CSV via the Data Import page.');
+    } else {
+      drivers.forEach(d=>{
+        const s=score(d);const[,tc]=tier(s);
+        const tr=document.createElement('tr');
+        const shiftBadge=d.shift==='AM'?'<span class="badge b-blue">AM</span>':d.shift==='PM'?'<span class="badge b-purple">PM</span>':'<span class="badge b-gray">—</span>';
+        const sharedCar=d.car && drivers.filter(x=>x.car===d.car).length>1;
+        const carCell=sharedCar?`<strong style="color:var(--amber)">${d.car}</strong> <span class="badge b-amber">2-shift</span>`:`<strong>${d.car||'—'}</strong>`;
+        const scoreBadge = s > 0 ? `<span class="badge ${tc}">${s}</span>` : '<span style="color:var(--t3)">—</span>';
+        const statusBadge = d.status ? `<span class="badge b-gray">${d.status}</span>` : (s>=60?'<span class="badge b-green">Active</span>':'<span class="badge b-gray">—</span>');
+        tr.innerHTML=`<td>${d.r}</td><td><strong>${d.n}</strong></td><td>${carCell}</td><td>${d.brand||'—'}</td><td>${shiftBadge}</td><td>${d.comm?d.comm+'%':'—'}</td><td><span class="badge b-gray">—</span></td><td>${d.zone||'—'}</td><td>${scoreBadge}</td><td>${statusBadge}</td>`;
+        rosterTbody.appendChild(tr);
+      });
+    }
+  }
 
-// Populate VEHICLE PERFORMANCE TABLE
-const vehPerfTbody=document.getElementById('veh-perf-tbody');
-if(vehPerfTbody){vehicles.forEach(v=>{
-  const[st,sc]=vstatus(v.profit);
-  const tr=document.createElement('tr');
-  if(v.status==='no-driver'||v.status==='workshop')tr.classList.add('tr-red');
-  else if(v.profit<0)tr.classList.add('tr-red');
-  const vrev=Math.round(v.rev*11.5);const vprof=Math.round(v.profit*11.5);const vcpkm=Math.round(v.cpkm*11.5*100)/100;
-  const ps=v.profit>=0?`<span style="color:var(--green)"><span class="cur" data-nok="${vprof}">${FleetCurrency.format(vprof)}</span></span>`:`<span style="color:var(--red)"><span class="cur" data-nok="${vprof}">${FleetCurrency.format(vprof)}</span></span>`;
-  const shiftBadge=v.shifts===2?'<span class="badge b-amber">2-shift</span>':v.shifts===0?'<span class="badge b-red">Idle</span>':'<span class="badge b-gray">1-shift</span>';
-  const driverCell=v.drivers.join('<br>');
-  const kmCell=v.status==='no-driver'||v.status==='workshop'?'<span style="color:var(--t3)">—</span>':'';
-  tr.innerHTML=`<td><strong>${v.id}</strong></td><td>${v.make} ${v.model}</td><td>${v.fuel}</td><td>${shiftBadge}</td><td style="font-size:11px">${driverCell}</td><td><span class="cur" data-nok="${vrev}">${FleetCurrency.format(vrev)}</span></td><td>${ps}</td><td>${v.cpkm>0?'<span class="cur" data-nok="'+vcpkm+'">'+FleetCurrency.format(vcpkm)+'</span>':'—'}</td><td>${v.tkm>0?v.tkm+'km':'—'}</td><td>${v.down}%</td><td><span class="badge ${sc}">${st}</span></td>`;
-  vehPerfTbody.appendChild(tr);
-});}
-
-// Populate FLEET REGISTER
-const fleetRegTbody=document.getElementById('fleet-reg-tbody');
-if(fleetRegTbody){vehicles.forEach(v=>{
-  const tr=document.createElement('tr');
-  if(v.status==='no-driver')tr.classList.add('tr-red');
-  else if(v.status==='workshop')tr.classList.add('tr-amber');
-  const driverCell=v.drivers.join(' / ');
-  const shiftBadge=v.shifts===2?'<span class="badge b-amber">2-shift</span>':v.shifts===0?'<span class="badge b-red">Unassigned</span>':'<span class="badge b-gray">1-shift</span>';
-  const statusBadge=v.status==='active'?'<span class="badge b-green">Active</span>':v.status==='shared'?'<span class="badge b-amber">2-shift</span>':v.status==='workshop'?'<span class="badge b-amber">Workshop</span>':'<span class="badge b-red">No Driver</span>';
-  const vrev2=Math.round(v.rev*11.5);const vprof2=Math.round(v.profit*11.5);
-  tr.innerHTML=`<td><strong>${v.id}</strong></td><td>${v.make} ${v.model}</td><td>${v.fuel}</td><td>${shiftBadge}</td><td style="font-size:11px">${driverCell}</td><td>${v.rev>0?'<span class="cur" data-nok="'+vrev2+'">'+FleetCurrency.format(vrev2)+'</span>':'—'}</td><td>${v.profit>=0?'<span style="color:var(--green)"><span class="cur" data-nok="'+vprof2+'">'+FleetCurrency.format(vprof2)+'</span></span>':'<span style="color:var(--red)"><span class="cur" data-nok="'+vprof2+'">'+FleetCurrency.format(vprof2)+'</span></span>'}</td><td>${statusBadge}</td>`;
-  fleetRegTbody.appendChild(tr);
-});}
-
-// Populate TRIP LOG
-const tripLogTbody=document.getElementById('trip-log-tbody');
-if(tripLogTbody){
-  const zones=['City Centre','Airport','Business Park','Suburbs N','Shopping Mall'];
-  const plats=['Bolt','Bolt','Bolt','Uber','Uber'];
-  for(let i=0;i<15;i++){
-    const drv=drivers[i%drivers.length];
-    const veh=vehicles[i%vehicles.length];
-    const pz=zones[i%zones.length];const dz=zones[(i+2)%zones.length];
-    const plat=plats[i%plats.length];const km=(5+Math.random()*25).toFixed(1);
-    const fare=(8+parseFloat(km)*0.9).toFixed(2);
-    const tip=(Math.random()>0.6?(Math.random()*3).toFixed(2):'0.00');
-    const hr=6+i;const mn=Math.floor(Math.random()*60);
-    const tr=document.createElement('tr');
-    const fareNok=Math.round(parseFloat(fare)*11.5);const tipNok=Math.round(parseFloat(tip)*11.5);
-    tr.innerHTML=`<td style="font-family:var(--mono);font-size:11px">TRP-${1000+i}</td><td>${drv.n}</td><td>${veh.id}</td><td><span class="badge ${plat==='Bolt'?'b-purple':'b-blue'}">${plat}</span></td><td>${String(hr%24).padStart(2,'0')}:${String(mn).padStart(2,'0')}</td><td>${pz}</td><td>${dz}</td><td>${km}km</td><td style="color:var(--green)"><span class="cur" data-nok="${fareNok}">${FleetCurrency.format(fareNok)}</span></td><td><span class="cur" data-nok="${tipNok}">${FleetCurrency.format(tipNok)}</span></td><td><span class="badge b-green">Done</span></td>`;
-    tripLogTbody.appendChild(tr);
+  const perfTbody=document.getElementById('perf-tbody');
+  if (perfTbody){
+    perfTbody.innerHTML = '';
+    if (!drivers.length){
+      perfTbody.innerHTML = emptyTbodyMessage(14, 'No drivers yet.');
+    } else {
+      drivers.forEach(d=>{
+        const s=score(d);const[t,tc]=tier(s);
+        const tr=document.createElement('tr');
+        if(s>0 && s<40)tr.classList.add('tr-red');
+        else if(s>0 && s<60)tr.classList.add('tr-amber');
+        const shiftBadge=d.shift==='AM'?'<span class="badge b-blue">AM</span>':d.shift==='PM'?'<span class="badge b-purple">PM</span>':'<span class="badge b-gray">—</span>';
+        const sharedCar=d.car && drivers.filter(x=>x.car===d.car).length>1;
+        const carCell=sharedCar?`<span style="color:var(--amber);font-weight:600">${d.car}</span>`:(d.car||'—');
+        const revCell = d.rev > 0 ? `<span class="cur" data-nok="${d.rev}">${FleetCurrency.format(d.rev)}</span>` : '—';
+        const revhrCell = d.revhr > 0 ? `<span class="cur" data-nok="${d.revhr}">${FleetCurrency.format(d.revhr)}</span>` : '—';
+        const scoreCell = s > 0
+          ? `<div class="sbar-wrap"><span class="sbar-num">${s}</span><div class="sbar"><div class="sbar-fill" style="width:${s}%;background:${scColor(s)}"></div></div></div>`
+          : '<span style="color:var(--t3)">—</span>';
+        const tierCell = s > 0 ? `<span class="badge ${tc}">${t}</span>` : '—';
+        tr.innerHTML=`<td>${d.r}</td><td>${d.n}</td><td>${carCell}</td><td>${shiftBadge}</td><td>${revCell}</td><td>${revhrCell}</td><td>${d.triphr?d.triphr.toFixed(1):'—'}</td><td>${d.acc?d.acc+'%':'—'}</td><td>${d.can?d.can+'%':'—'}</td><td>${d.idle?d.idle+'%':'—'}</td><td>${d.util?d.util+'%':'—'}</td><td>${scoreCell}</td><td>${tierCell}</td><td>—</td>`;
+        perfTbody.appendChild(tr);
+      });
+    }
   }
 }
+
+function renderVehicleTables(){
+  const vehPerfTbody=document.getElementById('veh-perf-tbody');
+  if(vehPerfTbody){
+    vehPerfTbody.innerHTML = '';
+    if (!vehicles.length){
+      vehPerfTbody.innerHTML = emptyTbodyMessage(11, 'No vehicles yet. Import from CSV.');
+    } else {
+      vehicles.forEach(v=>{
+        const[st,sc]=vstatus(v.profit);
+        const tr=document.createElement('tr');
+        if(v.status==='no-driver'||v.status==='workshop')tr.classList.add('tr-red');
+        else if(v.profit<0)tr.classList.add('tr-red');
+        const revCell = v.rev > 0 ? `<span class="cur" data-nok="${v.rev}">${FleetCurrency.format(v.rev)}</span>` : '—';
+        const profitCell = v.profit !== 0
+          ? `<span style="color:var(--${v.profit>=0?'green':'red'})"><span class="cur" data-nok="${v.profit}">${FleetCurrency.format(v.profit)}</span></span>`
+          : '—';
+        const cpkmCell = v.cpkm > 0 ? `<span class="cur" data-nok="${v.cpkm}">${FleetCurrency.format(v.cpkm)}</span>` : '—';
+        const shiftBadge=v.shifts===2?'<span class="badge b-amber">2-shift</span>':v.shifts===0?'<span class="badge b-red">Idle</span>':'<span class="badge b-gray">1-shift</span>';
+        const driverCell=v.drivers && v.drivers.length ? v.drivers.join('<br>') : '<span style="color:var(--t3)">—</span>';
+        tr.innerHTML=`<td><strong>${v.id}</strong></td><td>${v.make||'—'} ${v.model||''}</td><td>${v.fuel||'—'}</td><td>${shiftBadge}</td><td style="font-size:11px">${driverCell}</td><td>${revCell}</td><td>${profitCell}</td><td>${cpkmCell}</td><td>${v.tkm>0?v.tkm+'km':'—'}</td><td>${v.down||0}%</td><td><span class="badge ${sc}">${st}</span></td>`;
+        vehPerfTbody.appendChild(tr);
+      });
+    }
+  }
+
+  const fleetRegTbody=document.getElementById('fleet-reg-tbody');
+  if(fleetRegTbody){
+    fleetRegTbody.innerHTML = '';
+    if (!vehicles.length){
+      fleetRegTbody.innerHTML = emptyTbodyMessage(9, 'No vehicles yet.');
+    } else {
+      vehicles.forEach(v=>{
+        const tr=document.createElement('tr');
+        if(v.status==='no-driver')tr.classList.add('tr-red');
+        else if(v.status==='workshop')tr.classList.add('tr-amber');
+        const driverCell=v.drivers && v.drivers.length ? v.drivers.join(' / ') : '<span style="color:var(--t3)">—</span>';
+        const shiftBadge=v.shifts===2?'<span class="badge b-amber">2-shift</span>':v.shifts===0?'<span class="badge b-red">Unassigned</span>':'<span class="badge b-gray">1-shift</span>';
+        const statusMap={active:'<span class="badge b-green">Active</span>',shared:'<span class="badge b-amber">2-shift</span>',workshop:'<span class="badge b-amber">Workshop</span>','no-driver':'<span class="badge b-red">No Driver</span>'};
+        const statusBadge = statusMap[v.status] || `<span class="badge b-gray">${v.status||'—'}</span>`;
+        const revCell = v.rev > 0 ? `<span class="cur" data-nok="${v.rev}">${FleetCurrency.format(v.rev)}</span>` : '—';
+        const profCell = v.profit !== 0
+          ? `<span style="color:var(--${v.profit>=0?'green':'red'})"><span class="cur" data-nok="${v.profit}">${FleetCurrency.format(v.profit)}</span></span>`
+          : '—';
+        tr.innerHTML=`<td><strong>${v.id}</strong></td><td>${v.make||'—'} ${v.model||''}</td><td>${v.fuel||'—'}</td><td>${shiftBadge}</td><td style="font-size:11px">${driverCell}</td><td>${revCell}</td><td>${profCell}</td><td>${statusBadge}</td>`;
+        fleetRegTbody.appendChild(tr);
+      });
+    }
+  }
+}
+
+async function renderTripLog(){
+  const tripLogTbody=document.getElementById('trip-log-tbody');
+  if (!tripLogTbody) return;
+  tripLogTbody.innerHTML = emptyTbodyMessage(11, 'Loading trips…');
+  try {
+    const r = await fetch('/api/trips?limit=50', { credentials:'same-origin', cache:'no-store' });
+    if (!r.ok) {
+      tripLogTbody.innerHTML = emptyTbodyMessage(11, 'Could not load trips.');
+      return;
+    }
+    const trips = await r.json();
+    if (!Array.isArray(trips) || !trips.length){
+      tripLogTbody.innerHTML = emptyTbodyMessage(11, 'No trips yet.');
+      return;
+    }
+    tripLogTbody.innerHTML = '';
+    trips.forEach((t, i) => {
+      const tr=document.createElement('tr');
+      const when = t.startedAt || t.createdAt;
+      const d = when ? new Date(when) : null;
+      const time = d ? String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') : '—';
+      const statusBadge = t.status === 'COMPLETED' ? '<span class="badge b-green">Done</span>'
+                       : t.status === 'CANCELLED' ? '<span class="badge b-gray">Cancelled</span>'
+                       : t.status === 'IN_PROGRESS' ? '<span class="badge b-blue">Live</span>'
+                       : `<span class="badge b-gray">${t.status||'—'}</span>`;
+      const fareCell = t.fare != null ? `<span class="cur" data-nok="${t.fare}">${FleetCurrency.format(t.fare)}</span>` : '—';
+      const kmCell = t.distance != null ? Number(t.distance).toFixed(1) + 'km' : '—';
+      tr.innerHTML = `<td style="font-family:var(--mono);font-size:11px">${t.id.slice(0,8)}</td>`
+        + `<td>${t.driver?.name || '—'}</td>`
+        + `<td>${t.vehicle?.plateNumber || '—'}</td>`
+        + `<td><span class="badge b-gray">—</span></td>`
+        + `<td>${time}</td>`
+        + `<td>${(t.pickupAddress||'—').replace(/</g,'&lt;')}</td>`
+        + `<td>${(t.dropoffAddress||'—').replace(/</g,'&lt;')}</td>`
+        + `<td>${kmCell}</td>`
+        + `<td style="color:var(--green)">${fareCell}</td>`
+        + `<td>—</td>`
+        + `<td>${statusBadge}</td>`;
+      tripLogTbody.appendChild(tr);
+    });
+    if (typeof FleetCurrency !== 'undefined' && FleetCurrency.rerender) FleetCurrency.rerender();
+  } catch (e) {
+    tripLogTbody.innerHTML = emptyTbodyMessage(11, 'Error loading trips.');
+  }
+}
+
+function renderFleetTables(){
+  drivers = (window.FleetData && window.FleetData.drivers) || [];
+  vehicles = (window.FleetData && window.FleetData.vehicles) || [];
+  try { renderDriverTables(); } catch(e){ console.error('driver tables:', e); }
+  try { renderVehicleTables(); } catch(e){ console.error('vehicle tables:', e); }
+  if (typeof FleetCurrency !== 'undefined' && FleetCurrency.rerender) FleetCurrency.rerender();
+}
+
+// Initial render (likely empty — arrays hydrate async). Re-render on
+// FleetData events and kick off the trip log fetch.
+renderFleetTables();
+renderTripLog();
+window.addEventListener('fleetdata:ready',   renderFleetTables);
+window.addEventListener('fleetdata:updated', renderFleetTables);
 
 // ── NAVIGATION ─────────────────────────────────────────
 // Core page switcher — no history side effects.

@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
       email: true,
       name: true,
       role: true,
+      permissions: true,
       driverId: true,
       lastLoginAt: true,
       createdAt: true,
@@ -62,6 +63,18 @@ export async function POST(request: NextRequest) {
   const pwErr = passwordStrengthError(password);
   if (pwErr) return NextResponse.json({ error: "validation_failed", detail: pwErr }, { status: 400 });
 
+  let permissions: string[] | null = null;
+  if (body.permissions !== undefined && body.permissions !== null) {
+    if (Array.isArray(body.permissions) && body.permissions.every((p) => typeof p === "string")) {
+      permissions = body.permissions as string[];
+    } else {
+      return NextResponse.json(
+        { error: "validation_failed", detail: "permissions must be an array of strings" },
+        { status: 400 },
+      );
+    }
+  }
+
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return NextResponse.json({ error: "conflict", detail: "email already in use" }, { status: 409 });
 
@@ -71,8 +84,9 @@ export async function POST(request: NextRequest) {
       name,
       role,
       passwordHash: await hashPassword(password),
+      ...(permissions ? { permissions } : {}),
     },
-    select: { id: true, email: true, name: true, role: true, createdAt: true },
+    select: { id: true, email: true, name: true, role: true, permissions: true, createdAt: true },
   });
 
   await writeAudit({

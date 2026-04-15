@@ -113,15 +113,50 @@ See `.env.example`. Required for the app to start:
 Admin-gated tools also need:
 - `SEED_TOKEN`
 
-## Known remaining work (post Deploy 1)
+## Permissions storage
 
-- Dashboard.html still embeds a historical-snapshot KPI set as design
-  placeholders. `dashboard-live.js` overwrites them with live values on
-  page load, but a full rewrite to fetch-then-render is follow-up work.
-- Permission overrides on a per-user basis still live in client-side
-  `localStorage`; server-side perm storage is not modeled.
-- `/api/export/*` returns the whole table. Paginate / stream for large
-  fleets.
-- Migration `20260415200000_user_auth` adds `passwordHash` to the User
-  table — apply via `prisma migrate deploy` against Neon before the new
-  auth endpoints will work.
+As of Deploy 2, per-user permissions are stored server-side in
+`User.permissions` (JSONB array of strings). `PATCH /api/users/:id` with
+`{ permissions: ["view:drivers", ...] }` writes them, and `/api/auth/me`
+returns them on every page load so the client mirror is fresh.
+
+The admin UI (`/access-management` and dashboard's Users & Permissions
+page) PATCHes the server on every toggle. The old `localStorage`-keyed
+overrides are still read as a fallback but are no longer written
+exclusively — the server is authoritative.
+
+Current permission strings recognised by the UI:
+
+```
+view:drivers view:trips view:vehicles view:alerts view:financial
+view:payroll view:zones manage:dispatch manage:maintenance export:reports
+```
+
+Adding a new one: pick a string, reference it in `hasPermission('x')`,
+and admins can grant it from the UI. No schema change needed.
+
+## Exports — pagination
+
+`/api/export/*` now accepts `?limit=N&offset=M`. Default 1 000 rows,
+max 5 000 per request. Response carries `X-Total-Count` so a client
+can fetch subsequent pages until total is reached. All 5 exports
+(drivers, vehicles, trips, fuel, maintenance) share the same helper
+(`src/lib/export-helpers.ts`).
+
+## Known remaining work (post Deploy 2)
+
+- Dashboard KPI tiles that don't have a canonical mapping in
+  `dashboard-live.js` (e.g. hourly trip volume chart, per-driver
+  leaderboard numbers) still show zeros; a `/api/stats/per-driver`
+  endpoint is the natural next step.
+- Per-shift creation UI, incident/complaint models — not yet wired.
+  Those buttons surface a clear "not wired yet" toast rather than
+  silently doing nothing.
+- Fleet-level dark-mode CSS in `dashboard.html` added (both themes),
+  but some inline gradients in the login backdrop are still calibrated
+  for dark mode; visually acceptable in light mode but worth tuning.
+- Apply both migrations in order before the new endpoints will work:
+  `20260415200000_user_auth` (adds passwordHash) then
+  `20260415210000_user_permissions` (adds permissions JSONB). Both
+  are already in `prisma/migrations/`; `prisma migrate deploy` picks
+  them up.
