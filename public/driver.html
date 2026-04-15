@@ -7,6 +7,7 @@
 
 <title>FleetTrack — Driver Portal</title>
 <link rel="stylesheet" href="./design-system.css">
+<link rel="stylesheet" href="./ft-shell.css">
 <style>
 body { background:var(--bg); min-height:100vh; }
 .app { display:flex; flex-direction:column; min-height:100vh; max-width:600px; margin:0 auto; }
@@ -129,16 +130,27 @@ body { background:var(--bg); min-height:100vh; }
 
     <!-- HOME TAB -->
     <div class="tab-panel active" id="tab-home">
-      <!-- Shift status banner -->
-      <div class="shift-banner active" id="shift-banner">
+      <!-- Shift status banner — driven by /api/shifts/current. The
+           Start/Stop buttons hit /api/shifts/start|stop. A hard
+           refresh re-loads the same state because the open shift is
+           server-side; nothing relies on localStorage. -->
+      <div class="shift-banner inactive" id="shift-banner">
         <div class="shift-header">
           <div style="display:flex;align-items:center;gap:8px">
-            <div class="shift-status-dot dot-green" id="shift-dot"></div>
-            <span style="font-weight:600;font-size:14px" id="shift-status-text">Shift Active — AM</span>
+            <div class="shift-status-dot dot-gray" id="shift-dot"></div>
+            <span style="font-weight:600;font-size:14px" id="shift-status-text">Off duty</span>
           </div>
-          <span class="badge b-green" id="shift-badge">On Duty</span>
+          <span class="badge b-gray" id="shift-badge">Off</span>
         </div>
-        <div style="font-size:13px;color:var(--t2)" id="shift-detail">Car: <strong id="d-car" style="color:var(--t1)">TR2518</strong> &nbsp;·&nbsp; <strong id="d-brand" style="color:var(--t1)">NIO ET5</strong></div>
+        <div style="font-size:13px;color:var(--t2)" id="shift-detail">
+          Car: <strong id="d-car" style="color:var(--t1)">—</strong>
+          &nbsp;·&nbsp; <strong id="d-brand" style="color:var(--t1)">—</strong>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button id="shift-start-btn" class="ft-cta" style="flex:1" onclick="startShift()">▶ Start shift</button>
+          <button id="shift-stop-btn"  class="ft-cta danger" style="flex:1;display:none" onclick="stopShift()">■ Stop shift</button>
+        </div>
+        <div id="shift-error" style="margin-top:10px;font-size:12px;color:var(--red);display:none"></div>
       </div>
 
       <!-- Today's KPIs -->
@@ -288,44 +300,20 @@ body { background:var(--bg); min-height:100vh; }
 <script src="./fleet-data.js"></script>
 <script src="./auth.js"></script>
 <script>
-// ── Tab switcher (hoisted FIRST so nav buttons work even if setup errors) ──
-function showTab(id, btn) {
-  try {
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    const panel = document.getElementById('tab-' + id);
-    if (panel) panel.classList.add('active');
-    if (btn) btn.classList.add('active');
-    window.scrollTo(0, 0);
-  } catch (e) { console.warn('[driver] showTab failed:', e); }
-}
-// Expose so inline onclick handlers always find it
-window.showTab = showTab;
-
-// Safe DOM setter — no-op if element missing, swallows errors so a single
-// missing field can't block the rest of page init.
-function setText(id, value) {
-  try {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value == null ? '—' : String(value);
-  } catch (e) {}
-}
-
 // ── Auth guard ───────────────────────────────────────────────────────
 const session = FleetAuth.requireAuth(['driver'], './login.html?portal=driver');
 if (!session) throw new Error('Unauthorized');
 
-// ── Populate session info (each field guarded) ───────────────────────
-const firstName = ((session.name || session.email || 'Driver') + '').split(/[\s@]/)[0];
-setText('d-avatar', session.avatar || (firstName[0] || 'D').toUpperCase());
-setText('d-name', firstName);
-setText('d-car', session.carId || '—');
-setText('d-brand', session.brand || '—');
-setText('profile-avatar', session.avatar || (firstName[0] || 'D').toUpperCase());
-setText('profile-name', session.name || firstName);
-setText('profile-car', `Car: ${session.carId || '—'} · ${session.brand || '—'}`);
-setText('profile-shift', `Shift: ${session.shift || '—'}`);
-setText('profile-email', session.email || '—');
+// ── Populate session info ────────────────────────────────────────────
+document.getElementById('d-avatar').textContent  = session.avatar;
+document.getElementById('d-name').textContent    = session.name.split(' ')[0];
+document.getElementById('d-car').textContent     = session.carId  || '—';
+document.getElementById('d-brand').textContent   = session.brand  || '—';
+document.getElementById('profile-avatar').textContent = session.avatar;
+document.getElementById('profile-name').textContent   = session.name;
+document.getElementById('profile-car').textContent    = `Car: ${session.carId||'—'} · ${session.brand||'—'}`;
+document.getElementById('profile-shift').textContent  = `Shift: ${session.shift||'—'}`;
+document.getElementById('profile-email').textContent  = session.email;
 
 // ── Driver data (keyed by driver id — in prod: fetched from API) ─────
 const driverStats = {
@@ -518,9 +506,115 @@ document.getElementById('notif-list').innerHTML = notifs.map(n=>`
     </div>
   </div>`).join('');
 
+// ── Shift start / stop ────────────────────────────────────────────────
+// All state lives server-side. Reloading the page re-fetches
+// /api/shifts/current so the banner is always in sync with the DB.
+const SHIFT_BTN_START = document.getElementById('shift-start-btn');
+const SHIFT_BTN_STOP  = document.getElementById('shift-stop-btn');
+const SHIFT_ERR       = document.getElementById('shift-error');
+const SHIFT_BANNER    = document.getElementById('shift-banner');
+const SHIFT_DOT       = document.getElementById('shift-dot');
+const SHIFT_TXT       = document.getElementById('shift-status-text');
+const SHIFT_BADGE     = document.getElementById('shift-badge');
+const SHIFT_DETAIL    = document.getElementById('shift-detail');
+
+function setShiftError(msg) {
+  if (!SHIFT_ERR) return;
+  if (!msg) { SHIFT_ERR.style.display = 'none'; SHIFT_ERR.textContent = ''; return; }
+  SHIFT_ERR.style.display = 'block'; SHIFT_ERR.textContent = msg;
+}
+function paintShift(state) {
+  // state.shift may be null. state.today carries running totals.
+  const onShift = !!state.shift;
+  if (onShift) {
+    SHIFT_BANNER.classList.remove('inactive'); SHIFT_BANNER.classList.add('active');
+    SHIFT_DOT.classList.remove('dot-gray'); SHIFT_DOT.classList.add('dot-green');
+    const startedHHMM = state.shift.startTime || (state.shift.clockInAt ? new Date(state.shift.clockInAt).toTimeString().slice(0,5) : '—');
+    SHIFT_TXT.textContent = `Shift active — started ${startedHHMM}`;
+    SHIFT_BADGE.className = 'badge b-green'; SHIFT_BADGE.textContent = 'On Duty';
+    SHIFT_BTN_START.style.display = 'none';
+    SHIFT_BTN_STOP.style.display  = '';
+  } else {
+    SHIFT_BANNER.classList.remove('active'); SHIFT_BANNER.classList.add('inactive');
+    SHIFT_DOT.classList.remove('dot-green'); SHIFT_DOT.classList.add('dot-gray');
+    SHIFT_TXT.textContent = 'Off duty';
+    SHIFT_BADGE.className = 'badge b-gray'; SHIFT_BADGE.textContent = 'Off';
+    SHIFT_BTN_START.style.display = '';
+    SHIFT_BTN_STOP.style.display  = 'none';
+  }
+  if (state.today) {
+    document.getElementById('d-trips').textContent     = state.today.tripCount ?? 0;
+    document.getElementById('d-earnings').textContent  = FleetCurrency.format(state.today.grossNok || 0);
+    document.getElementById('d-hours').textContent     = (state.today.hoursSoFar || 0).toFixed(1) + 'h';
+  }
+}
+async function refreshShift() {
+  setShiftError('');
+  try {
+    const r = await fetch('/api/shifts/current?driverId=' + encodeURIComponent(session.userId || ''), { credentials:'include' });
+    if (!r.ok) {
+      // Auth or DB hiccup — degrade silently to demo data already on the page.
+      return;
+    }
+    const j = await r.json();
+    paintShift(j);
+  } catch (e) { /* network — ignore, keep last paint */ }
+}
+async function startShift() {
+  setShiftError('');
+  SHIFT_BTN_START.disabled = true;
+  try {
+    const r = await fetch('/api/shifts/start', {
+      method: 'POST', credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ driverId: session.userId, vehicleId: session.vehicleId || null }),
+    });
+    const j = await r.json();
+    if (!r.ok) {
+      setShiftError(j?.error || 'Could not start shift');
+      // If we got SHIFT_OPEN, repaint with that shift so the user sees it.
+      if (j?.code === 'SHIFT_OPEN' && j?.shift) paintShift({ shift: j.shift, today: null });
+      return;
+    }
+    await refreshShift();
+  } catch (e) {
+    setShiftError(String(e?.message || e));
+  } finally {
+    SHIFT_BTN_START.disabled = false;
+  }
+}
+async function stopShift() {
+  setShiftError('');
+  SHIFT_BTN_STOP.disabled = true;
+  try {
+    const r = await fetch('/api/shifts/stop', {
+      method: 'POST', credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ driverId: session.userId }),
+    });
+    const j = await r.json();
+    if (!r.ok) { setShiftError(j?.error || 'Could not stop shift'); return; }
+    await refreshShift();
+  } catch (e) {
+    setShiftError(String(e?.message || e));
+  } finally {
+    SHIFT_BTN_STOP.disabled = false;
+  }
+}
+// First paint on load + light polling every 30 s so the banner stays
+// fresh even if the driver leaves the tab open.
+refreshShift();
+setInterval(refreshShift, 30_000);
+
 // ── Tab switching ─────────────────────────────────────────────────────
-// showTab already defined at top of this script (hoisted for safety)
-if (typeof FleetCurrency !== 'undefined') FleetCurrency.rerender();
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  window.scrollTo(0,0);
+}
+FleetCurrency.rerender();
 FleetCurrency.injectToggle(); if(typeof FleetTheme!=="undefined")FleetTheme.injectToggle();
 </script>
 </body>

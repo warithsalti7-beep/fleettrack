@@ -7,6 +7,7 @@
 
 <title>FleetTrack — Sign In</title>
 <link rel="stylesheet" href="./design-system.css">
+<link rel="stylesheet" href="./ft-shell.css">
 <style>
 body { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:var(--s4); background:var(--bg); }
 body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse 80% 60% at 50% -10%, rgba(59,127,245,0.12) 0%, transparent 70%); pointer-events:none; }
@@ -249,39 +250,8 @@ async function handleLogin(e) {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Signing in…';
 
-  // Server cookie is the source of truth. We treat server responses as:
-  //   200  → proceed
-  //   401  → hard reject (invalid creds) — even if local cache thinks OK
-  //   5xx / network error → degraded mode; allow local login but warn user
-  //     that API-backed features will be unavailable this session
-  let serverStatus = 0;
-  let serverError = null;
-  let serverReachable = false;
-  try {
-    const res = await fetch('/api/auth/session', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    serverReachable = true;
-    serverStatus = res.status;
-    if (!res.ok) {
-      const j = await res.json().catch(() => ({}));
-      serverError = j.error || ('HTTP ' + res.status);
-    }
-  } catch (err) {
-    console.warn('[login] server auth unreachable, falling back to local:', err);
-  }
-
-  // Hard reject: server said these credentials are wrong.
-  if (serverReachable && serverStatus === 401) {
-    btn.disabled = false;
-    btn.textContent = portalConfig[currentPortal].btnText;
-    banner.textContent = serverError || 'Invalid email or password.';
-    banner.classList.add('visible');
-    return;
-  }
+  // Simulate network delay (remove in production — real fetch() goes here)
+  await new Promise(r => setTimeout(r, 700));
 
   const result = FleetAuth.login(email, password);
 
@@ -302,10 +272,6 @@ async function handleLogin(e) {
     banner.textContent = `This account doesn't have access to the ${currentPortal} portal. Please select the correct portal.`;
     banner.classList.add('visible');
     return;
-  }
-
-  if (serverReachable && serverStatus !== 200) {
-    console.warn('[login] server session NOT issued (HTTP ' + serverStatus + ') — API calls will 401 until resolved.');
   }
 
   // Success — redirect
