@@ -67,7 +67,8 @@ export function Modal({
   return createPortal(
     <div
       role="presentation"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 backdrop-blur-sm p-0 md:p-4"
+      style={{ animation: "ft-fade-in 150ms ease" }}
       onMouseDown={(e) => {
         // Dismiss only if the click originated on the backdrop.
         if (e.target === e.currentTarget) onClose();
@@ -80,17 +81,18 @@ export function Modal({
         aria-labelledby={titleId}
         aria-describedby={description ? descId : undefined}
         className={cn(
-          "w-full rounded-xl border border-border-muted bg-surface-1 shadow-lg",
+          "w-full border border-border-muted bg-surface-1 shadow-lg",
+          "rounded-t-xl md:rounded-xl",
           "max-h-[92vh] overflow-y-auto",
           "flex flex-col",
         )}
-        style={{ maxWidth: `${widthPx}px` }}
+        style={{ maxWidth: `${widthPx}px`, animation: "ft-pop-in 180ms cubic-bezier(0.4,0,0.2,1)" }}
       >
-        <header className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
+        <header className="flex items-center justify-between gap-3 px-6 py-4 border-b border-border-subtle">
           <div className="min-w-0">
-            <h2 id={titleId} className="text-base font-bold truncate">{title}</h2>
+            <h2 id={titleId} className="text-base font-semibold text-fg truncate">{title}</h2>
             {description && (
-              <p id={descId} className="mt-0.5 text-xs text-subtle">{description}</p>
+              <p id={descId} className="mt-1 text-xs text-subtle">{description}</p>
             )}
           </div>
           {!hideCloseButton && (
@@ -99,15 +101,15 @@ export function Modal({
               size="sm"
               onClick={onClose}
               aria-label="Close dialog"
-              className="text-subtle text-xl leading-none px-2"
+              className="text-subtle hover:text-fg text-lg leading-none px-2 -mr-1"
             >
               ×
             </Button>
           )}
         </header>
-        <div className="px-5 py-5 flex-1">{children}</div>
+        <div className="px-6 py-5 flex-1">{children}</div>
         {footer && (
-          <footer className="px-5 py-4 border-t border-border-subtle flex justify-end gap-2">
+          <footer className="px-6 py-4 border-t border-border-subtle flex justify-end gap-2 bg-surface-1">
             {footer}
           </footer>
         )}

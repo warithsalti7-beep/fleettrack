@@ -66,10 +66,15 @@ export function LiveKpiGridSkeleton() {
       className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-6"
     >
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="rounded-lg border border-border-muted bg-surface-1 p-5 shadow-sm h-[120px]">
-          <div className="bg-surface-3 h-3 w-20 rounded-sm animate-pulse" />
-          <div className="bg-surface-3 h-8 w-28 mt-3 rounded-sm animate-pulse" />
-          <div className="bg-surface-3 h-2.5 w-16 mt-3 rounded-sm animate-pulse" />
+        <div
+          key={i}
+          className="relative rounded-lg border border-border-muted bg-surface-1 shadow-sm overflow-hidden p-5"
+          aria-hidden
+        >
+          <span className="absolute inset-x-0 top-0 h-[3px] bg-surface-3" />
+          <div className="bg-surface-3 h-2.5 w-24 rounded-sm animate-pulse" />
+          <div className="bg-surface-3 h-7 w-32 mt-3 rounded-sm animate-pulse" />
+          <div className="bg-surface-3 h-2.5 w-20 mt-3 rounded-sm animate-pulse" />
         </div>
       ))}
     </section>

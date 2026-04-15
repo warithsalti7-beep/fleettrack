@@ -3,9 +3,8 @@
 import { RoleChip } from "@/components/ui/status-chip";
 
 /**
- * Shared topbar — shows session identity and doubles as a mobile
- * sidebar toggle host. The toggle button is exposed via the
- * useSidebar context from the layout.
+ * Topbar — stays thin and unopinionated so the page header below it
+ * is the true "hero". Shows identity + (on mobile) the sidebar toggle.
  */
 export function AdminTopbar({
   email,
@@ -20,12 +19,20 @@ export function AdminTopbar({
   onToggleSidebar?: () => void;
   sidebarOpen?: boolean;
 }) {
+  const display = name || email;
+  const initials = (name || email)
+    .split(/[\s@._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("") || "··";
+
   return (
     <div
       role="banner"
-      className="h-14 border-b border-border-subtle bg-surface-1 flex items-center justify-between px-4 md:px-6"
+      className="sticky top-0 z-20 h-14 border-b border-border-subtle bg-surface-1/80 backdrop-blur-sm flex items-center justify-between px-4 md:px-6"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 min-w-0">
         {onToggleSidebar && (
           <button
             type="button"
@@ -33,20 +40,32 @@ export function AdminTopbar({
             aria-label={sidebarOpen ? "Close navigation" : "Open navigation"}
             aria-expanded={Boolean(sidebarOpen)}
             aria-controls="admin-sidebar"
-            className="md:hidden size-8 inline-flex items-center justify-center rounded-md border border-border-muted text-muted hover:text-fg"
+            className="md:hidden size-9 inline-flex items-center justify-center rounded-md border border-border-muted text-muted hover:text-fg hover:border-border transition-colors"
           >
             {sidebarOpen ? "×" : "☰"}
           </button>
         )}
-        <div className="text-2xs font-mono text-subtle hidden sm:block">
-          FleetTrack · React migration preview
-        </div>
+        <a
+          href="/dashboard"
+          className="hidden md:inline-flex items-center gap-1.5 text-xs text-subtle hover:text-muted transition-colors"
+          title="Go to the classic dashboard"
+        >
+          <span aria-hidden>←</span>
+          <span>Classic dashboard</span>
+        </a>
       </div>
+
       <div className="flex items-center gap-3 min-w-0">
         <RoleChip role={role} />
-        <span className="text-xs text-muted truncate max-w-[160px] md:max-w-none">
-          {name || email}
-        </span>
+        <div className="hidden sm:flex items-center gap-2 min-w-0">
+          <div
+            aria-hidden
+            className="size-8 shrink-0 rounded-full bg-surface-3 text-muted flex items-center justify-center text-xs font-mono font-semibold"
+          >
+            {initials}
+          </div>
+          <span className="text-xs text-muted truncate max-w-[180px]">{display}</span>
+        </div>
       </div>
     </div>
   );

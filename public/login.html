@@ -4,215 +4,291 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
-
-<title>FleetTrack — Sign In</title>
+<title>FleetTrack — Sign in</title>
 <link rel="stylesheet" href="./design-system.css">
 <style>
-body { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:var(--s4); background:var(--bg); }
-body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse 80% 60% at 50% -10%, rgba(59,127,245,0.12) 0%, transparent 70%); pointer-events:none; }
-[data-theme="light"] body::before { background:radial-gradient(ellipse 80% 60% at 50% -10%, rgba(37,99,235,0.08) 0%, transparent 70%); }
+/* ══════════════════════════════════════════════════════════════════
+   Login — redesigned to match the /admin React surface.
+   Tokens come from design-system.css so light/dark theme carries.
+══════════════════════════════════════════════════════════════════ */
 
-.login-wrap { width:100%; max-width:420px; position:relative; z-index:1; }
-
-.logo-row { text-align:center; margin-bottom:var(--s7); }
-.logo-mark { display:inline-flex; align-items:center; gap:var(--s3); }
-.logo-icon { width:44px; height:44px; background:linear-gradient(135deg,#1a4db8,#3b7ff5); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 0 0 1px rgba(59,127,245,0.3), var(--shadow-glow-blue); }
-.logo-name { font-family:var(--mono); font-size:22px; font-weight:700; color:var(--t1); letter-spacing:-0.5px; }
-.logo-sub  { font-size:13px; color:var(--t2); margin-top:var(--s2); text-align:center; }
-
-.portal-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--s2); margin-bottom:var(--s5); background:var(--bg3); border-radius:var(--r3); padding:var(--s1); }
-.portal-tab  { padding:var(--s2) var(--s3); border-radius:var(--r2); text-align:center; cursor:pointer; transition:all var(--fast); font-size:13px; font-weight:500; color:var(--t3); border:1px solid transparent; }
-.portal-tab:hover { color:var(--t2); background:var(--bg4); }
-.portal-tab.active { background:var(--bg2); color:var(--t1); border-color:var(--b2); box-shadow:var(--shadow-sm); }
-.portal-tab .tab-icon { font-size:16px; display:block; margin-bottom:2px; }
-.portal-tab .tab-label { font-size:11.5px; display:block; }
-
-.login-card { background:var(--bg2); border:1px solid var(--b1); border-radius:var(--r4); padding:var(--s7) var(--s7); box-shadow:var(--shadow-lg); }
-
-.login-title { font-size:18px; font-weight:700; color:var(--t1); margin-bottom:var(--s1); }
-.login-sub   { font-size:13px; color:var(--t2); margin-bottom:var(--s6); line-height:1.5; }
-
-.input-icon-wrap { position:relative; }
-.input-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--t3); font-size:15px; pointer-events:none; z-index:1; }
-.input-icon-wrap .form-input { padding-left:38px; }
-
-.show-pw { position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--t3); cursor:pointer; font-size:14px; padding:4px; transition:color var(--fast); }
-.show-pw:hover { color:var(--t2); }
-
-.login-btn { margin-top:var(--s5); }
-
-.demo-hint { margin-top:var(--s4); padding:var(--s3) var(--s4); background:var(--bg3); border-radius:var(--r2); border:1px solid var(--b1); }
-.demo-hint p { font-size:12px; color:var(--t3); line-height:1.6; font-family:var(--mono); }
-.demo-hint strong { color:var(--t2); }
-
-.portal-badge { display:inline-flex; align-items:center; gap:6px; font-size:11.5px; padding:4px 10px; border-radius:var(--r6); font-weight:600; margin-bottom:var(--s4); }
-
-.error-banner { display:none; background:var(--redbg); border:1px solid var(--redborder); border-radius:var(--r2); padding:var(--s3) var(--s4); color:var(--red); font-size:13px; margin-bottom:var(--s4); }
-.error-banner.visible { display:block; }
-
-.footer-links { text-align:center; margin-top:var(--s5); font-size:12px; color:var(--t3); }
-.footer-links a { color:var(--blue2); }
-
-/* Loading spinner */
-.spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
-
-@media (max-width:560px) {
-  .login-card { padding:var(--s5) var(--s5); }
-  body { padding:var(--s3); align-items:flex-start; padding-top:var(--s6); }
-  .login-wrap { max-width:100%; }
-  .logo-row { margin-bottom:var(--s5); }
-  .logo-icon { width:40px; height:40px; font-size:20px; border-radius:10px; }
-  .logo-name { font-size:20px; }
-  .portal-tabs { gap:4px; padding:4px; margin-bottom:var(--s4); }
-  .portal-tab { padding:var(--s2); min-height:52px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  .portal-tab .tab-icon { font-size:17px; margin-bottom:1px; }
-  .portal-tab .tab-label { font-size:10.5px; }
-  .login-title { font-size:17px; }
-  .login-sub { font-size:12.5px; margin-bottom:var(--s5); }
-  .form-input { font-size:16px; } /* 16px prevents iOS zoom-on-focus */
-  .login-btn { padding:14px 20px; font-size:15px; }
-  .demo-hint p { font-size:11.5px; }
-  .footer-links { font-size:11px; margin-top:var(--s4); }
+html, body { height: 100%; }
+body {
+  display: grid;
+  place-items: center;
+  padding: var(--s4);
+  background: var(--bg);
 }
-@media (max-width:380px) {
-  .portal-tab .tab-label { display:none; } /* icon-only tabs on tiny phones */
-  .portal-tab .tab-icon { font-size:20px; margin:0; }
-  .portal-tab { min-height:44px; }
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 0%,   rgba(59,127,245,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 100%, rgba(20,184,166,0.08) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
 }
-@media (hover:none) {
-  .portal-tab, .login-btn, .show-pw { min-height:44px; }
+[data-theme="light"] body::before {
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 0%,   rgba(37,99,235,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 100%, rgba(20,184,166,0.05) 0%, transparent 60%);
 }
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Brand row */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 auto var(--s7);
+}
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1a4db8, #3b7ff5);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 10px rgba(59,127,245,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.brand-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--t1);
+  letter-spacing: -0.01em;
+}
+
+/* Card */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  padding: 32px;
+}
+.card h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--t1);
+  letter-spacing: -0.01em;
+}
+.card .sub {
+  margin-top: 6px;
+  font-size: 13.5px;
+  color: var(--t2);
+  line-height: 1.5;
+}
+
+/* Form */
+form.login {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--t2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  font-family: var(--mono);
+}
+.field .input-wrap {
+  position: relative;
+}
+.field input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  font-size: 14px;
+  color: var(--t1);
+  background: var(--bg);
+  border: 1px solid var(--b2);
+  border-radius: 8px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  font-family: var(--font);
+  box-sizing: border-box;
+}
+.field input::placeholder { color: var(--t4); }
+.field input:hover  { border-color: var(--b3); }
+.field input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(59,127,245,0.2);
+}
+.field .show-pw {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 30px;
+  padding: 0 10px;
+  background: transparent;
+  color: var(--t3);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: background 150ms ease, color 150ms ease;
+}
+.field .show-pw:hover { background: var(--bg3); color: var(--t1); }
+.field input[type="password"], .field input.has-toggle { padding-right: 64px; }
+
+.signin-btn {
+  height: 44px;
+  border: 1px solid var(--blue);
+  background: var(--blue);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 150ms ease, border-color 150ms ease, transform 100ms ease, box-shadow 150ms ease;
+  box-shadow: 0 2px 8px rgba(59,127,245,0.25);
+  margin-top: 4px;
+}
+.signin-btn:hover:not(:disabled) { background: var(--blue2); border-color: var(--blue2); box-shadow: 0 4px 12px rgba(59,127,245,0.3); }
+.signin-btn:active:not(:disabled) { transform: translateY(0.5px); }
+.signin-btn:disabled { opacity: 0.7; cursor: not-allowed; box-shadow: none; }
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Error banner */
+.banner {
+  display: none;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid var(--redborder);
+  background: var(--redbg);
+  color: var(--red);
+}
+.banner.visible { display: block; }
+
+/* Inline field error */
+.field-error {
+  margin-top: 6px;
+  display: none;
+  font-size: 12px;
+  color: var(--red);
+}
+.field-error.visible { display: block; }
+
+/* Footer */
+.foot {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--t3);
+  font-family: var(--mono);
+  letter-spacing: 0.03em;
+}
+.foot a { color: var(--t2); text-decoration: none; }
+.foot a:hover { color: var(--blue2); }
+
+/* Mobile */
+@media (max-width: 480px) {
+  .card { padding: 24px 20px; border-radius: 12px; }
+  .field input { font-size: 16px; /* no iOS zoom-on-focus */ }
+}
+
+/* Theme toggle visual parity — legacy Toast container present */
 </style>
 </head>
 <body>
-<div class="login-wrap">
 
-  <div class="logo-row">
-    <div class="logo-mark">
-      <div class="logo-icon">🚖</div>
-      <div class="logo-name">FleetTrack</div>
-    </div>
-    <p class="logo-sub">Fleet Management Platform</p>
+<main class="wrap">
+  <div class="brand" aria-hidden="true">
+    <div class="brand-mark">FT</div>
+    <div class="brand-name">FleetTrack</div>
   </div>
 
-  <!-- Portal selector -->
-  <div class="portal-tabs" role="tablist">
-    <div class="portal-tab active" onclick="setPortal('admin')"   role="tab" aria-selected="true"  id="tab-admin">
-      <span class="tab-icon">⚙</span><span class="tab-label">Admin</span>
-    </div>
-    <div class="portal-tab"        onclick="setPortal('employee')" role="tab" aria-selected="false" id="tab-employee">
-      <span class="tab-icon">👤</span><span class="tab-label">Employee</span>
-    </div>
-    <div class="portal-tab"        onclick="setPortal('driver')"   role="tab" aria-selected="false" id="tab-driver">
-      <span class="tab-icon">🚗</span><span class="tab-label">Driver</span>
-    </div>
-  </div>
+  <section class="card" aria-labelledby="login-title">
+    <h1 id="login-title">Sign in</h1>
+    <p class="sub">Welcome back. Enter your credentials to continue.</p>
 
-  <!-- Login card -->
-  <div class="login-card">
+    <div class="banner" id="error-banner" role="alert"></div>
 
-    <span class="portal-badge b-blue" id="portal-badge">⚙ Admin Portal</span>
-    <div class="login-title" id="login-title">Welcome back</div>
-    <div class="login-sub"   id="login-sub">Sign in to access the admin dashboard and fleet management tools.</div>
-
-    <div class="error-banner" id="error-banner" role="alert"></div>
-
-    <form id="login-form" novalidate onsubmit="handleLogin(event)">
-      <div class="form-group">
-        <label class="form-label" for="email">Email address</label>
-        <div class="input-icon-wrap">
-          <span class="input-icon">✉</span>
-          <input class="form-input" type="email" id="email" name="email" placeholder="you@fleettrack.no" autocomplete="email" required spellcheck="false">
+    <form class="login" id="login-form" novalidate onsubmit="handleLogin(event)">
+      <div class="field">
+        <label for="email">Email</label>
+        <div class="input-wrap">
+          <input id="email" name="email" type="email" placeholder="you@fleettrack.no" autocomplete="email" required spellcheck="false">
         </div>
-        <div class="form-error" id="email-error">Please enter a valid email address.</div>
+        <div class="field-error" id="email-error">Please enter a valid email address.</div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="password">Password</label>
-        <div class="input-icon-wrap" style="position:relative">
-          <span class="input-icon">🔒</span>
-          <input class="form-input" type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
-          <button type="button" class="show-pw" onclick="togglePw()" title="Show/hide password" aria-label="Toggle password visibility">👁</button>
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input-wrap">
+          <input id="password" name="password" type="password" class="has-toggle" placeholder="••••••••" autocomplete="current-password" required>
+          <button type="button" class="show-pw" onclick="togglePw()" aria-label="Toggle password visibility">Show</button>
         </div>
-        <div class="form-error" id="pw-error">Password is required.</div>
+        <div class="field-error" id="pw-error">Password is required.</div>
       </div>
 
-      <button type="submit" class="btn btn-primary btn-full btn-lg login-btn" id="login-btn">
-        Sign in to Admin Portal
-      </button>
+      <button type="submit" class="signin-btn" id="login-btn">Sign in</button>
     </form>
+  </section>
 
-    <!-- First-time setup hint (only shown when DEMO_HINT_VISIBLE is true) -->
-    <div class="demo-hint" id="demo-hint" style="display:none">
-      <p id="demo-hint-text"></p>
-    </div>
+  <div class="foot">
+    <a href="mailto:admin@fleettrack.no">Contact admin</a>
+    <span>·</span>
+    <span id="ft-build-id">—</span>
+    <span>·</span>
+    <span id="ft-year">2026</span>
   </div>
-
-  <div class="footer-links">
-    <a href="mailto:admin@fleettrack.no">Contact admin</a> ·
-    <span id="ft-build-id">—</span> ·
-    <span id="ft-year">2026</span> <span>FleetTrack</span>
-  </div>
-
-</div>
+</main>
 
 <script src="./auth.js"></script>
 <script>
-let currentPortal = 'admin';
-
-const portalConfig = {
-  admin: {
-    badge:    '⚙ Admin Portal',
-    badgeCls: 'b-blue',
-    title:    'Welcome back',
-    sub:      'Sign in to access the admin dashboard and fleet management tools.',
-    btnText:  'Sign in to Admin Portal',
-    dest:     '/dashboard',
-  },
-  employee: {
-    badge:    '👤 Employee Portal',
-    badgeCls: 'b-teal',
-    title:    'Employee sign in',
-    sub:      'Access your fleet operations tools. Contact your admin if you need access.',
-    btnText:  'Sign in to Employee Portal',
-    dest:     '/dashboard',
-  },
-  driver: {
-    badge:    '🚗 Driver Portal',
-    badgeCls: 'b-green',
-    title:    'Driver sign in',
-    sub:      'View your shifts, trips, earnings and performance stats.',
-    btnText:  'Sign in to Driver Portal',
-    dest:     '/driver',
-  },
+// Destination per role after successful sign-in.
+const ROLE_DEST = {
+  admin:    '/dashboard',
+  employee: '/dashboard',
+  driver:   '/driver',
 };
-
-function setPortal(p) {
-  currentPortal = p;
-  const cfg = portalConfig[p];
-  // Update tabs
-  document.querySelectorAll('.portal-tab').forEach(t => {
-    t.classList.remove('active');
-    t.setAttribute('aria-selected','false');
-  });
-  const activeTab = document.getElementById('tab-' + p);
-  activeTab.classList.add('active');
-  activeTab.setAttribute('aria-selected','true');
-  // Update UI
-  const badge = document.getElementById('portal-badge');
-  badge.textContent = cfg.badge;
-  badge.className   = 'portal-badge ' + cfg.badgeCls;
-  document.getElementById('login-title').textContent = cfg.title;
-  document.getElementById('login-sub').textContent   = cfg.sub;
-  document.getElementById('login-btn').textContent   = cfg.btnText;
-  // Clear errors
-  document.getElementById('error-banner').classList.remove('visible');
-}
 
 function togglePw() {
   const inp = document.getElementById('password');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
+  const btn = document.querySelector('.show-pw');
+  const hidden = inp.type === 'password';
+  inp.type = hidden ? 'text' : 'password';
+  if (btn) btn.textContent = hidden ? 'Hide' : 'Show';
 }
 
 async function handleLogin(e) {
@@ -222,12 +298,10 @@ async function handleLogin(e) {
   const btn      = document.getElementById('login-btn');
   const banner   = document.getElementById('error-banner');
 
-  // Clear previous errors
   banner.classList.remove('visible');
   document.getElementById('email-error').classList.remove('visible');
   document.getElementById('pw-error').classList.remove('visible');
 
-  // Basic validation
   if (!email || !email.includes('@')) {
     document.getElementById('email-error').classList.add('visible');
     document.getElementById('email').focus();
@@ -239,7 +313,6 @@ async function handleLogin(e) {
     return;
   }
 
-  // Show loading
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Signing in…';
 
@@ -247,32 +320,21 @@ async function handleLogin(e) {
 
   if (!result.ok) {
     btn.disabled = false;
-    btn.textContent = portalConfig[currentPortal].btnText;
-    banner.textContent = result.error;
+    btn.textContent = 'Sign in';
+    banner.textContent = result.error || 'Invalid email or password.';
     banner.classList.add('visible');
     return;
   }
 
-  // Validate portal matches role
-  const { session } = result;
-  const rolePortalMap = { admin: 'admin', employee: 'employee', driver: 'driver' };
-  if (rolePortalMap[session.role] !== currentPortal) {
-    btn.disabled = false;
-    btn.textContent = portalConfig[currentPortal].btnText;
-    banner.textContent = `This account doesn't have access to the ${currentPortal} portal. Please select the correct portal.`;
-    banner.classList.add('visible');
-    return;
-  }
-
-  // Success — redirect
+  const dest = ROLE_DEST[result.session.role] || '/dashboard';
   btn.innerHTML = '✓ Redirecting…';
-  window.location.href = portalConfig[currentPortal].dest;
+  window.location.href = dest;
 }
 
-// Inject the theme toggle so visitors can switch dark/light before logging in.
+// Theme toggle auto-injected by auth.js's FleetTheme helper.
 if (typeof FleetTheme !== 'undefined') FleetTheme.injectToggle();
 
-// Footer build id + year (pulls /api/health which surfaces the build sha)
+// Footer build id + year.
 (function fillFooter(){
   try { document.getElementById('ft-year').textContent = String(new Date().getFullYear()); } catch(e){}
   fetch('/api/health', { credentials: 'same-origin' })
@@ -281,24 +343,17 @@ if (typeof FleetTheme !== 'undefined') FleetTheme.injectToggle();
     .catch(() => {});
 })();
 
-// Check URL params for error messages
+// Show "unauthorized" from upstream pages.
 const urlParams = new URLSearchParams(window.location.search);
 const errorParam = urlParams.get('error');
 if (errorParam === 'unauthorized') {
-  // Clear stale session so the user can sign in fresh — otherwise the
-  // "already logged in" block below would redirect them straight back
-  // into the page that just rejected them.
   try { localStorage.removeItem('ft_session'); } catch(e){}
   const banner = document.getElementById('error-banner');
   banner.textContent = 'You do not have permission to access that page. Please sign in again.';
   banner.classList.add('visible');
 }
-// Pre-select portal from URL
-const portalParam = urlParams.get('portal');
-if (['admin','driver','employee'].includes(portalParam)) setPortal(portalParam);
 
-// Loop breaker: if login->portal->login happens within 5 seconds MORE than
-// twice in a row, force-clear everything and stay on login with a banner.
+// Loop breaker — clears auth if /login ↔ /dashboard ping-pongs.
 (function loopGuard(){
   const NOW = Date.now();
   const KEY = 'ft_login_visits';
@@ -308,7 +363,6 @@ if (['admin','driver','employee'].includes(portalParam)) setPortal(portalParam);
   visits.push(NOW);
   try { sessionStorage.setItem(KEY, JSON.stringify(visits)); } catch(e){}
   if (visits.length >= 3) {
-    // Definite loop — nuke everything that could cause a bounce and halt.
     try {
       localStorage.removeItem('ft_session');
       localStorage.removeItem('ft_preview_as');
@@ -317,20 +371,18 @@ if (['admin','driver','employee'].includes(portalParam)) setPortal(portalParam);
     banner.textContent = 'We detected a redirect loop and cleared your session to break it. Please sign in again.';
     banner.classList.add('visible');
     try { sessionStorage.removeItem(KEY); } catch(e){}
-    return; // do NOT auto-redirect below
+    return;
   }
 
-  // If already logged in AND no error is being shown, redirect to the correct portal.
   if (errorParam !== 'unauthorized') {
-    const existingSession = FleetAuth.getSession();
-    if (existingSession) {
-      const dest = portalConfig[existingSession.role]?.dest;
-      // Don't redirect to where we just came from (same-tab ping-pong)
+    const existing = FleetAuth.getSession();
+    if (existing) {
+      const dest = ROLE_DEST[existing.role] || '/dashboard';
       const ref = document.referrer || '';
       const comingFromDest = ref && dest && ref.indexOf(dest) > -1;
       if (dest && !comingFromDest) {
         window.location.href = dest;
-      } else if (comingFromDest){
+      } else if (comingFromDest) {
         const banner = document.getElementById('error-banner');
         banner.textContent = 'Your session was rejected by the previous page. Please sign in again.';
         banner.classList.add('visible');

@@ -11,8 +11,13 @@ import { cn } from "@/lib/utils";
 
 export function TableContainer({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn("rounded-lg border border-border-muted bg-surface-1 overflow-x-auto", className)}>
-      {children}
+    <div
+      className={cn(
+        "rounded-lg border border-border-muted bg-surface-1 overflow-hidden",
+        className,
+      )}
+    >
+      <div className="overflow-x-auto">{children}</div>
     </div>
   );
 }
@@ -30,8 +35,8 @@ export function Thead({ className, ...rest }: React.HTMLAttributes<HTMLTableSect
   return (
     <thead
       className={cn(
-        "text-2xs uppercase tracking-wider font-mono text-muted",
-        "bg-surface-2",
+        "text-2xs uppercase tracking-wider font-mono text-subtle",
+        "bg-surface-2 border-b border-border-subtle",
         className,
       )}
       {...rest}
@@ -47,7 +52,8 @@ export function Tr({ className, ...rest }: React.HTMLAttributes<HTMLTableRowElem
   return (
     <tr
       className={cn(
-        "border-t border-border-subtle hover:bg-surface-2 transition-colors",
+        "border-t border-border-subtle first:border-t-0",
+        "hover:bg-surface-2 transition-colors duration-150",
         className,
       )}
       {...rest}
@@ -70,7 +76,7 @@ export function Th({
     <th
       scope="col"
       className={cn(
-        "px-3 py-3 font-medium",
+        "px-4 py-2.5 font-semibold h-10 align-middle",
         right ? "text-right" : "text-left",
         className,
       )}
@@ -81,12 +87,21 @@ export function Th({
           type="button"
           onClick={onSort}
           className={cn(
-            "inline-flex items-center gap-1 hover:text-fg transition-colors",
+            "inline-flex items-center gap-1 -mx-1 px-1 py-0.5 rounded",
+            "hover:text-fg transition-colors duration-150",
             sortActive && "text-brand-2",
           )}
         >
           {children}
-          {sortActive && <span aria-hidden className="text-[10px]">{sortDir === "asc" ? "▲" : "▼"}</span>}
+          <span
+            aria-hidden
+            className={cn(
+              "text-[9px] transition-opacity duration-150",
+              sortActive ? "opacity-100" : "opacity-30",
+            )}
+          >
+            {sortActive ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}
+          </span>
         </button>
       ) : (
         children
@@ -104,7 +119,7 @@ export function Td({ right, mono, className, ...rest }: TdProps) {
   return (
     <td
       className={cn(
-        "px-3 py-3 align-middle",
+        "px-4 py-3 align-middle",
         right ? "text-right tabular-nums" : "",
         mono && "font-mono text-xs",
         className,

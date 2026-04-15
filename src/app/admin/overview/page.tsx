@@ -5,6 +5,7 @@
 import { Suspense } from "react";
 import { apiJson } from "@/lib/server-fetch";
 import { LiveKpiGrid, LiveKpiGridSkeleton, type Kpis } from "@/components/admin/live-kpi-grid";
+import { PageHeader } from "@/components/admin/page-header";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,13 +13,10 @@ export const dynamic = "force-dynamic";
 export default async function AdminOverviewPage() {
   return (
     <>
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Live Overview</h1>
-        <p className="text-sm text-muted mt-1">
-          Fleet-wide KPIs computed from live trip + fixed-cost data.
-        </p>
-      </header>
-
+      <PageHeader
+        title="Live Overview"
+        subtitle="Fleet-wide KPIs computed from live trip and fixed-cost data."
+      />
       <Suspense fallback={<LiveKpiGridSkeleton />}>
         <OverviewKpis />
       </Suspense>

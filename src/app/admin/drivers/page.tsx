@@ -3,15 +3,10 @@
  *
  * Server Component fetches /api/drivers + /api/stats/per-driver in
  * parallel, merges them, and hands off to the client table.
- *
- * Error handling:
- *  - /api/drivers failure → full-page danger card.
- *  - /api/stats/per-driver failure → table renders with "—" perf
- *    columns, plus a visible info banner so the admin knows why the
- *    numbers are missing.
  */
 import { apiJson } from "@/lib/server-fetch";
 import { DriverTable } from "@/components/admin/drivers/driver-table";
+import { PageHeader } from "@/components/admin/page-header";
 import {
   mergeDriverViews,
   type DriverPerfRow,
@@ -30,7 +25,7 @@ export default async function AdminDriversPage() {
   if (!drivers) {
     return (
       <>
-        <PageHeader />
+        <PageHeader title="Drivers" />
         <div
           role="alert"
           className="rounded-lg border border-danger-border bg-danger-bg p-6"
@@ -50,30 +45,24 @@ export default async function AdminDriversPage() {
   const rows = mergeDriverViews(drivers, perf?.drivers ?? []);
   return (
     <>
-      <PageHeader count={rows.length} />
+      <PageHeader
+        title="Drivers"
+        subtitle={
+          rows.length === 0
+            ? "No drivers yet. Create one to get started, or bulk-import from the Data Import page."
+            : `${rows.length} driver${rows.length === 1 ? "" : "s"} · performance over the last 7 days.`
+        }
+      />
       {!perfAvailable && (
         <div
           role="status"
-          className="mb-4 rounded-md border border-warn-border bg-warn-bg text-warn text-sm px-4 py-2"
+          className="mb-4 rounded-md border border-warn-border bg-warn-bg text-warn text-sm px-4 py-2.5"
         >
-          Performance metrics (revenue / accept / score) could not be loaded.
+          Performance metrics (revenue, accept, score) could not be loaded.
           Driver details below are still accurate; refresh to retry.
         </div>
       )}
       <DriverTable initialRows={rows} />
     </>
-  );
-}
-
-function PageHeader({ count }: { count?: number }) {
-  return (
-    <header className="mb-6">
-      <h1 className="text-2xl font-bold tracking-tight">Drivers</h1>
-      <p className="text-sm text-muted mt-1">
-        {count == null
-          ? "Loading…"
-          : `${count} driver${count === 1 ? "" : "s"} · performance metrics over the last 7 days`}
-      </p>
-    </header>
   );
 }

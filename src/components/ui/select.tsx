@@ -41,12 +41,13 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
         className={cn(
-          "w-full rounded-md px-3 py-2 text-sm",
+          "w-full rounded-md px-3 h-9 text-sm",
           "bg-surface-0 text-fg",
           "border border-border-muted",
-          "focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand",
-          "disabled:opacity-60 disabled:cursor-not-allowed",
-          error && "border-danger-border focus:border-danger focus:ring-danger",
+          "transition-[border-color,box-shadow] duration-150",
+          "focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/40",
+          "hover:border-border disabled:opacity-60 disabled:cursor-not-allowed",
+          error && "border-danger-border focus:border-danger focus:ring-danger/40",
           className,
         )}
         {...rest}

@@ -28,17 +28,17 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const VARIANT_CLASS: Record<ButtonVariant, string> = {
   primary:
-    "bg-brand text-white hover:bg-brand-2 border border-brand",
+    "bg-brand text-white hover:bg-brand-2 border border-brand shadow-sm hover:shadow-md",
   secondary:
-    "bg-transparent text-muted hover:text-fg border border-border-muted hover:border-border",
+    "bg-surface-1 text-muted hover:text-fg border border-border-muted hover:border-border hover:bg-surface-2",
   danger:
-    "bg-transparent text-danger border border-danger-border hover:bg-danger-bg",
+    "bg-transparent text-danger border border-danger-border hover:bg-danger-bg hover:border-danger",
   ghost:
     "bg-transparent text-muted hover:text-fg hover:bg-surface-3 border border-transparent",
 };
 
 const SIZE_CLASS: Record<ButtonSize, string> = {
-  sm: "h-7 px-2.5 text-xs rounded-sm",
+  sm: "h-7 px-2.5 text-xs rounded-md",
   md: "h-9 px-4 text-sm rounded-md",
   lg: "h-11 px-5 text-sm rounded-md",
 };
@@ -54,8 +54,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       disabled={disabled || loading}
       className={cn(
         "inline-flex items-center justify-center gap-2 font-medium",
-        "transition-colors duration-100 select-none whitespace-nowrap",
-        "disabled:cursor-not-allowed disabled:opacity-60",
+        "transition-[background-color,border-color,color,box-shadow,transform]",
+        "duration-150 select-none whitespace-nowrap",
+        "active:translate-y-[0.5px]",
+        "disabled:cursor-not-allowed disabled:opacity-60 disabled:active:translate-y-0",
         VARIANT_CLASS[variant],
         SIZE_CLASS[size],
         className,

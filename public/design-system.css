@@ -22,6 +22,27 @@
   --t2: #8b96b0;
   --t3: #4d5a72;
   --t4: #2d3a50;
+
+  /* Aliases matching the React-side token names so the two worlds share
+     one palette. Legacy component styles use --blue/--green/etc; new
+     work should prefer --brand/--success/etc even in legacy CSS. */
+  --brand:         #3b7ff5;
+  --brand-2:       #619af8;
+  --brand-3:       #1a4db8;
+  --brand-bg:      rgba(59,127,245,0.10);
+  --brand-border:  rgba(59,127,245,0.22);
+  --success:       #10b981;
+  --success-bg:    rgba(16,185,129,0.10);
+  --success-border: rgba(16,185,129,0.22);
+  --danger:        #ef4444;
+  --danger-bg:     rgba(239,68,68,0.10);
+  --danger-border: rgba(239,68,68,0.22);
+  --warn:          #f59e0b;
+  --warn-bg:       rgba(245,158,11,0.10);
+  --warn-border:   rgba(245,158,11,0.22);
+  --info:          #14b8a6;
+  --info-bg:       rgba(20,184,166,0.10);
+  --info-border:   rgba(20,184,166,0.22);
 }
 
 [data-theme="light"] {

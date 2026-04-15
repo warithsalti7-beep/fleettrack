@@ -33,8 +33,10 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
     <div
       ref={ref}
       className={cn(
-        "relative rounded-lg border border-border-muted bg-surface-1 shadow-sm",
-        "overflow-hidden",
+        "relative rounded-lg border border-border-muted bg-surface-1",
+        "shadow-sm overflow-hidden",
+        "transition-[border-color,box-shadow] duration-200",
+        accent !== "none" && "hover:border-border hover:shadow-md",
         dense ? "p-3" : "p-5",
         className,
       )}

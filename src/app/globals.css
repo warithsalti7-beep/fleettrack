@@ -212,18 +212,34 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--bg5); }
 
-/* Focus ring — keyboard only, not on mouse click */
-:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-ring-brand);
+/* Focus ring — keyboard only. Applies to links and elements that don't
+   define their own focus treatment. Buttons, inputs, and selects override
+   this with their component-level rings so the visual is tighter. */
+:where(a, [role="button"]):focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
   border-radius: 4px;
 }
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+}
 
-/* Global keyframes for skeletons + spinners */
+/* Global keyframes for skeletons, spinners, and modal entrance. */
 @keyframes ft-shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 @keyframes ft-spin {
   to { transform: rotate(360deg); }
+}
+@keyframes ft-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes ft-pop-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
 }
