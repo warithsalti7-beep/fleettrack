@@ -23,7 +23,6 @@ import {
 import {
   FieldError,
   buildPatch,
-  optDate,
   optEnum,
   optNum,
   optStr,

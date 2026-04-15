@@ -42,7 +42,7 @@ function emptyForm(initial?: DriverView): FormState {
     phone:         initial?.phone ?? "",
     licenseNumber: initial?.licenseNumber ?? "",
     licenseExpiry: initial?.licenseExpiry ? String(initial.licenseExpiry).slice(0, 10) : "",
-    address:       "",
+    address:       initial?.address ?? "",
     status:        initial?.status ?? "AVAILABLE",
     rating:        initial?.rating != null ? String(initial.rating) : "",
   };
@@ -88,6 +88,7 @@ export function DriverFormModal({ initial, onClose, onSaved }: Props) {
     if (form.licenseNumber !== orig.licenseNumber) payload.licenseNumber = form.licenseNumber.trim();
     if (form.licenseExpiry !== orig.licenseExpiry) payload.licenseExpiry = form.licenseExpiry;
     if (form.status !== orig.status) payload.status = form.status;
+    if (form.address !== orig.address) payload.address = form.address.trim() || null;
     if (form.rating !== orig.rating && form.rating !== "") payload.rating = Number(form.rating);
     return payload;
   }
@@ -246,25 +247,24 @@ export function DriverFormModal({ initial, onClose, onSaved }: Props) {
               <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
             ))}
           </Select>
-          {!isEdit && (
-            <Input
-              label="Address"
-              wrapperClassName="md:col-span-2"
-              value={form.address}
-              onChange={(e) => up("address", e.target.value)}
-              error={fieldErrors.address}
-              autoComplete="street-address"
-            />
-          )}
+          <Input
+            label="Address"
+            wrapperClassName="md:col-span-2"
+            value={form.address}
+            onChange={(e) => up("address", e.target.value)}
+            error={fieldErrors.address}
+            autoComplete="street-address"
+          />
           {isEdit && (
             <Input
               label="Rating (0–5)"
+              wrapperClassName="md:col-span-2"
               type="number"
               step="0.1" min="0" max="5"
               value={form.rating}
               onChange={(e) => up("rating", e.target.value)}
               error={fieldErrors.rating}
-              hint="Optional; ignored if blank."
+              hint="Optional; leave blank to keep current."
             />
           )}
         </div>

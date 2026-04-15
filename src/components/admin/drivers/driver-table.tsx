@@ -10,7 +10,7 @@
  *  - After any successful mutation, router.refresh() re-runs the RSC
  *    page so `initialRows` is replaced with authoritative server data.
  */
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +41,16 @@ export function DriverTable({ initialRows }: { initialRows: DriverView[] }) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const [flash, setFlash] = useState<{ tone: "ok" | "err"; msg: string } | null>(null);
+
+  // Auto-dismiss the flash after a few seconds so it doesn't pile up.
+  // Errors linger longer than successes because the user may need to
+  // read the reason before acting on it.
+  useEffect(() => {
+    if (!flash) return;
+    const ms = flash.tone === "ok" ? 4000 : 8000;
+    const t = setTimeout(() => setFlash(null), ms);
+    return () => clearTimeout(t);
+  }, [flash]);
 
   const filtered = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -124,88 +134,163 @@ export function DriverTable({ initialRows }: { initialRows: DriverView[] }) {
         </div>
       )}
 
-      <TableContainer>
-        <Table>
-          <Thead>
-            <tr>
-              <Th onSort={() => toggleSort("name")}        sortActive={sortKey === "name"}        sortDir={sortDir}>Driver</Th>
-              <Th onSort={() => toggleSort("plate")}       sortActive={sortKey === "plate"}       sortDir={sortDir}>Vehicle</Th>
-              <Th onSort={() => toggleSort("status")}      sortActive={sortKey === "status"}      sortDir={sortDir}>Status</Th>
-              <Th onSort={() => toggleSort("revenueNok")}  sortActive={sortKey === "revenueNok"}  sortDir={sortDir} right>Revenue 7d</Th>
-              <Th onSort={() => toggleSort("revenuePerHour")} sortActive={sortKey === "revenuePerHour"} sortDir={sortDir} right>Rev/hr</Th>
-              <Th onSort={() => toggleSort("acceptanceRate")} sortActive={sortKey === "acceptanceRate"} sortDir={sortDir} right>Accept</Th>
-              <Th onSort={() => toggleSort("score")}       sortActive={sortKey === "score"}       sortDir={sortDir} right>Score</Th>
-              <Th onSort={() => toggleSort("totalTrips")}  sortActive={sortKey === "totalTrips"}  sortDir={sortDir} right>Trips total</Th>
-              <Th onSort={() => toggleSort("rating")}      sortActive={sortKey === "rating"}      sortDir={sortDir} right>Rating</Th>
-              <Th onSort={() => toggleSort("joinedAt")}    sortActive={sortKey === "joinedAt"}    sortDir={sortDir} right>Joined</Th>
-              <Th right aria-label="Row actions"><span className="sr-only">Actions</span></Th>
-            </tr>
-          </Thead>
-          <Tbody>
-            {sorted.length === 0 && initialRows.length === 0 && (
-              <TableEmpty colSpan={11}>
-                No drivers yet. Create one, or bulk-import via{" "}
-                <a href="/dashboard#data-import" className="text-brand-2 underline">Data Import</a>.
-              </TableEmpty>
-            )}
-            {sorted.length === 0 && initialRows.length > 0 && (
-              <TableEmpty colSpan={11}>
-                No drivers match the current filter.
-                <button
-                  type="button"
-                  onClick={() => { setSearch(""); setStatusFilter("ALL"); }}
-                  className="ml-2 text-brand-2 underline"
-                >
-                  Clear filters
-                </button>
-              </TableEmpty>
-            )}
-            {sorted.map((r) => (
-              <Tr key={r.id}>
-                <Td>
-                  <div className="font-medium text-fg">{r.name}</div>
-                  <div className="text-2xs font-mono text-subtle">{r.email}</div>
-                </Td>
-                <Td>
-                  {r.plate ? (
-                    <>
-                      <div className="font-mono text-fg">{r.plate}</div>
-                      <div className="text-2xs text-subtle">{r.vehicle ?? "—"}</div>
-                    </>
-                  ) : <span className="text-subtle">—</span>}
-                </Td>
-                <Td><DriverStatusChip status={r.status} /></Td>
-                <Td right>{formatNok(r.revenueNok)}</Td>
-                <Td right>{r.revenuePerHour ? formatNok(r.revenuePerHour) : "—"}</Td>
-                <Td right>{r.acceptanceRate > 0 ? formatPercent(r.acceptanceRate, 0) : "—"}</Td>
-                <Td right><ScoreChip score={r.score} /></Td>
-                <Td right>{r.totalTrips}</Td>
-                <Td right>{r.rating?.toFixed(1) ?? "—"}</Td>
-                <Td right mono className="text-subtle">{formatDateIso(r.joinedAt)}</Td>
-                <Td right className="whitespace-nowrap">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setModal({ mode: "edit", row: r })}
-                    disabled={busyId != null}
+      {/* Mobile: stacked cards (< md). Shows only the high-signal fields. */}
+      <ul role="list" aria-label="Drivers (mobile)" className="md:hidden flex flex-col gap-3">
+        {sorted.length === 0 && initialRows.length === 0 && (
+          <li className="rounded-lg border border-border-muted bg-surface-1 p-6 text-center text-sm text-muted">
+            No drivers yet. Create one, or bulk-import via{" "}
+            <a href="/dashboard#data-import" className="text-brand-2 underline">Data Import</a>.
+          </li>
+        )}
+        {sorted.length === 0 && initialRows.length > 0 && (
+          <li className="rounded-lg border border-border-muted bg-surface-1 p-6 text-center text-sm text-muted">
+            No drivers match the current filter.
+            <button
+              type="button"
+              onClick={() => { setSearch(""); setStatusFilter("ALL"); }}
+              className="ml-2 text-brand-2 underline"
+            >
+              Clear filters
+            </button>
+          </li>
+        )}
+        {sorted.map((r) => (
+          <li
+            key={r.id}
+            className="rounded-lg border border-border-muted bg-surface-1 p-4 shadow-sm"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="font-medium text-fg truncate">{r.name}</div>
+                <div className="text-2xs font-mono text-subtle truncate">{r.email}</div>
+              </div>
+              <DriverStatusChip status={r.status} />
+            </div>
+            <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <div>
+                <dt className="text-2xs uppercase tracking-wider font-mono text-subtle">Vehicle</dt>
+                <dd className="mt-0.5">{r.plate ? <span className="font-mono">{r.plate}</span> : "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-2xs uppercase tracking-wider font-mono text-subtle">Score</dt>
+                <dd className="mt-0.5"><ScoreChip score={r.score} /></dd>
+              </div>
+              <div>
+                <dt className="text-2xs uppercase tracking-wider font-mono text-subtle">Revenue 7d</dt>
+                <dd className="mt-0.5 tabular-nums">{formatNok(r.revenueNok)}</dd>
+              </div>
+              <div>
+                <dt className="text-2xs uppercase tracking-wider font-mono text-subtle">Accept</dt>
+                <dd className="mt-0.5 tabular-nums">{r.acceptanceRate > 0 ? formatPercent(r.acceptanceRate, 0) : "—"}</dd>
+              </div>
+            </dl>
+            <div className="mt-4 flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setModal({ mode: "edit", row: r })}
+                disabled={busyId != null}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => handleDelete(r)}
+                loading={busyId === r.id}
+              >
+                Delete
+              </Button>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      {/* Tablet / desktop: full table. */}
+      <div className="hidden md:block">
+        <TableContainer>
+          <Table>
+            <Thead>
+              <tr>
+                <Th onSort={() => toggleSort("name")}        sortActive={sortKey === "name"}        sortDir={sortDir}>Driver</Th>
+                <Th onSort={() => toggleSort("plate")}       sortActive={sortKey === "plate"}       sortDir={sortDir}>Vehicle</Th>
+                <Th onSort={() => toggleSort("status")}      sortActive={sortKey === "status"}      sortDir={sortDir}>Status</Th>
+                <Th onSort={() => toggleSort("revenueNok")}  sortActive={sortKey === "revenueNok"}  sortDir={sortDir} right>Revenue 7d</Th>
+                <Th onSort={() => toggleSort("revenuePerHour")} sortActive={sortKey === "revenuePerHour"} sortDir={sortDir} right>Rev/hr</Th>
+                <Th onSort={() => toggleSort("acceptanceRate")} sortActive={sortKey === "acceptanceRate"} sortDir={sortDir} right>Accept</Th>
+                <Th onSort={() => toggleSort("score")}       sortActive={sortKey === "score"}       sortDir={sortDir} right>Score</Th>
+                <Th onSort={() => toggleSort("totalTrips")}  sortActive={sortKey === "totalTrips"}  sortDir={sortDir} right>Trips total</Th>
+                <Th onSort={() => toggleSort("rating")}      sortActive={sortKey === "rating"}      sortDir={sortDir} right>Rating</Th>
+                <Th onSort={() => toggleSort("joinedAt")}    sortActive={sortKey === "joinedAt"}    sortDir={sortDir} right>Joined</Th>
+                <Th right aria-label="Row actions"><span className="sr-only">Actions</span></Th>
+              </tr>
+            </Thead>
+            <Tbody>
+              {sorted.length === 0 && initialRows.length === 0 && (
+                <TableEmpty colSpan={11}>
+                  No drivers yet. Create one, or bulk-import via{" "}
+                  <a href="/dashboard#data-import" className="text-brand-2 underline">Data Import</a>.
+                </TableEmpty>
+              )}
+              {sorted.length === 0 && initialRows.length > 0 && (
+                <TableEmpty colSpan={11}>
+                  No drivers match the current filter.
+                  <button
+                    type="button"
+                    onClick={() => { setSearch(""); setStatusFilter("ALL"); }}
+                    className="ml-2 text-brand-2 underline"
                   >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    className="ml-2"
-                    onClick={() => handleDelete(r)}
-                    loading={busyId === r.id}
-                  >
-                    Delete
-                  </Button>
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      </TableContainer>
+                    Clear filters
+                  </button>
+                </TableEmpty>
+              )}
+              {sorted.map((r) => (
+                <Tr key={r.id}>
+                  <Td>
+                    <div className="font-medium text-fg">{r.name}</div>
+                    <div className="text-2xs font-mono text-subtle">{r.email}</div>
+                  </Td>
+                  <Td>
+                    {r.plate ? (
+                      <>
+                        <div className="font-mono text-fg">{r.plate}</div>
+                        <div className="text-2xs text-subtle">{r.vehicle ?? "—"}</div>
+                      </>
+                    ) : <span className="text-subtle">—</span>}
+                  </Td>
+                  <Td><DriverStatusChip status={r.status} /></Td>
+                  <Td right>{formatNok(r.revenueNok)}</Td>
+                  <Td right>{r.revenuePerHour ? formatNok(r.revenuePerHour) : "—"}</Td>
+                  <Td right>{r.acceptanceRate > 0 ? formatPercent(r.acceptanceRate, 0) : "—"}</Td>
+                  <Td right><ScoreChip score={r.score} /></Td>
+                  <Td right>{r.totalTrips}</Td>
+                  <Td right>{r.rating?.toFixed(1) ?? "—"}</Td>
+                  <Td right mono className="text-subtle">{formatDateIso(r.joinedAt)}</Td>
+                  <Td right className="whitespace-nowrap">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setModal({ mode: "edit", row: r })}
+                      disabled={busyId != null}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      className="ml-2"
+                      onClick={() => handleDelete(r)}
+                      loading={busyId === r.id}
+                    >
+                      Delete
+                    </Button>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      </div>
 
       {modal?.mode === "new" && (
         <DriverFormModal onClose={() => setModal(null)} onSaved={handleSaved} />

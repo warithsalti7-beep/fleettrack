@@ -12,11 +12,13 @@ export function AdminTopbar({
   role,
   name,
   onToggleSidebar,
+  sidebarOpen,
 }: {
   email: string;
   role: string;
   name: string | null;
   onToggleSidebar?: () => void;
+  sidebarOpen?: boolean;
 }) {
   return (
     <div
@@ -28,10 +30,12 @@ export function AdminTopbar({
           <button
             type="button"
             onClick={onToggleSidebar}
-            aria-label="Toggle navigation"
+            aria-label={sidebarOpen ? "Close navigation" : "Open navigation"}
+            aria-expanded={Boolean(sidebarOpen)}
+            aria-controls="admin-sidebar"
             className="md:hidden size-8 inline-flex items-center justify-center rounded-md border border-border-muted text-muted hover:text-fg"
           >
-            ☰
+            {sidebarOpen ? "×" : "☰"}
           </button>
         )}
         <div className="text-2xs font-mono text-subtle hidden sm:block">

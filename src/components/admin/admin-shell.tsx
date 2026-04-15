@@ -26,15 +26,19 @@ export function AdminShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
-  // Close the drawer after navigation. Guarded so the setter is only
-  // invoked when the drawer is actually open — avoids the cascading-
-  // render pattern the linter flags.
-  useEffect(() => {
+  // Reset the drawer when the route changes. React-recommended pattern
+  // for "reset state when a prop changes": compare previous state
+  // tracked in useState and update during render.
+  // https://react.dev/learn/you-might-not-need-an-effect#resetting-all-state-when-a-prop-changes
+  const [prevPath, setPrevPath] = useState(pathname);
+  if (prevPath !== pathname) {
+    setPrevPath(pathname);
     if (mobileOpen) setMobileOpen(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }
 
-  // Close on Esc.
+  // Close on Esc — this effect is valid: it subscribes to an external
+  // system (the window), and the state update happens inside the event
+  // callback, not directly in the effect body.
   useEffect(() => {
     if (!mobileOpen) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMobileOpen(false); };
@@ -55,6 +59,7 @@ export function AdminShell({
 
       {/* Sidebar */}
       <aside
+        id="admin-sidebar"
         aria-label="Admin navigation"
         className={[
           "w-[240px] shrink-0 border-r border-border-subtle bg-surface-1 flex flex-col",
@@ -71,6 +76,7 @@ export function AdminShell({
           role={session.role}
           name={session.name}
           onToggleSidebar={() => setMobileOpen((v) => !v)}
+          sidebarOpen={mobileOpen}
         />
         <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-[1400px] w-full mx-auto">
           {children}

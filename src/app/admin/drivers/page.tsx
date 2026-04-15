@@ -3,6 +3,12 @@
  *
  * Server Component fetches /api/drivers + /api/stats/per-driver in
  * parallel, merges them, and hands off to the client table.
+ *
+ * Error handling:
+ *  - /api/drivers failure → full-page danger card.
+ *  - /api/stats/per-driver failure → table renders with "—" perf
+ *    columns, plus a visible info banner so the admin knows why the
+ *    numbers are missing.
  */
 import { apiJson } from "@/lib/server-fetch";
 import { DriverTable } from "@/components/admin/drivers/driver-table";
@@ -40,10 +46,20 @@ export default async function AdminDriversPage() {
     );
   }
 
+  const perfAvailable = Boolean(perf);
   const rows = mergeDriverViews(drivers, perf?.drivers ?? []);
   return (
     <>
       <PageHeader count={rows.length} />
+      {!perfAvailable && (
+        <div
+          role="status"
+          className="mb-4 rounded-md border border-warn-border bg-warn-bg text-warn text-sm px-4 py-2"
+        >
+          Performance metrics (revenue / accept / score) could not be loaded.
+          Driver details below are still accurate; refresh to retry.
+        </div>
+      )}
       <DriverTable initialRows={rows} />
     </>
   );

@@ -55,6 +55,7 @@ export type DriverView = {
   rating: number;
   totalTrips: number;
   joinedAt: string;
+  address: string | null;
   plate: string | null;
   vehicle: string | null;
   // Live 7-day performance (may be zero for brand-new drivers).
@@ -86,6 +87,7 @@ export function mergeDriverViews(
       rating: d.rating,
       totalTrips: d.totalTrips,
       joinedAt: d.joinedAt,
+      address: d.address,
       plate: firstVeh?.plateNumber ?? null,
       vehicle: firstVeh ? [firstVeh.make, firstVeh.model].filter(Boolean).join(" ") : null,
       revenueNok: p?.revenueNok ?? 0,

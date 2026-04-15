@@ -174,6 +174,25 @@ See [docs/SCALING.md](./docs/SCALING.md) for guidance on scaling from 50 to 1000
 
 ---
 
+## Current state and architecture
+
+- **Security model**: see [`docs/SECURITY.md`](./docs/SECURITY.md) — session
+  auth, PBKDF2 password hashing, rate limiting, audit logging.
+- **Front-end migration**: the system is moving from the legacy static
+  dashboard (`public/dashboard.html`) to a modular React app under
+  `src/app/admin/*`. Current status, architecture, roadmap, and
+  ready-to-delete criteria for legacy pages are tracked in
+  [`docs/MIGRATION.md`](./docs/MIGRATION.md).
+
+Migrated sections so far:
+
+| Section  | Legacy                           | React                 |
+|----------|----------------------------------|-----------------------|
+| Overview | `/dashboard#page-overview`       | `/admin/overview`     |
+| Drivers  | `/dashboard#page-driver-roster` (deprecated) | `/admin/drivers` |
+
+---
+
 ## License
 
 MIT
