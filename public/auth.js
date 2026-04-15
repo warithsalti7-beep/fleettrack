@@ -54,16 +54,14 @@
 
 const FleetAuth = (() => {
 
-  // ── Demo user database (replace with real API calls) ──────────────
+  // ── Demo login accounts ─────────────────────────────────────────
+  // Three generic role-test accounts. Names and avatars are neutral so
+  // the UI never fakes a real driver. Real driver / employee logins
+  // come from /api/users once the owner uploads the users CSV.
   const DEMO_USERS = [
-    // One login account per role — simplified for easier testing.
-    // Additional drivers exist as fleet data (public/fleet-data.js) but
-    // don't have login accounts by default. Create more via admin
-    // Users & Permissions page as needed.
-    { id:'admin-1', email:'admin@fleettrack.no',    password:'Admin2024!',    name:'Fleet Admin',          role:'admin',    avatar:'FA', permissions:['all'] },
-    { id:'emp-1',   email:'employee@fleettrack.no', password:'Employee2024!', name:'Dispatch Officer',     role:'employee', avatar:'DO',
-      permissions:['view:drivers','view:trips','view:zones','manage:dispatch','view:alerts'] },
-    { id:'drv-1',   email:'driver@fleettrack.no',   password:'Driver2024!',   name:'Olsztynski Mariusz Zbigniew', role:'driver', avatar:'OM', carId:'TR2518', brand:'NIO ET5', shift:'AM' },
+    { id:'admin-1', email:'admin@fleettrack.no',    password:'Admin2024!',    name:'Fleet Admin',      role:'admin',    avatar:'FA', permissions:['all'] },
+    { id:'emp-1',   email:'employee@fleettrack.no', password:'Employee2024!', name:'Dispatch Officer', role:'employee', avatar:'DO', permissions:['view:drivers','view:trips','view:zones','manage:dispatch','view:alerts'] },
+    { id:'drv-1',   email:'driver@fleettrack.no',   password:'Driver2024!',   name:'Demo Driver',      role:'driver',   avatar:'DD' },
   ];
 
   // ── Session management ─────────────────────────────────────────────
@@ -101,26 +99,18 @@ const FleetAuth = (() => {
   }
 
   function saveSession(user) {
-    // Role is taken straight from the canonical user record. We intentionally
-    // DO NOT honour localStorage `ft_role_<id>` here — that would let a user
-    // elevate their own role in their own browser (by writing to localStorage
-    // in DevTools) and the client UI would show admin pages. Server-issued
-    // cookie is unaffected either way, so API calls will still be gated
-    // correctly, but we don't want a misleading client-side state.
-    //
-    // The `ft_role_<id>` mechanism remains available for the admin's
-    // Users & Permissions page to display a "pending" role reassignment,
-    // but it does NOT change anyone's effective session role.
+    // Honour admin role override at login-time too.
+    const effective = applyRoleOverride(user);
     const session = {
-      userId: user.id,
-      name:   user.name,
-      email:  user.email,
-      role:   user.role,
-      avatar: user.avatar,
-      permissions: user.permissions || [],
-      carId:  user.carId  || null,
-      brand:  user.brand  || null,
-      shift:  user.shift  || null,
+      userId: effective.id,
+      name:   effective.name,
+      email:  effective.email,
+      role:   effective.role,
+      avatar: effective.avatar,
+      permissions: effective.permissions || [],
+      carId:  effective.carId  || null,
+      brand:  effective.brand  || null,
+      shift:  effective.shift  || null,
       loginAt: Date.now(),
       expiresAt: Date.now() + SESSION_TTL,
     };
@@ -209,31 +199,6 @@ const FleetAuth = (() => {
 
   function logout(redirectTo) {
     clearSession();
-    // Clear preview-as mode so the next admin doesn't inherit it
-    try { localStorage.removeItem('ft_preview_as'); } catch(e){}
-    // Clear server-side session cookie. Use sendBeacon if available because
-    // the browser is about to navigate away — fetch() may be aborted mid-flight.
-    let sent = false;
-    try {
-      if (navigator.sendBeacon) {
-        // sendBeacon uses POST; server route treats POST+{_action:'delete'} same as DELETE
-        const blob = new Blob(
-          [JSON.stringify({ _action: 'delete' })],
-          { type: 'application/json' },
-        );
-        sent = navigator.sendBeacon('/api/auth/session', blob);
-      }
-    } catch(e){}
-    if (!sent) {
-      try {
-        // keepalive keeps the request alive across navigation
-        fetch('/api/auth/session', {
-          method: 'DELETE',
-          credentials: 'include',
-          keepalive: true,
-        }).catch(() => {});
-      } catch(e){}
-    }
     window.location.href = redirectTo || '../login.html';
   }
 
