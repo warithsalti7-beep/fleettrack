@@ -32,6 +32,7 @@ export async function GET() {
     warnings: [] as string[],
     timestamp: new Date().toISOString(),
     version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "dev",
+    sha: process.env.VERCEL_GIT_COMMIT_SHA || "dev",
     environment: process.env.VERCEL_ENV || "unknown",
   };
 

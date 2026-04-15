@@ -15,10 +15,11 @@
  * Cached in-memory for 10 minutes per process to keep token cost low.
  */
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { callClaude, parseAiJson, AiError, aiConfigured } from "@/lib/anthropic";
 import { captureError } from "@/lib/sentry";
+import { requireStaff } from "@/lib/auth-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,8 +42,9 @@ type Summary = {
 let cache: { at: number; data: Summary } | null = null;
 const CACHE_MS = 10 * 60 * 1000;
 
-const SYSTEM_PROMPT = `You are the operations analyst for a small Norwegian taxi fleet (~19 drivers, ~14 vehicles, Bolt + Uber platforms).
+const SYSTEM_PROMPT = `You are the operations analyst for a small Norwegian taxi fleet (Bolt + Uber platforms). The exact fleet size is in the metrics JSON — use those numbers, never invent counts.
 Your job: read the daily + week-to-date metrics JSON provided by the user, identify the 3-5 most actionable issues, and return them as prioritised recommendations.
+If the metrics show zero trips / zero drivers / zero revenue, return a single recommendation telling the operator to import CSVs via /data-import before AI analysis can be meaningful.
 
 Rules:
 - Think in NOK (Norwegian kroner). Never use EUR or USD.
@@ -91,22 +93,15 @@ async function gatherMetrics() {
       liters: Math.round(Number(recentFuel._sum?.liters ?? 0)),
       refills: recentFuel._count,
     },
-    // Fallback demo values when DB is empty so the model still has context
-    fallbackIfEmpty:
-      driverCount === 0
-        ? {
-            todayRevenueNok: 55430,
-            todayProfitNok: 9200,
-            marginPct: 16.6,
-            activeDrivers: 16,
-            tripsToday: 189,
-            acceptanceRate: 0.835,
-          }
-        : null,
+    // DB is empty? Tell the model — never invent numbers.
+    emptyDatabase: driverCount === 0 && vehicleCount === 0 && totalTrips === 0,
   };
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const gate = await requireStaff(request);
+  if (!gate.ok) return gate.response;
+
   if (!aiConfigured()) {
     return NextResponse.json(
       {
@@ -158,3 +153,4 @@ export async function POST() {
 }
 
 export const GET = POST;
+

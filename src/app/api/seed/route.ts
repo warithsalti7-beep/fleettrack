@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
   const force = req.nextUrl.searchParams.get("force") === "1";
+  const allowDummy = req.nextUrl.searchParams.get("allowDummy") === "1";
   const expected = process.env.SEED_TOKEN;
 
   if (!expected) {
@@ -18,6 +19,22 @@ export async function GET(req: NextRequest) {
   }
   if (token !== expected) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  // This endpoint seeds demo NYC cab data, which is NOT the Norwegian fleet
+  // the app is now used for. Hidden behind an explicit opt-in flag so it
+  // can't accidentally overwrite imported CSV data in production.
+  if (!allowDummy) {
+    return NextResponse.json(
+      {
+        status: "refused",
+        reason:
+          "This endpoint seeds demo US fleet data and is disabled by default. " +
+          "Use the CSV import pipeline at /api/import/* for real data. " +
+          "If you still want the demo data, add &allowDummy=1.",
+      },
+      { status: 403 },
+    );
   }
 
   const existing = await prisma.vehicle.count();

@@ -1,237 +1,129 @@
-/**
- * GET /api/stats — canonical KPIs computed from Neon.
- *
- * Returns a single envelope the dashboard can render end-to-end. Every
- * branch falls back to 0 when no data exists, so the UI can call this
- * immediately after signup without a "first-import" special case.
- *
- * Shape (truncated for brevity; full in docs/API.md):
- *   {
- *     today:    { revenueNok, trips, activeDrivers, onTripVehicles },
- *     wtd:      { revenueNok, trips, daysElapsed },
- *     mtd:      { revenueNok, fixedCostsNok, variableCostsNok, grossNok,
- *                 netNok, marginPct, breakEvenDay, vatPayableNok },
- *     fleet:    { drivers: {...counts by status}, vehicles: {...}, maint: {...} },
- *     trip:     { avgFareNok, avgDistanceKm, revenuePerKmNok, avgRating },
- *     fuel:     { totalCostNok, totalLiters, pricePerLiterNok },
- *     dataState: "empty" | "partial" | "ready"
- *   }
- */
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { subDays, startOfMonth, startOfDay, differenceInDays, getDaysInMonth } from "date-fns";
+import { subDays, startOfDay } from "date-fns";
+import { requireSession } from "@/lib/auth-guard";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
-const NOK_VAT_RATE = 0.12; // Norwegian ride-share reduced VAT rate
+// Statuses that indicate a vehicle is actively producing revenue.
+const VEHICLE_ON_ROAD = new Set(["ON_TRIP", "AVAILABLE"]);
+const VEHICLE_SHOP = new Set(["MAINTENANCE"]);
 
-/** Normalise a FixedCost row into monthly NOK regardless of its frequency. */
-function monthlyAmountNok(row: { amountNok: number; frequency: string }): number {
-  const amt = Math.abs(Number(row.amountNok || 0));
-  switch (row.frequency) {
-    case "MONTHLY":   return amt;
-    case "QUARTERLY": return amt / 3;
-    case "YEARLY":    return amt / 12;
-    case "ONCE":      return 0; // one-offs don't prorate monthly
-    default:          return amt;
-  }
+export async function GET(request: NextRequest) {
+  const gate = await requireSession(request);
+  if (!gate.ok) return gate.response;
+
+  const today = startOfDay(new Date());
+
+  const [
+    vehicleStatuses,
+    driverStatuses,
+    tripsAll,
+    maintenanceStats,
+    fuelStats,
+    recentRevenue,
+    todayRevenue,
+    fixedCostsMonthly,
+  ] = await Promise.all([
+    prisma.vehicle.groupBy({ by: ["status"], _count: true }),
+    prisma.driver.groupBy({ by: ["status"], _count: true }),
+    prisma.trip.aggregate({
+      _count: true,
+      _sum: { fare: true, distance: true },
+      _avg: { fare: true, rating: true, duration: true },
+      where: { status: "COMPLETED" },
+    }),
+    prisma.maintenance.groupBy({ by: ["status"], _count: true }),
+    prisma.fuelLog.aggregate({ _sum: { totalCost: true, liters: true } }),
+    prisma.trip.aggregate({
+      _sum: { fare: true },
+      _count: true,
+      where: { status: "COMPLETED", completedAt: { gte: subDays(new Date(), 7) } },
+    }),
+    prisma.trip.aggregate({
+      _sum: { fare: true, distance: true },
+      _count: true,
+      _avg: { fare: true },
+      where: { status: "COMPLETED", completedAt: { gte: today } },
+    }),
+    prisma.fixedCost.aggregate({
+      _sum: { amountNok: true },
+      where: { frequency: "MONTHLY", startDate: { lte: new Date() } },
+    }),
+  ]);
+
+  const vehicles = Object.fromEntries(vehicleStatuses.map((v) => [v.status, v._count]));
+  const drivers = Object.fromEntries(driverStatuses.map((d) => [d.status, d._count]));
+
+  const driversTotal = driverStatuses.reduce((s, d) => s + d._count, 0);
+  const driversActive = driverStatuses
+    .filter((d) => d.status === "AVAILABLE" || d.status === "ON_TRIP")
+    .reduce((s, d) => s + d._count, 0);
+
+  const vehiclesTotal = vehicleStatuses.reduce((s, v) => s + v._count, 0);
+  const vehiclesOnRoad = vehicleStatuses
+    .filter((v) => VEHICLE_ON_ROAD.has(v.status))
+    .reduce((s, v) => s + v._count, 0);
+  const vehiclesShop = vehicleStatuses
+    .filter((v) => VEHICLE_SHOP.has(v.status))
+    .reduce((s, v) => s + v._count, 0);
+  const vehiclesIdle = Math.max(0, vehiclesTotal - vehiclesOnRoad - vehiclesShop);
+
+  // Fleet P&L for today: revenue minus a prorated monthly fixed-cost slice.
+  // Prorate = monthly total / 30. Trip-variable costs (fuel, payouts) are
+  // already inside totalRevenue-net-of-commission when the import sets fare
+  // to the gross amount; we don't have that split reliably so this is a
+  // best-effort view. Fields are sized so a client can override or refine.
+  const grossRevenueToday = todayRevenue._sum.fare ?? 0;
+  const tripsToday = todayRevenue._count ?? 0;
+  const avgTripFare = todayRevenue._avg.fare ?? 0;
+  const monthlyFixed = Math.abs(fixedCostsMonthly._sum.amountNok ?? 0);
+  const dailyFixedShare = monthlyFixed / 30;
+  const netProfitToday = grossRevenueToday - dailyFixedShare;
+  const marginPct = grossRevenueToday > 0 ? (netProfitToday / grossRevenueToday) * 100 : 0;
+
+  return NextResponse.json({
+    // ── Canonical dashboard KPI set (matches FleetData.kpis shape) ──
+    revenueToday: round(grossRevenueToday),
+    netRevenue: round(grossRevenueToday), // commission split not modeled yet
+    netProfit: round(netProfitToday),
+    marginPct: round2(marginPct),
+    breakEven: round(dailyFixedShare),
+    tripsToday,
+    avgTripFare: round2(avgTripFare),
+    driversTotal,
+    driversActive,
+    vehiclesTotal,
+    vehiclesOnRoad,
+    vehiclesShop,
+    vehiclesIdle,
+
+    // ── Raw aggregates for deeper pages ────────────────────────────
+    vehicles,
+    drivers,
+    trips: {
+      completed: tripsAll._count,
+      totalRevenue: tripsAll._sum.fare ?? 0,
+      totalDistance: tripsAll._sum.distance ?? 0,
+      avgFare: tripsAll._avg.fare ?? 0,
+      avgRating: tripsAll._avg.rating ?? 0,
+      avgDuration: tripsAll._avg.duration ?? 0,
+    },
+    maintenance: Object.fromEntries(maintenanceStats.map((m) => [m.status, m._count])),
+    fuel: {
+      totalCost: fuelStats._sum.totalCost ?? 0,
+      totalLiters: fuelStats._sum.liters ?? 0,
+    },
+    recentRevenue: {
+      revenue: recentRevenue._sum.fare ?? 0,
+      trips: recentRevenue._count,
+    },
+    fixedCosts: {
+      monthlyTotalNok: monthlyFixed,
+      dailyShareNok: dailyFixedShare,
+    },
+  });
 }
 
-export async function GET() {
-  const now = new Date();
-  const startToday = startOfDay(now);
-  const startWtd = subDays(now, 7);
-  const startMtd = startOfMonth(now);
-
-  try {
-    const [
-      vehiclesByStatus,
-      driversByStatus,
-      maintByStatus,
-      allTimeTrips,
-      todayTrips,
-      wtdTrips,
-      mtdTrips,
-      mtdFuel,
-      mtdMaint,
-      activeFixedCosts,
-    ] = await Promise.all([
-      prisma.vehicle.groupBy({ by: ["status"], _count: true }).catch(() => []),
-      prisma.driver.groupBy({ by: ["status"], _count: true }).catch(() => []),
-      prisma.maintenance.groupBy({ by: ["status"], _count: true }).catch(() => []),
-      prisma.trip.aggregate({
-        _count: true,
-        _sum: { fare: true, distance: true },
-        _avg: { fare: true, rating: true, duration: true, distance: true },
-        where: { status: "COMPLETED" },
-      }).catch(() => null),
-      prisma.trip.aggregate({
-        _count: true,
-        _sum: { fare: true },
-        where: { status: "COMPLETED", completedAt: { gte: startToday } },
-      }).catch(() => null),
-      prisma.trip.aggregate({
-        _count: true,
-        _sum: { fare: true },
-        where: { status: "COMPLETED", completedAt: { gte: startWtd } },
-      }).catch(() => null),
-      prisma.trip.aggregate({
-        _count: true,
-        _sum: { fare: true, distance: true },
-        where: { status: "COMPLETED", completedAt: { gte: startMtd } },
-      }).catch(() => null),
-      prisma.fuelLog.aggregate({
-        _sum: { totalCost: true, liters: true },
-        _count: true,
-        where: { filledAt: { gte: startMtd } },
-      }).catch(() => null),
-      prisma.maintenance.aggregate({
-        _sum: { cost: true },
-        where: { status: "COMPLETED", completedAt: { gte: startMtd } },
-      }).catch(() => null),
-      // FixedCost may not exist until migration applied; guard defensively.
-      (prisma as unknown as { fixedCost?: { findMany: (...a: unknown[]) => Promise<Array<{ amountNok: number; frequency: string; startDate: Date; endDate: Date | null }>> } })
-        .fixedCost?.findMany({
-          where: {
-            startDate: { lte: now },
-            OR: [{ endDate: null }, { endDate: { gte: startMtd } }],
-          },
-          select: { amountNok: true, frequency: true, startDate: true, endDate: true },
-        })
-        .catch(() => []) ?? Promise.resolve([]),
-    ]);
-
-    const tripCount = allTimeTrips?._count ?? 0;
-    const hasDb = tripCount > 0 || (driversByStatus?.length ?? 0) > 0;
-
-    // Today
-    const todayRevenue = Number(todayTrips?._sum?.fare ?? 0);
-    const todayTripCount = Number(todayTrips?._count ?? 0);
-
-    // WTD
-    const wtdRevenue = Number(wtdTrips?._sum?.fare ?? 0);
-    const wtdTripCount = Number(wtdTrips?._count ?? 0);
-
-    // MTD
-    const mtdRevenue = Number(mtdTrips?._sum?.fare ?? 0);
-    const mtdDistance = Number(mtdTrips?._sum?.distance ?? 0);
-    const mtdTripCount = Number(mtdTrips?._count ?? 0);
-
-    const mtdFuelCost = Number(mtdFuel?._sum?.totalCost ?? 0);
-    const mtdMaintCost = Number(mtdMaint?._sum?.cost ?? 0);
-    // Normalise each fixed cost to its monthly-equivalent NOK (MONTHLY=x,
-    // QUARTERLY=x/3, YEARLY=x/12, ONCE=0). Skip rows that ended before MTD.
-    const mtdFixedCosts = (activeFixedCosts || []).reduce(
-      (s: number, c: { amountNok: number; frequency: string }) =>
-        s + monthlyAmountNok(c),
-      0,
-    );
-
-    const mtdVariable = mtdFuelCost + mtdMaintCost;
-    const mtdGross = mtdRevenue - mtdVariable;
-    // Prorate fixed costs by calendar days elapsed in the ACTUAL month length
-    const daysElapsed = Math.max(1, differenceInDays(now, startMtd) + 1);
-    const daysInMonth = getDaysInMonth(now); // 28/29/30/31 as appropriate
-    const prorataFixed = (mtdFixedCosts * daysElapsed) / daysInMonth;
-    const mtdNet = mtdGross - prorataFixed;
-    const marginPct = mtdRevenue > 0 ? (mtdNet / mtdRevenue) * 100 : 0;
-
-    // Break-even day estimate: day of month where cumulative revenue overtakes fixed+variable costs
-    const avgDailyRevenue = mtdRevenue / daysElapsed;
-    const avgDailyVariable = mtdVariable / daysElapsed;
-    const avgDailyFixed = mtdFixedCosts / daysInMonth;
-    const breakEvenDay =
-      avgDailyRevenue > avgDailyVariable + avgDailyFixed
-        ? Math.ceil((mtdFixedCosts) / Math.max(1, avgDailyRevenue - avgDailyVariable))
-        : null;
-
-    const vatPayable = mtdRevenue * NOK_VAT_RATE;
-
-    const avgFare = Number(allTimeTrips?._avg?.fare ?? 0);
-    const avgRating = Number(allTimeTrips?._avg?.rating ?? 0);
-    const avgDistance = Number(allTimeTrips?._avg?.distance ?? 0);
-    const revenuePerKm = mtdDistance > 0 ? mtdRevenue / mtdDistance : 0;
-    const pricePerLiter =
-      mtdFuel?._sum?.liters && Number(mtdFuel._sum.liters) > 0
-        ? mtdFuelCost / Number(mtdFuel._sum.liters)
-        : 0;
-
-    const driversMap = Object.fromEntries(
-      driversByStatus.map((d: { status: string; _count: number }) => [d.status, d._count]),
-    );
-    const vehiclesMap = Object.fromEntries(
-      vehiclesByStatus.map((v: { status: string; _count: number }) => [v.status, v._count]),
-    );
-
-    const totalDrivers = Object.values(driversMap).reduce(
-      (s: number, n) => s + (typeof n === "number" ? n : 0),
-      0,
-    );
-    const totalVehicles = Object.values(vehiclesMap).reduce(
-      (s: number, n) => s + (typeof n === "number" ? n : 0),
-      0,
-    );
-    const activeDriversToday = driversMap.ACTIVE || driversMap.AVAILABLE || 0;
-    const onTripVehicles = vehiclesMap.ACTIVE || vehiclesMap.IN_USE || 0;
-
-    const dataState: "empty" | "partial" | "ready" =
-      !hasDb ? "empty" : tripCount < 30 ? "partial" : "ready";
-
-    return NextResponse.json({
-      dataState,
-      today: {
-        revenueNok: Math.round(todayRevenue),
-        trips: todayTripCount,
-        activeDrivers: activeDriversToday,
-        onTripVehicles,
-      },
-      wtd: {
-        revenueNok: Math.round(wtdRevenue),
-        trips: wtdTripCount,
-        daysElapsed: 7,
-      },
-      mtd: {
-        revenueNok: Math.round(mtdRevenue),
-        variableCostsNok: Math.round(mtdVariable),
-        fuelCostsNok: Math.round(mtdFuelCost),
-        maintCostsNok: Math.round(mtdMaintCost),
-        fixedCostsNok: Math.round(mtdFixedCosts),
-        fixedCostsProratedNok: Math.round(prorataFixed),
-        grossNok: Math.round(mtdGross),
-        netNok: Math.round(mtdNet),
-        marginPct: Math.round(marginPct * 10) / 10,
-        breakEvenDay,
-        vatPayableNok: Math.round(vatPayable),
-        daysElapsed,
-      },
-      fleet: {
-        drivers: { total: totalDrivers, byStatus: driversMap },
-        vehicles: { total: totalVehicles, byStatus: vehiclesMap },
-        maint: Object.fromEntries(
-          maintByStatus.map((m: { status: string; _count: number }) => [m.status, m._count]),
-        ),
-      },
-      trip: {
-        avgFareNok: Math.round(avgFare),
-        avgDistanceKm: Math.round(avgDistance * 10) / 10,
-        revenuePerKmNok: Math.round(revenuePerKm * 100) / 100,
-        avgRating: Math.round(avgRating * 100) / 100,
-      },
-      fuel: {
-        totalCostNok: Math.round(mtdFuelCost),
-        totalLiters: Math.round(Number(mtdFuel?._sum?.liters ?? 0)),
-        pricePerLiterNok: Math.round(pricePerLiter * 100) / 100,
-      },
-      generatedAt: now.toISOString(),
-    });
-  } catch (err) {
-    return NextResponse.json(
-      {
-        error: err instanceof Error ? err.message : "stats failed",
-        dataState: "empty",
-      },
-      { status: 500 },
-    );
-  }
-}
+function round(n: number): number { return Math.round(n); }
+function round2(n: number): number { return Math.round(n * 100) / 100; }

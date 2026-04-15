@@ -1,13 +1,26 @@
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireStaff } from "@/lib/auth-guard";
+import { csvResponse, parseExportPage, rowsToCsv } from "@/lib/export-helpers";
 
-export async function GET() {
-  const drivers = await prisma.driver.findMany({
-    orderBy: { name: "asc" },
-    include: {
-      trips: { where: { status: "COMPLETED" }, select: { fare: true } },
-    },
-  });
+export const runtime = "nodejs";
+
+export async function GET(request: NextRequest) {
+  const gate = await requireStaff(request);
+  if (!gate.ok) return gate.response;
+
+  const url = new URL(request.url);
+  const { limit, offset } = parseExportPage(url);
+
+  const [drivers, total] = await Promise.all([
+    prisma.driver.findMany({
+      orderBy: { name: "asc" },
+      skip: offset,
+      take: limit,
+      include: { trips: { where: { status: "COMPLETED" }, select: { fare: true } } },
+    }),
+    prisma.driver.count(),
+  ]);
 
   const rows = [
     ["Driver ID", "Name", "Email", "Phone", "License Number", "Status", "Rating", "Total Trips", "Total Revenue", "License Expiry", "Joined"],
@@ -29,12 +42,5 @@ export async function GET() {
     }),
   ];
 
-  const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
-
-  return new NextResponse(csv, {
-    headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="drivers-${new Date().toISOString().slice(0, 10)}.csv"`,
-    },
-  });
+  return csvResponse("drivers", rowsToCsv(rows), total);
 }

@@ -1,14 +1,29 @@
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireStaff } from "@/lib/auth-guard";
+import { csvResponse, parseExportPage, rowsToCsv } from "@/lib/export-helpers";
 
-export async function GET() {
-  const vehicles = await prisma.vehicle.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      trips: { where: { status: "COMPLETED" }, select: { id: true } },
-      drivers: { include: { driver: { select: { name: true } } }, take: 1 },
-    },
-  });
+export const runtime = "nodejs";
+
+export async function GET(request: NextRequest) {
+  const gate = await requireStaff(request);
+  if (!gate.ok) return gate.response;
+
+  const url = new URL(request.url);
+  const { limit, offset } = parseExportPage(url);
+
+  const [vehicles, total] = await Promise.all([
+    prisma.vehicle.findMany({
+      orderBy: { createdAt: "desc" },
+      skip: offset,
+      take: limit,
+      include: {
+        trips: { where: { status: "COMPLETED" }, select: { id: true } },
+        drivers: { include: { driver: { select: { name: true } } }, take: 1 },
+      },
+    }),
+    prisma.vehicle.count(),
+  ]);
 
   const rows = [
     ["Vehicle ID", "Plate", "Make", "Model", "Year", "Color", "Status", "Fuel Type", "Fuel Level (%)", "Mileage (km)", "Assigned Driver", "Next Service", "Total Trips"],
@@ -29,12 +44,5 @@ export async function GET() {
     ]),
   ];
 
-  const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
-
-  return new NextResponse(csv, {
-    headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="vehicles-${new Date().toISOString().slice(0, 10)}.csv"`,
-    },
-  });
+  return csvResponse("vehicles", rowsToCsv(rows), total);
 }

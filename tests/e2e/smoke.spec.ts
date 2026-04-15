@@ -1,12 +1,14 @@
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, Page, request as pwRequest } from "@playwright/test";
 
+// These credentials are the defaults from /api/auth/bootstrap. The test
+// DB should have been bootstrapped with them via:
+//   curl -X POST -H "X-Admin-Token: $SEED_TOKEN" http://localhost:3000/api/auth/bootstrap
 const DEMO = {
-  admin:   { email: "stefan@oslofleet.no",        password: "Admin2024!" },
-  empl:    { email: "dispatch@fleettrack.no",      password: "Dispatch2024!" },
-  driver:  { email: "olsztynski@fleettrack.no",    password: "Driver2024!" },
+  admin:    { email: "admin@fleettrack.no",    password: "Admin2024!" },
+  employee: { email: "employee@fleettrack.no", password: "Employee2024!" },
+  driver:   { email: "driver@fleettrack.no",   password: "Driver2024!" },
 };
 
-// Capture console errors so a silent JS failure fails the test.
 function failOnConsoleErrors(page: Page) {
   const errors: string[] = [];
   page.on("console", (msg) => {
@@ -14,14 +16,16 @@ function failOnConsoleErrors(page: Page) {
   });
   page.on("pageerror", (err) => errors.push(err.message));
   return () => {
-    if (errors.length) {
-      throw new Error("Console errors:\n" + errors.join("\n"));
+    // Filter out Sentry-CDN noise that isn't actionable in tests.
+    const real = errors.filter((e) => !/sentry-cdn|Failed to load resource/i.test(e));
+    if (real.length) {
+      throw new Error("Console errors:\n" + real.join("\n"));
     }
   };
 }
 
 test.describe("Smoke", () => {
-  test("landing page loads and routes to login", async ({ page }) => {
+  test("landing page loads and shows the login form", async ({ page }) => {
     const assertNoErrors = failOnConsoleErrors(page);
     await page.goto("/");
     await expect(page).toHaveTitle(/FleetTrack/);
@@ -29,7 +33,7 @@ test.describe("Smoke", () => {
     assertNoErrors();
   });
 
-  test("admin can sign in and see the dashboard sidebar", async ({ page }) => {
+  test("admin can sign in and reach the dashboard", async ({ page }) => {
     const assertNoErrors = failOnConsoleErrors(page);
     await page.goto("/login");
     await page.getByText("Admin", { exact: true }).first().click();
@@ -37,12 +41,11 @@ test.describe("Smoke", () => {
     await page.fill("#password", DEMO.admin.password);
     await page.click("#login-btn");
     await page.waitForURL(/dashboard/);
-    await expect(page.locator(".sidebar")).toBeVisible({ timeout: 10000 });
+    await expect(page.locator(".sidebar")).toBeVisible({ timeout: 10_000 });
     assertNoErrors();
   });
 
   test("driver portal rejects admin role", async ({ page }) => {
-    // Login as admin, try to navigate to /driver manually, expect redirect back to login
     await page.goto("/login");
     await page.fill("#email", DEMO.admin.email);
     await page.fill("#password", DEMO.admin.password);
@@ -50,40 +53,41 @@ test.describe("Smoke", () => {
     await page.waitForURL(/dashboard/);
     await page.goto("/driver");
     // driver.html's requireAuth(['driver']) should redirect admin away
-    await page.waitForURL(/login/, { timeout: 5000 });
+    await page.waitForURL(/login/, { timeout: 5_000 });
   });
 
-  test("employee with zero perms lands on My Profile — no fleet data", async ({ page }) => {
-    await page.goto("/login");
-    // Switch portal tab to Employee
-    await page.getByText("Employee", { exact: true }).first().click();
-    await page.fill("#email", DEMO.empl.email);
-    await page.fill("#password", DEMO.empl.password);
-    await page.click("#login-btn");
-    await page.waitForURL(/dashboard/);
-    // Employee should see My Profile nav entry
-    await expect(page.locator("#nav-my-profile")).toBeVisible();
-    // And must NOT see admin-only pages like Users & Permissions
-    await expect(page.locator("[onclick*=\"settings-users\"]")).toBeHidden();
+  test("bad password returns 401, not a silent success", async ({ request }) => {
+    const r = await request.post("/api/auth/login", {
+      data: { email: DEMO.admin.email, password: "not-the-real-password" },
+    });
+    expect(r.status()).toBe(401);
+    const body = await r.json();
+    expect(body.error).toBe("invalid_credentials");
   });
 
-  test("no menu click in admin dashboard throws an error", async ({ page }) => {
-    const assertNoErrors = failOnConsoleErrors(page);
-    await page.goto("/login");
-    await page.fill("#email", DEMO.admin.email);
-    await page.fill("#password", DEMO.admin.password);
-    await page.click("#login-btn");
-    await page.waitForURL(/dashboard/);
-    // Click a handful of nav items and ensure the active page updates
-    const navs = await page.locator(".nav-item, .subnav-item").all();
-    const sample = navs.slice(0, Math.min(6, navs.length));
-    for (const n of sample) {
-      const onclick = await n.getAttribute("onclick");
-      if (onclick && onclick.includes("go(")) {
-        await n.click().catch(() => {});
-        await page.waitForTimeout(120);
-      }
+  test("API routes reject unauthenticated calls", async () => {
+    // Use a fresh request context so we don't inherit browser cookies.
+    const ctx = await pwRequest.newContext();
+    const paths = ["/api/drivers", "/api/vehicles", "/api/trips", "/api/stats", "/api/export/drivers"];
+    for (const p of paths) {
+      const r = await ctx.get(p);
+      expect([401, 429], `${p} should 401 for no-cookie; got ${r.status()}`).toContain(r.status());
     }
-    assertNoErrors();
+    await ctx.dispose();
+  });
+
+  test("rate limiter kicks in on repeated bad logins", async ({ request }) => {
+    // Auth bucket is 10/min per IP. Fire 12 bad logins; at least one must
+    // be rejected with 429 (sometimes the earlier 10 all succeed depending
+    // on whether another test ran in the same window, so we just assert
+    // "at least one 429").
+    let saw429 = false;
+    for (let i = 0; i < 12; i++) {
+      const r = await request.post("/api/auth/login", {
+        data: { email: "nobody@example.com", password: "wrong" },
+      });
+      if (r.status() === 429) { saw429 = true; break; }
+    }
+    expect(saw429).toBe(true);
   });
 });

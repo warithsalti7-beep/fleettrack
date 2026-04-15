@@ -66,11 +66,11 @@ body { padding: var(--s5); max-width: 1200px; margin: 0 auto; }
 </div>
 
 <div class="toast-container"></div>
-<script src="./fleet-data.js"></script>
 <script src="./auth.js"></script>
+<script src="./js/fleet-state.js"></script>
 <script>
 // Guard — admin only
-const session = FleetAuth.requireAuth(['admin'], './login.html?error=unauthorized');
+const session = FleetAuth.requireAuth(['admin'], '/login?error=unauthorized');
 
 const ALL_PERMISSIONS = [
   'view:drivers', 'view:trips', 'view:vehicles', 'view:alerts',
@@ -78,20 +78,26 @@ const ALL_PERMISSIONS = [
   'manage:dispatch', 'manage:maintenance', 'export:reports',
 ];
 
-// Load saved overrides from localStorage
+// Permissions are server-authoritative. loadPerms reads from the server-
+// hydrated users cache; savePerms PATCHes /api/users/:id directly.
 function loadPerms(userId) {
-  try {
-    const saved = JSON.parse(localStorage.getItem('ft_perms_' + userId) || 'null');
-    return saved;
-  } catch(e) { return null; }
+  const cached = (FleetAuth.getAllUsers() || []).find(x => x.id === userId);
+  return cached && Array.isArray(cached.permissions) ? cached.permissions : null;
 }
-function savePerms(userId, perms) {
-  try { localStorage.setItem('ft_perms_' + userId, JSON.stringify(perms)); } catch(e) {}
+async function savePermsServer(userId, perms) {
+  try {
+    const r = await fetch('/api/users/' + encodeURIComponent(userId), {
+      method: 'PATCH',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ permissions: perms }),
+    });
+    return r.ok;
+  } catch(e) { return false; }
 }
 
 function buildUserCard(user, editable) {
-  const savedPerms = loadPerms(user.id);
-  const currentPerms = savedPerms || user.permissions || [];
+  const currentPerms = loadPerms(user.id) || user.permissions || [];
   const avatarColors = { employee:'var(--purplebg),var(--purpleborder),var(--purple)', driver:'var(--greenbg),var(--greenborder),var(--green)', admin:'var(--bluebg),var(--blueborder),var(--blue2)' };
   const [bg, border, color] = avatarColors[user.role]?.split(',') || ['var(--bg4)','var(--b2)','var(--t2)'];
 
@@ -118,25 +124,35 @@ function buildUserCard(user, editable) {
   </div>`;
 }
 
-// Render employees
-const empList = document.getElementById('employee-list');
-FleetAuth.getUsersByRole('employee').forEach(u => {
-  empList.innerHTML += buildUserCard(u, true);
-});
+function renderLists(){
+  const empList = document.getElementById('employee-list');
+  const emps = FleetAuth.getUsersByRole('employee');
+  if (!emps.length) {
+    empList.innerHTML = '<div class="card" style="padding:var(--s5);text-align:center;color:var(--t3);font-size:13px">No employees yet. Use <strong>Add User</strong> in the dashboard to create one.</div>';
+  } else {
+    empList.innerHTML = emps.map(u => buildUserCard(u, true)).join('');
+  }
 
-// Render drivers (read-only reference)
-const drvList = document.getElementById('driver-list');
-drvList.innerHTML = `<div class="tbl-wrap"><table>
-  <thead><tr><th>Driver</th><th>Email</th><th>Car ID</th><th>Brand</th><th>Shift</th><th>Access</th></tr></thead>
-  <tbody>${FleetAuth.getUsersByRole('driver').map(d=>`<tr>
-    <td><strong>${d.name}</strong></td>
-    <td style="font-family:var(--mono);font-size:11.5px;color:var(--t2)">${d.email}</td>
-    <td style="font-family:var(--mono)">${d.carId||'—'}</td>
-    <td>${d.brand||'—'}</td>
-    <td><span class="badge ${d.shift==='AM'?'b-blue':'b-purple'}">${d.shift||'—'}</span></td>
-    <td><span class="badge b-gray">Own data only</span></td>
-  </tr>`).join('')}</tbody>
-</table></div>`;
+  const drvList = document.getElementById('driver-list');
+  const drvs = FleetAuth.getUsersByRole('driver');
+  if (!drvs.length) {
+    drvList.innerHTML = '<p style="font-size:13px;color:var(--t3)">No driver login accounts yet.</p>';
+  } else {
+    drvList.innerHTML = `<div class="tbl-wrap"><table>
+      <thead><tr><th>Driver</th><th>Email</th><th>Access</th></tr></thead>
+      <tbody>${drvs.map(d=>`<tr>
+        <td><strong>${d.name}</strong></td>
+        <td style="font-family:var(--mono);font-size:11.5px;color:var(--t2)">${d.email}</td>
+        <td><span class="badge b-gray">Own data only</span></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+}
+
+// Initial render (may be empty) then re-render when users hydrate.
+renderLists();
+FleetAuth.hydrateUsers().then(renderLists);
+window.addEventListener('auth:users:updated', renderLists);
 
 // Toggle permission
 function togglePerm(el, userId, perm) {
@@ -160,29 +176,41 @@ function markUnsaved() {
   document.getElementById('save-status').style.color = 'var(--amber)';
 }
 
-function saveAll() {
-  FleetAuth.getUsersByRole('employee').forEach(user => {
+async function saveAll() {
+  const status = document.getElementById('save-status');
+  status.textContent = 'Saving…';
+  status.style.color = 'var(--t2)';
+  const emps = FleetAuth.getUsersByRole('employee');
+  const results = await Promise.all(emps.map(user => {
     const card = document.getElementById('card-' + user.id);
-    if (!card) return;
+    if (!card) return Promise.resolve(true);
     const perms = [];
     card.querySelectorAll('.perm-toggle.granted').forEach(t => {
       const p = t.querySelector('.perm-label')?.textContent?.trim();
-      if(p) perms.push(p);
+      if (p) perms.push(p);
     });
-    savePerms(user.id, perms);
-  });
-  document.getElementById('save-status').textContent = '✓ All changes saved successfully.';
-  document.getElementById('save-status').style.color = 'var(--green)';
-  Toast.success('Access permissions saved! Changes take effect on next employee login.');
+    return savePermsServer(user.id, perms);
+  }));
+  const ok = results.every(Boolean);
+  await FleetAuth.hydrateUsers(true);
+  if (ok) {
+    status.textContent = '✓ All changes saved successfully.';
+    status.style.color = 'var(--green)';
+    Toast.success('Access permissions saved. Affected users see changes on next page load.');
+  } else {
+    status.textContent = '✗ Some changes failed to save.';
+    status.style.color = 'var(--red)';
+    Toast.error('Some permission changes could not be saved. Check your connection and try again.');
+  }
 }
 
-function resetAll() {
-  if(!confirm('Reset all permissions to defaults?')) return;
-  FleetAuth.getUsersByRole('employee').forEach(u => {
-    try { localStorage.removeItem('ft_perms_' + u.id); } catch(e) {}
-  });
-  Toast.info('Permissions reset to defaults. Reload to see changes.');
-  setTimeout(() => location.reload(), 1200);
+async function resetAll() {
+  if(!confirm('Reset all permissions to role defaults? Customisations will be cleared server-side.')) return;
+  const emps = FleetAuth.getUsersByRole('employee');
+  await Promise.all(emps.map(u => savePermsServer(u.id, null)));
+  await FleetAuth.hydrateUsers(true);
+  renderLists();
+  Toast.info('Permissions reset to defaults.');
 }
 
 if (typeof FleetCurrency !== 'undefined') { FleetCurrency.rerender(); FleetCurrency.injectToggle(); if(typeof FleetTheme!=="undefined")FleetTheme.injectToggle(); }

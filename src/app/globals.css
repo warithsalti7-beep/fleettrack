@@ -1,52 +1,245 @@
 @import "tailwindcss";
 
+/* ══════════════════════════════════════════════════════════════════
+   FleetTrack — unified design tokens.
+   Mirrors public/design-system.css so the legacy HTML portal and the
+   React /admin/* pages share the same palette / spacing / shadows.
+   Single source of truth; edit tokens here, both worlds update.
+══════════════════════════════════════════════════════════════════ */
+
+:root, [data-theme="dark"] {
+  /* Surfaces (layers, from page background to raised popovers) */
+  --bg:  #07090f;
+  --bg2: #0c0f18;
+  --bg3: #111520;
+  --bg4: #171c2b;
+  --bg5: #1e2438;
+  --bg6: #252c42;
+
+  /* Borders (0=subtle -> 4=strong) */
+  --b1: rgba(255,255,255,0.05);
+  --b2: rgba(255,255,255,0.09);
+  --b3: rgba(255,255,255,0.15);
+  --b4: rgba(255,255,255,0.22);
+
+  /* Text contrast ladder */
+  --t1: #edf0f8;
+  --t2: #8b96b0;
+  --t3: #4d5a72;
+  --t4: #2d3a50;
+
+  /* Brand */
+  --brand:   #3b7ff5;
+  --brand-2: #619af8;
+  --brand-3: #1a4db8;
+  --brand-bg:     rgba(59,127,245,0.10);
+  --brand-border: rgba(59,127,245,0.22);
+
+  /* Semantic */
+  --success:        #10b981;
+  --success-bg:     rgba(16,185,129,0.10);
+  --success-border: rgba(16,185,129,0.22);
+  --danger:         #ef4444;
+  --danger-bg:      rgba(239,68,68,0.10);
+  --danger-border:  rgba(239,68,68,0.22);
+  --warn:           #f59e0b;
+  --warn-bg:        rgba(245,158,11,0.10);
+  --warn-border:    rgba(245,158,11,0.22);
+  --info:           #14b8a6;
+  --info-bg:        rgba(20,184,166,0.10);
+  --info-border:    rgba(20,184,166,0.22);
+
+  /* Shadows — dark theme (drop-shadow onto near-black) */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.35);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.55);
+  --shadow-ring-brand: 0 0 0 3px rgba(59,127,245,0.35);
+}
+
+[data-theme="light"] {
+  --bg:  #f7f8fb;
+  --bg2: #ffffff;
+  --bg3: #f1f3f8;
+  --bg4: #e7eaf1;
+  --bg5: #dde1ea;
+  --bg6: #cfd5e0;
+
+  --b1: rgba(15,23,42,0.06);
+  --b2: rgba(15,23,42,0.12);
+  --b3: rgba(15,23,42,0.20);
+  --b4: rgba(15,23,42,0.30);
+
+  --t1: #0f172a;
+  --t2: #475569;
+  --t3: #64748b;
+  --t4: #94a3b8;
+
+  --brand-2: #2563eb;
+
+  --shadow-sm: 0 1px 3px rgba(15,23,42,0.08);
+  --shadow-md: 0 4px 16px rgba(15,23,42,0.10), 0 2px 4px rgba(15,23,42,0.06);
+  --shadow-lg: 0 12px 40px rgba(15,23,42,0.14);
+
+  color-scheme: light;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --card: #ffffff;
-  --card-foreground: #171717;
-  --primary: #2563eb;
-  --primary-foreground: #ffffff;
-  --muted: #f3f4f6;
-  --muted-foreground: #6b7280;
-  --accent: #f3f4f6;
-  --accent-foreground: #111827;
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --ring: #2563eb;
-  --popover: #ffffff;
-  --popover-foreground: #171717;
-  --secondary: #f3f4f6;
-  --secondary-foreground: #111827;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --radius: 0.5rem;
+  /* Typography */
+  --font-sans: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+
+  /* Type scale */
+  --text-2xs: 10.5px;
+  --text-xs:  11.5px;
+  --text-sm:  13px;
+  --text-base: 14px;
+  --text-md:   15px;
+  --text-lg:   17px;
+  --text-xl:   20px;
+  --text-2xl:  24px;
+  --text-3xl:  30px;
+
+  /* Spacing — 4px increments so Tailwind's default scale feels native */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 48px;
+  --space-10: 64px;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --motion-fast: 0.1s ease;
+  --motion-mid:  0.2s ease;
+  --motion-slow: 0.35s cubic-bezier(0.4,0,0.2,1);
+
+  /* Layout */
+  --layout-sidebar: 240px;
+  --layout-topbar:  56px;
+  --layout-content-pad: 24px;
 }
 
+/* ── Tailwind theme bridge ──────────────────────────────────────────
+   Maps token CSS variables to Tailwind utility names. After this you
+   can write `bg-surface-2`, `text-muted`, `border-subtle`,
+   `bg-brand`, `text-success`, etc. Anywhere in the React tree.       */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --radius: var(--radius);
+  /* Surface layers */
+  --color-surface-0: var(--bg);
+  --color-surface-1: var(--bg2);
+  --color-surface-2: var(--bg3);
+  --color-surface-3: var(--bg4);
+  --color-surface-4: var(--bg5);
+  --color-surface-5: var(--bg6);
+
+  /* Borders */
+  --color-border-subtle: var(--b1);
+  --color-border-muted:  var(--b2);
+  --color-border:        var(--b3);
+  --color-border-strong: var(--b4);
+
+  /* Foreground ladder */
+  --color-fg:       var(--t1);
+  --color-muted:    var(--t2);
+  --color-subtle:   var(--t3);
+  --color-disabled: var(--t4);
+
+  /* Brand */
+  --color-brand:         var(--brand);
+  --color-brand-2:       var(--brand-2);
+  --color-brand-3:       var(--brand-3);
+  --color-brand-bg:      var(--brand-bg);
+  --color-brand-border:  var(--brand-border);
+
+  /* Semantic */
+  --color-success:        var(--success);
+  --color-success-bg:     var(--success-bg);
+  --color-success-border: var(--success-border);
+  --color-danger:         var(--danger);
+  --color-danger-bg:      var(--danger-bg);
+  --color-danger-border:  var(--danger-border);
+  --color-warn:           var(--warn);
+  --color-warn-bg:        var(--warn-bg);
+  --color-warn-border:    var(--warn-border);
+  --color-info:           var(--info);
+  --color-info-bg:        var(--info-bg);
+  --color-info-border:    var(--info-border);
+
+  /* Radii */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+
+  /* Shadows */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  /* Font families */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  /* Extra text size — Tailwind v4 doesn't ship text-2xs out of the box. */
+  --text-2xs: var(--text-2xs);
 }
 
+/* ── Base ── */
+html, body { min-height: 100%; }
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg);
+  color: var(--t1);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbars — thin + theme-aware */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--bg5); }
+
+/* Focus ring — keyboard only. Applies to links and elements that don't
+   define their own focus treatment. Buttons, inputs, and selects override
+   this with their component-level rings so the visual is tighter. */
+:where(a, [role="button"]):focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+}
+
+/* Global keyframes for skeletons, spinners, and modal entrance. */
+@keyframes ft-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes ft-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes ft-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes ft-pop-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
 }

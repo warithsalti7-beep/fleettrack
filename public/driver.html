@@ -122,7 +122,7 @@ body { background:var(--bg); min-height:100vh; }
       <div class="driver-avatar" id="d-avatar">OM</div>
       <div class="driver-name"  id="d-name">Driver</div>
     </div>
-    <button class="logout-btn" onclick="FleetAuth.logout('./login.html?portal=driver')" title="Sign out" aria-label="Sign out">⏻</button>
+    <button class="logout-btn" onclick="FleetAuth.logout('/login?portal=driver')" title="Sign out" aria-label="Sign out">⏻</button>
   </div>
 
   <!-- Content -->
@@ -279,8 +279,8 @@ body { background:var(--bg); min-height:100vh; }
         <div style="font-size:13px;color:var(--t2);display:flex;justify-content:space-between;padding:var(--s2) 0;border-bottom:1px solid var(--b1)"><span>Email</span><span class="text-mono" id="profile-email" style="color:var(--t1)">—</span></div>
         <div style="font-size:13px;color:var(--t2);display:flex;justify-content:space-between;padding:var(--s2) 0"><span>Role</span><span class="badge b-green">Driver</span></div>
       </div>
-      <button class="btn btn-full" style="margin-top:var(--s3);border-color:var(--redborder);color:var(--red)" onclick="FleetAuth.logout('./login.html?portal=driver')">Sign Out</button>
-      <div style="text-align:center;margin-top:var(--s5);font-size:12px;color:var(--t3)">FleetTrack Driver Portal v1.0<br>© 2025 FleetTrack</div>
+      <button class="btn btn-full" style="margin-top:var(--s3);border-color:var(--redborder);color:var(--red)" onclick="FleetAuth.logout('/login?portal=driver')">Sign Out</button>
+      <div style="text-align:center;margin-top:var(--s5);font-size:12px;color:var(--t3)">FleetTrack Driver Portal · <span id="d-build-id">—</span><br><span id="d-year">2026</span> FleetTrack</div>
     </div>
 
   </div>
@@ -297,11 +297,11 @@ body { background:var(--bg); min-height:100vh; }
   </div>
 </div>
 
-<script src="./fleet-data.js"></script>
 <script src="./auth.js"></script>
+<script src="./js/fleet-state.js"></script>
 <script>
 // ── Auth guard ───────────────────────────────────────────────────────
-const session = FleetAuth.requireAuth(['driver'], './login.html?portal=driver');
+const session = FleetAuth.requireAuth(['driver'], '/login?portal=driver');
 if (!session) throw new Error('Unauthorized');
 
 // ── Populate session info ────────────────────────────────────────────
@@ -315,196 +315,188 @@ document.getElementById('profile-car').textContent    = `Car: ${session.carId||'
 document.getElementById('profile-shift').textContent  = `Shift: ${session.shift||'—'}`;
 document.getElementById('profile-email').textContent  = session.email;
 
-// ── Driver data (keyed by driver id — in prod: fetched from API) ─────
-const driverStats = {
-  'drv-1':  { earnings:2980, trips:11, hours:8.2, accept:93, boltTrips:9,  uberTrips:2,  boltWin:'06:00–14:30', uberWin:'06:15–07:00', score:91 },
-  'drv-2':  { earnings:2810, trips:9,  hours:7.5, accept:86, boltTrips:9,  uberTrips:0,  boltWin:'06:30–14:00', uberWin:'—',           score:86 },
-  'drv-3':  { earnings:2640, trips:8,  hours:8.0, accept:84, boltTrips:8,  uberTrips:3,  boltWin:'07:00–15:00', uberWin:'07:00–09:00', score:79 },
-  'drv-4':  { earnings:2510, trips:8,  hours:7.5, accept:83, boltTrips:8,  uberTrips:0,  boltWin:'06:00–13:30', uberWin:'—',           score:75 },
-  'drv-5':  { earnings:2440, trips:7,  hours:8.0, accept:82, boltTrips:7,  uberTrips:3,  boltWin:'06:00–14:00', uberWin:'06:00–13:00', score:72 },
-  'drv-6':  { earnings:2380, trips:7,  hours:8.0, accept:81, boltTrips:7,  uberTrips:0,  boltWin:'07:00–15:00', uberWin:'—',           score:70 },
-  'drv-7':  { earnings:2310, trips:7,  hours:8.5, accept:80, boltTrips:7,  uberTrips:1,  boltWin:'05:00–13:00', uberWin:'05:30–06:30', score:67 },
-  'drv-8':  { earnings:2180, trips:7,  hours:8.0, accept:79, boltTrips:7,  uberTrips:0,  boltWin:'14:00–22:00', uberWin:'—',           score:65 },
-  'drv-9':  { earnings:2240, trips:6,  hours:8.0, accept:78, boltTrips:6,  uberTrips:2,  boltWin:'07:00–14:00', uberWin:'14:00–15:00', score:63 },
-  'drv-10': { earnings:2170, trips:7,  hours:8.0, accept:78, boltTrips:7,  uberTrips:0,  boltWin:'06:00–14:00', uberWin:'—',           score:61 },
-  'drv-11': { earnings:2090, trips:6,  hours:8.5, accept:77, boltTrips:6,  uberTrips:0,  boltWin:'14:00–22:30', uberWin:'—',           score:59 },
-  'drv-12': { earnings:2030, trips:6,  hours:9.0, accept:76, boltTrips:6,  uberTrips:2,  boltWin:'06:00–14:00', uberWin:'14:00–15:00', score:57 },
-  'drv-13': { earnings:1960, trips:6,  hours:8.5, accept:75, boltTrips:4,  uberTrips:0,  boltWin:'04:21–06:13, 11:02–12:21', uberWin:'—', score:54 },
-  'drv-14': { earnings:1890, trips:6,  hours:8.5, accept:74, boltTrips:6,  uberTrips:1,  boltWin:'07:00–15:00', uberWin:'07:00–08:30', score:52 },
-  'drv-15': { earnings:1820, trips:5,  hours:8.0, accept:74, boltTrips:5,  uberTrips:0,  boltWin:'06:00–14:00', uberWin:'—',           score:50 },
-  'drv-16': { earnings:1740, trips:5,  hours:7.5, accept:73, boltTrips:5,  uberTrips:1,  boltWin:'07:00–14:30', uberWin:'07:00–07:30', score:48 },
-  'drv-17': { earnings:1670, trips:5,  hours:7.0, accept:72, boltTrips:5,  uberTrips:0,  boltWin:'15:00–22:00', uberWin:'—',           score:46 },
-  'drv-18': { earnings:1580, trips:4,  hours:7.0, accept:70, boltTrips:4,  uberTrips:0,  boltWin:'06:00–13:00', uberWin:'—',           score:44 },
-  'drv-19': { earnings:1490, trips:4,  hours:7.5, accept:68, boltTrips:4,  uberTrips:1,  boltWin:'14:00–21:00', uberWin:'14:30–15:30', score:41 },
-};
-// Fallback stats for drivers not in the hardcoded list (e.g. custom drivers
-// added by admin via the UI). Derives a deterministic seed from the user id
-// so the numbers are stable for that user across sessions.
-function _seed(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0)/4294967295;}
-function _rand(seed, min, max){ return min + Math.floor(seed * (max - min)); }
-function synthesizeDriverStats(uid){
-  const s1=_seed(uid+'-a'), s2=_seed(uid+'-b'), s3=_seed(uid+'-c'), s4=_seed(uid+'-d');
-  const trips = _rand(s1, 4, 11);
-  const hours = Number((7 + s2 * 2).toFixed(1));
-  const earnings = Math.round(trips * (210 + s3 * 110));
-  const accept = _rand(s2, 68, 94);
-  const boltTrips = Math.max(1, trips - _rand(s4, 0, 3));
-  const uberTrips = trips - boltTrips;
-  const score = _rand(s3, 45, 92);
-  const shiftStart = _rand(s1, 5, 15);
-  const boltWin = String(shiftStart).padStart(2,'0') + ':00–' + String(shiftStart + 8).padStart(2,'0') + ':00';
-  const uberWin = uberTrips > 0 ? boltWin : '—';
-  return { earnings, trips, hours, accept, boltTrips, uberTrips, boltWin, uberWin, score };
+// ── Driver stats — derived from live /api/trips filtered to this driver ─
+// The driver portal used to ship a baked table keyed by drv-1..19. All
+// rows are now computed from real completed-trip data.
+const EMPTY_STATS = { earnings:0, trips:0, hours:0, accept:0, boltTrips:0, uberTrips:0, boltWin:'—', uberWin:'—', score:0 };
+let myStats = { ...EMPTY_STATS };
+
+async function loadMyStats(){
+  try {
+    const r = await fetch('/api/trips?limit=200', { credentials: 'same-origin', cache: 'no-store' });
+    if (!r.ok) return EMPTY_STATS;
+    const trips = await r.json();
+    if (!Array.isArray(trips) || !trips.length) return { ...EMPTY_STATS };
+    const completed = trips.filter(t => t.status === 'COMPLETED');
+    const earnings = completed.reduce((s, t) => s + (Number(t.fare) || 0), 0);
+    const minutes  = completed.reduce((s, t) => s + (Number(t.duration) || 0), 0);
+    const hours    = Math.round((minutes / 60) * 10) / 10;
+    const cancelled = trips.filter(t => t.status === 'CANCELLED').length;
+    const offered  = trips.length;
+    const accept   = offered ? Math.round(((offered - cancelled) / offered) * 100) : 0;
+    // Score: simple composite of acceptance + volume. Swap for a real
+    // server-side formula when /api/stats/per-driver exists.
+    const score = Math.min(100, Math.round(accept * 0.6 + Math.min(completed.length, 20) * 2));
+    return {
+      earnings: Math.round(earnings),
+      trips: completed.length,
+      hours,
+      accept,
+      boltTrips: completed.length, // platform split not tracked yet
+      uberTrips: 0,
+      boltWin: '—',
+      uberWin: '—',
+      score,
+    };
+  } catch(e) { return { ...EMPTY_STATS }; }
 }
-const myStats = driverStats[session.userId] || synthesizeDriverStats(session.userId || session.email || 'unknown');
-
-// ── Render home tab ──────────────────────────────────────────────────
-document.getElementById('d-earnings').textContent = FleetCurrency.format(myStats.earnings);
-document.getElementById('d-trips').textContent    = myStats.trips;
-document.getElementById('d-hours').textContent    = myStats.hours + 'h';
-document.getElementById('d-accept').textContent   = myStats.accept + '%';
-const acceptBar = document.getElementById('d-accept-bar');
-acceptBar.style.width = myStats.accept + '%';
-acceptBar.style.background = myStats.accept >= 80 ? 'var(--green)' : myStats.accept >= 70 ? 'var(--amber)' : 'var(--red)';
-document.getElementById('d-bolt-trips').textContent  = myStats.boltTrips;
-document.getElementById('d-uber-trips').textContent  = myStats.uberTrips;
-document.getElementById('d-bolt-windows').textContent = 'Bolt: ' + myStats.boltWin;
-document.getElementById('d-uber-windows').textContent = 'Uber: ' + myStats.uberWin;
-
-// Driver alerts
-const alertsEl = document.getElementById('driver-alerts');
-const alerts = [];
-if (myStats.accept < 70)  alerts.push({ type:'a-red',   msg:'⚠ Your acceptance rate is below 70% — risk of platform restriction.' });
-if (myStats.accept < 80 && myStats.accept >= 70) alerts.push({ type:'a-amber', msg:'Your acceptance rate is below 80% target. Try to accept more trips.' });
-if (myStats.boltTrips > 0 && myStats.uberTrips === 0) alerts.push({ type:'a-blue', msg:'Tip: Enable Uber when Bolt is quiet to maximise earnings.' });
-if (myStats.score >= 80)  alerts.push({ type:'a-green', msg:'🎉 Great work! You are in the Top Performer tier this week.' });
-alerts.forEach(a => {
-  const d = document.createElement('div');
-  d.className = 'alert ' + a.type;
-  d.style.marginBottom = 'var(--s2)';
-  d.textContent = a.msg;
-  alertsEl.appendChild(d);
+// Kick off the async load; render fills in once it resolves.
+const _statsPromise = loadMyStats().then(s => {
+  myStats = s;
+  try { renderDriverHome(); } catch(e){ console.error('driver home render:', e); }
+  try { renderDriverPerformance(); } catch(e){ console.error('driver perf render:', e); }
+  try { renderDriverNotifications(); } catch(e){ console.error('driver notif render:', e); }
 });
 
-// ── Render trips tab ─────────────────────────────────────────────────
-const zones = ['City Centre','Airport','Business Park','Suburbs N','Shopping Mall','City Centre','Airport'];
-const tripsList = document.getElementById('trips-list');
-for (let i = 0; i < myStats.trips; i++) {
-  const fare = (150 + Math.random() * 250).toFixed(0);
-  const km   = (5 + Math.random() * 20).toFixed(1);
-  const h    = 6 + Math.floor(i * 1.2);
-  const plat = i % 3 === 0 ? 'UBER' : 'BOLT';
-  const platColor = plat === 'BOLT' ? 'var(--purple)' : 'var(--blue2)';
-  tripsList.innerHTML += `<div class="trip-item">
-    <div class="trip-header">
-      <span class="trip-platform" style="color:${platColor}">${plat}</span>
-      <span class="trip-time">${String(h).padStart(2,'0')}:${String(Math.floor(Math.random()*60)).padStart(2,'0')}</span>
-    </div>
-    <div class="trip-route">
-      <span class="trip-from">${zones[i % zones.length]}</span>
-      <span class="trip-arrow">→</span>
-      <span class="trip-to">${zones[(i+2) % zones.length]}</span>
-    </div>
-    <div class="trip-footer">
-      <span class="trip-earn">${FleetCurrency.format(parseInt(fare))}</span>
-      <span class="trip-km">${km} km</span>
-      <span class="badge b-green">Done</span>
-    </div>
-  </div>`;
+async function renderDriverHome(){
+  // ── Render home tab ────────────────────────────────────────────────
+  document.getElementById('d-earnings').textContent = FleetCurrency.format(myStats.earnings);
+  document.getElementById('d-trips').textContent    = myStats.trips;
+  document.getElementById('d-hours').textContent    = myStats.hours + 'h';
+  document.getElementById('d-accept').textContent   = myStats.accept + '%';
+  const acceptBar = document.getElementById('d-accept-bar');
+  acceptBar.style.width = myStats.accept + '%';
+  acceptBar.style.background = myStats.accept >= 80 ? 'var(--green)' : myStats.accept >= 70 ? 'var(--amber)' : 'var(--red)';
+  document.getElementById('d-bolt-trips').textContent  = myStats.boltTrips;
+  document.getElementById('d-uber-trips').textContent  = myStats.uberTrips;
+  document.getElementById('d-bolt-windows').textContent = 'Bolt: ' + myStats.boltWin;
+  document.getElementById('d-uber-windows').textContent = 'Uber: ' + myStats.uberWin;
+
+  // Driver alerts — only show when we have data
+  const alertsEl = document.getElementById('driver-alerts');
+  alertsEl.innerHTML = '';
+  if (myStats.trips > 0) {
+    const alerts = [];
+    if (myStats.accept < 70)  alerts.push({ type:'a-red',   msg:'Your acceptance rate is below 70% — risk of platform restriction.' });
+    if (myStats.accept < 80 && myStats.accept >= 70) alerts.push({ type:'a-amber', msg:'Your acceptance rate is below 80% target. Try to accept more trips.' });
+    if (myStats.score >= 80)  alerts.push({ type:'a-green', msg:'Great work! You are in the Top Performer tier this week.' });
+    alerts.forEach(a => {
+      const d = document.createElement('div');
+      d.className = 'alert ' + a.type;
+      d.style.marginBottom = 'var(--s2)';
+      d.textContent = a.msg;
+      alertsEl.appendChild(d);
+    });
+  }
+
+  // ── Render trips tab — real trips from the API only ──────────────
+  const tripsList = document.getElementById('trips-list');
+  tripsList.innerHTML = '';
+  try {
+    const r = await fetch('/api/trips?limit=50', { credentials: 'same-origin', cache: 'no-store' });
+    if (r.ok) {
+      const trips = await r.json();
+      if (Array.isArray(trips) && trips.length) {
+        trips.slice(0, 50).forEach(t => {
+          const when = t.startedAt || t.createdAt;
+          const d = when ? new Date(when) : null;
+          const time = d ? String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') : '—';
+          const status = (t.status || '').toLowerCase();
+          const badge = status === 'completed' ? 'b-green' : status === 'cancelled' ? 'b-gray' : 'b-blue';
+          tripsList.innerHTML += `<div class="trip-item">
+            <div class="trip-header">
+              <span class="trip-time">${time}</span>
+              <span class="badge ${badge}">${t.status || 'PENDING'}</span>
+            </div>
+            <div class="trip-route">
+              <span class="trip-from">${(t.pickupAddress||'—').replace(/</g,'&lt;')}</span>
+              <span class="trip-arrow">→</span>
+              <span class="trip-to">${(t.dropoffAddress||'—').replace(/</g,'&lt;')}</span>
+            </div>
+            <div class="trip-footer">
+              <span class="trip-earn">${t.fare!=null ? FleetCurrency.format(t.fare) : '—'}</span>
+              <span class="trip-km">${t.distance!=null ? Number(t.distance).toFixed(1)+' km' : '—'}</span>
+            </div>
+          </div>`;
+        });
+      }
+    }
+  } catch(e){ /* render empty */ }
+  if (!tripsList.innerHTML) {
+    tripsList.innerHTML = '<div style="text-align:center;color:var(--t3);padding:var(--s7);font-size:13px">No trips recorded yet.</div>';
+  }
+
+  // ── Earnings weekly chart — zero out until we have day-level API ──
+  // The previous chart generated weekly bars with Math.random(); removed
+  // because any fake number here is worse than showing "no weekly data".
+  const chart = document.getElementById('earnings-chart');
+  chart.innerHTML = myStats.trips > 0
+    ? '<div style="grid-column:1/-1;text-align:center;color:var(--t3);font-size:12px;padding:var(--s5)">Weekly breakdown will appear once 7 days of trip data are available.</div>'
+    : '<div style="grid-column:1/-1;text-align:center;color:var(--t3);font-size:12px;padding:var(--s5)">No earnings yet.</div>';
+  document.getElementById('weekly-total').textContent = FleetCurrency.format(myStats.earnings);
+  document.getElementById('daily-avg').textContent    = FleetCurrency.format(myStats.earnings);
+
+  // Payslip — computed from live earnings only. All coefficients match the
+  // real Norwegian-fleet commission split documented in docs/AUDIT_2026_04.md.
+  const PLATFORM_FEE_PCT = 0.15;  // Bolt/Uber platform take-rate (gross)
+  const DRIVER_SHARE_PCT = 0.65;  // driver's share of net
+  const gross   = myStats.earnings;
+  const platFee = Math.round(gross * PLATFORM_FEE_PCT);
+  const net     = gross - platFee;
+  const payout  = Math.round(net * DRIVER_SHARE_PCT);
+  document.getElementById('ps-gross').textContent       = FleetCurrency.format(gross);
+  document.getElementById('ps-platform').textContent    = '−'+FleetCurrency.format(platFee);
+  document.getElementById('ps-commission').textContent  = FleetCurrency.format(payout);
+  document.getElementById('ps-payout').textContent      = FleetCurrency.format(payout);
 }
-if (myStats.trips === 0) tripsList.innerHTML = '<div style="text-align:center;color:var(--t3);padding:var(--s7);font-size:13px">No trips recorded today yet.</div>';
-
-// ── Earnings weekly chart ─────────────────────────────────────────────
-const days = ['M','T','W','T','F','S','S'];
-const weekData = days.map((d,i) => ({ d, val: i===3 ? myStats.earnings : Math.floor(myStats.earnings * (0.6 + Math.random()*0.7)), today: i===3 }));
-const maxVal = Math.max(...weekData.map(w=>w.val));
-const chart = document.getElementById('earnings-chart');
-weekData.forEach(w => {
-  const pct = Math.round(w.val / maxVal * 100);
-  chart.innerHTML += `<div class="day-bar-wrap">
-    <div class="day-val">${FleetCurrency.formatCompact(w.val)}</div>
-    <div class="day-bar ${w.today?'today':''}" style="height:${pct}%"></div>
-    <div class="day-label">${w.d}</div>
-  </div>`;
-});
-const weekTotal = weekData.reduce((s,w)=>s+w.val,0);
-document.getElementById('weekly-total').textContent = FleetCurrency.format(weekTotal);
-document.getElementById('daily-avg').textContent    = FleetCurrency.format(Math.round(weekTotal/7));
-
-// Payslip
-const gross = Math.round(myStats.earnings * 1.18);
-const platFee = Math.round(gross * 0.15);
-const net  = gross - platFee;
-const comm = Math.round(net * 0.65);
-document.getElementById('ps-gross').textContent      = FleetCurrency.format(gross);
-document.getElementById('ps-platform').textContent   = '−'+FleetCurrency.format(platFee);
-document.getElementById('ps-commission').textContent  = FleetCurrency.format(comm);
-document.getElementById('ps-payout').textContent      = FleetCurrency.format(comm);
 
 // ── Schedule ─────────────────────────────────────────────────────────
-const schedDays = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-const schedHtml = schedDays.map((d,i) => {
-  const isToday = i===3;
-  const hasShift = i < 5;
-  return `<div class="shift-day" ${isToday?'style="border-color:var(--blueborder)"':''}>
-    <div class="shift-day-header">
-      <div class="shift-day-name" ${isToday?'style="color:var(--blue2)"'}>${d} ${isToday?'<span class="badge b-blue" style="margin-left:6px">Today</span>':''}</div>
-      ${hasShift ? `<span class="badge b-green">${session.shift||'AM'} Shift</span>` : '<span class="badge b-gray">Off</span>'}
-    </div>
-    ${hasShift ? `<div class="shift-time-row">
-      <span style="font-size:15px">🕐</span>
-      <span>${session.shift==='PM'?'14:00 – 22:30':'06:00 – 14:30'}</span>
-    </div>
-    <div style="margin-top:var(--s2)"><span class="shift-car-badge">${session.carId||'—'} · ${session.brand||'—'}</span></div>` : '<div style="font-size:13px;color:var(--t3);margin-top:var(--s1)">Rest day</div>'}
-  </div>`;
-}).join('');
-document.getElementById('schedule-list').innerHTML = schedHtml;
+// The schedule page is a placeholder until /api/shifts per-driver lands.
+// Rendering a blank "no shifts scheduled" state is preferable to inventing
+// Mon–Fri 06:00 shifts the driver may or may not actually have.
+document.getElementById('schedule-list').innerHTML =
+  '<div style="text-align:center;color:var(--t3);padding:var(--s7);font-size:13px">No upcoming shifts scheduled. Contact dispatch to confirm your rota.</div>';
 
-// ── Performance score ─────────────────────────────────────────────────
-document.getElementById('perf-score').textContent = myStats.score;
-const tier = myStats.score >= 80 ? ['Top Performer','b-green'] : myStats.score >= 60 ? ['Average','b-blue'] : ['Needs Improvement','b-amber'];
-document.getElementById('perf-tier-badge').innerHTML = `<span class="badge ${tier[1]}" style="font-size:13px;padding:6px 14px">${tier[0]}</span>`;
+function renderDriverPerformance(){
+  // Performance score
+  document.getElementById('perf-score').textContent = myStats.score;
+  const tier = myStats.score >= 80 ? ['Top Performer','b-green'] : myStats.score >= 60 ? ['Average','b-blue'] : ['Needs Improvement','b-amber'];
+  document.getElementById('perf-tier-badge').innerHTML = `<span class="badge ${tier[1]}" style="font-size:13px;padding:6px 14px">${tier[0]}</span>`;
 
-const breakdown = [
-  { label:'Revenue per hour', val: Math.min(100,Math.round(myStats.earnings/myStats.hours/200*100)), color:'var(--green)', weight:'30%' },
-  { label:'Utilization rate', val: Math.round(myStats.hours/9*100), color:'var(--blue2)', weight:'25%' },
-  { label:'Acceptance rate',  val: myStats.accept, color:'var(--amber)', weight:'20%' },
-  { label:'Trips per hour',   val: Math.min(100,Math.round(myStats.trips/myStats.hours/2.5*100)), color:'var(--teal)', weight:'15%' },
-  { label:'Reliability',      val: Math.max(0,100-(100-myStats.accept)*2), color:'var(--purple)', weight:'10%' },
-];
-document.getElementById('perf-breakdown').innerHTML = breakdown.map(b=>`
-  <div class="perf-row">
-    <div>
-      <div class="perf-label">${b.label}</div>
-      <div style="font-size:11px;color:var(--t3)">Weight: ${b.weight}</div>
-    </div>
-    <div class="perf-bar-wrap">
-      <div class="perf-bar"><div class="perf-bar-fill" style="width:${b.val}%;background:${b.color}"></div></div>
-      <span class="perf-val" style="color:${b.color}">${b.val}</span>
-    </div>
-  </div>`).join('');
+  const safeDiv = (a,b) => (b > 0 ? a / b : 0);
+  const breakdown = [
+    { label:'Revenue per hour', val: Math.min(100,Math.round(safeDiv(myStats.earnings, myStats.hours)/200*100)), color:'var(--green)', weight:'30%' },
+    { label:'Utilization rate', val: Math.min(100,Math.round(myStats.hours/9*100)), color:'var(--blue2)', weight:'25%' },
+    { label:'Acceptance rate',  val: myStats.accept, color:'var(--amber)', weight:'20%' },
+    { label:'Trips per hour',   val: Math.min(100,Math.round(safeDiv(myStats.trips, myStats.hours)/2.5*100)), color:'var(--teal)', weight:'15%' },
+    { label:'Reliability',      val: Math.max(0,100-(100-myStats.accept)*2), color:'var(--purple)', weight:'10%' },
+  ];
+  document.getElementById('perf-breakdown').innerHTML = breakdown.map(b=>`
+    <div class="perf-row">
+      <div>
+        <div class="perf-label">${b.label}</div>
+        <div style="font-size:11px;color:var(--t3)">Weight: ${b.weight}</div>
+      </div>
+      <div class="perf-bar-wrap">
+        <div class="perf-bar"><div class="perf-bar-fill" style="width:${b.val}%;background:${b.color}"></div></div>
+        <span class="perf-val" style="color:${b.color}">${b.val}</span>
+      </div>
+    </div>`).join('');
 
-const tips = myStats.accept < 80
-  ? '• Accept more trips to improve your score — target >80%.<br>• Enable both Bolt and Uber apps for more opportunities.<br>• Stay in City Centre or Airport during peak hours (07:30–09:30, 17:00–20:00).'
-  : '• Keep it up! You are in the top performer range.<br>• Focus on airport runs for higher fares (avg NOK 350+ per trip).<br>• Peak hours: 07:30–09:30 and 17:00–20:00 earn 34% more per hour.';
-document.getElementById('perf-tips').innerHTML = tips;
+  const tips = myStats.trips === 0
+    ? '• No trips yet. Log in to Bolt / Uber and start accepting trips to generate performance data.'
+    : myStats.accept < 80
+    ? '• Accept more trips to improve your score — target >80%.<br>• Enable both Bolt and Uber apps for more opportunities.'
+    : '• Keep it up! You are in the top performer range.<br>• Focus on airport runs for higher average fares.';
+  document.getElementById('perf-tips').innerHTML = tips;
+}
 
-// ── Notifications ─────────────────────────────────────────────────────
-const notifs = [
-  { dot:'var(--blue)',  title:'Shift reminder',    time:'06:00', msg:`Your ${session.shift||'AM'} shift starts at ${session.shift==='PM'?'14:00':'06:00'}. Car ${session.carId||'—'} is ready.`, unread:true },
-  { dot:'var(--green)', title:'Earnings update',   time:'Yesterday', msg:`You earned ${FleetCurrency.format(myStats.earnings)} yesterday. Great work!`, unread:false },
-  { dot:'var(--amber)', title:'Acceptance reminder',time:'Yesterday', msg:'Keep your acceptance rate above 80% to maintain platform standing.', unread:false },
-  { dot:'var(--blue)',  title:'Fleet update',       time:'2 days ago', msg:'New zone repositioning rules are in effect. Check with your dispatcher.', unread:false },
-];
-document.getElementById('notif-list').innerHTML = notifs.map(n=>`
-  <div class="notif-item ${n.unread?'unread':''}">
-    <div class="notif-dot" style="background:${n.dot}"></div>
-    <div class="notif-body">
-      <div class="notif-title">${n.title} ${n.unread?'<span class="badge b-blue" style="font-size:9px">New</span>':''}</div>
-      <div class="notif-time">${n.time}</div>
-      <div class="notif-msg">${n.msg}</div>
-    </div>
-  </div>`).join('');
+function renderDriverNotifications(){
+  // Real notifications come from the server when /api/notifications lands.
+  // Until then, show a placeholder-free empty state rather than fake items.
+  const el = document.getElementById('notif-list');
+  el.innerHTML = '<div style="text-align:center;color:var(--t3);padding:var(--s7);font-size:13px">No notifications.</div>';
+}
 
 // ── Shift start / stop ────────────────────────────────────────────────
 // All state lives server-side. Reloading the page re-fetches
@@ -616,6 +608,13 @@ function showTab(id, btn) {
 }
 FleetCurrency.rerender();
 FleetCurrency.injectToggle(); if(typeof FleetTheme!=="undefined")FleetTheme.injectToggle();
+
+// Fill in build id + current year in the footer.
+try { document.getElementById('d-year').textContent = String(new Date().getFullYear()); } catch(e){}
+fetch('/api/health', { credentials: 'same-origin' })
+  .then(r => r.ok ? r.json() : null)
+  .then(j => { if (j && j.sha) { const el = document.getElementById('d-build-id'); if (el) el.textContent = 'build ' + String(j.sha).slice(0,7); } })
+  .catch(() => {});
 </script>
 </body>
 </html>

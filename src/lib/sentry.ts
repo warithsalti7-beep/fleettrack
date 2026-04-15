@@ -92,11 +92,11 @@ export async function captureError(err: unknown, ctx: ErrorContext = {}): Promis
 }
 
 /** Wraps a handler so any thrown error is reported before rethrowing. */
-export function withSentry<T extends (...args: any[]) => Promise<any>>(
+export function withSentry<T extends (...args: unknown[]) => Promise<unknown>>(
   route: string,
   handler: T,
 ): T {
-  return (async (...args: any[]) => {
+  return (async (...args: unknown[]) => {
     try {
       return await handler(...args);
     } catch (err) {

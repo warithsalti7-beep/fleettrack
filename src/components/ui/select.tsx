@@ -1,77 +1,61 @@
-"use client";
-
 import * as React from "react";
-import * as SelectPrimitive from "@radix-ui/react-select";
-import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const Select = SelectPrimitive.Root;
-const SelectGroup = SelectPrimitive.Group;
-const SelectValue = SelectPrimitive.Value;
+/**
+ * Select primitive — matches the Input visual language.
+ * Native <select> for maximum mobile + a11y compatibility.
+ */
+export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  label?: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  wrapperClassName?: string;
+  children: React.ReactNode;
+}
 
-const SelectTrigger = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-      className
-    )}
-    {...props}
-  >
-    {children}
-    <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-50" />
-    </SelectPrimitive.Icon>
-  </SelectPrimitive.Trigger>
-));
-SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
+export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function Select(
+  { label, hint, error, required, id, className, wrapperClassName, children, ...rest },
+  ref,
+) {
+  const autoId = React.useId();
+  const selectId = id ?? autoId;
+  const hintId = hint ? `${selectId}-hint` : undefined;
+  const errorId = error ? `${selectId}-error` : undefined;
+  const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
 
-const SelectContent = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", ...props }, ref) => (
-  <SelectPrimitive.Portal>
-    <SelectPrimitive.Content
-      ref={ref}
-      className={cn(
-        "relative z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md",
-        position === "popper" && "translate-y-1",
-        className
+  return (
+    <div className={cn("block", wrapperClassName)}>
+      {label && (
+        <label
+          htmlFor={selectId}
+          className="block text-2xs uppercase tracking-wider font-mono text-muted mb-1"
+        >
+          {label}{required && <span className="ml-1 text-danger">*</span>}
+        </label>
       )}
-      position={position}
-      {...props}
-    >
-      <SelectPrimitive.Viewport className={cn("p-1", position === "popper" && "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]")}>
+      <select
+        ref={ref}
+        id={selectId}
+        required={required}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy}
+        className={cn(
+          "w-full rounded-md px-3 h-9 text-sm",
+          "bg-surface-0 text-fg",
+          "border border-border-muted",
+          "transition-[border-color,box-shadow] duration-150",
+          "focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/40",
+          "hover:border-border disabled:opacity-60 disabled:cursor-not-allowed",
+          error && "border-danger-border focus:border-danger focus:ring-danger/40",
+          className,
+        )}
+        {...rest}
+      >
         {children}
-      </SelectPrimitive.Viewport>
-    </SelectPrimitive.Content>
-  </SelectPrimitive.Portal>
-));
-SelectContent.displayName = SelectPrimitive.Content.displayName;
-
-const SelectItem = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Item
-    ref={ref}
-    className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      className
-    )}
-    {...props}
-  >
-    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-      <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4" />
-      </SelectPrimitive.ItemIndicator>
-    </span>
-    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-  </SelectPrimitive.Item>
-));
-SelectItem.displayName = SelectPrimitive.Item.displayName;
-
-export { Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectItem };
+      </select>
+      {hint && !error && <p id={hintId} className="mt-1 text-xs text-subtle">{hint}</p>}
+      {error && <p id={errorId} role="alert" className="mt-1 text-xs text-danger">{error}</p>}
+    </div>
+  );
+});

@@ -6,15 +6,26 @@ datasource db {
   provider = "postgresql"
 }
 
+/// Human operators with login access.
+/// role is one of: admin | employee | driver.
+/// passwordHash format: "pbkdf2$<iterations>$<salt_b64url>$<hash_b64url>".
+/// When role = driver we optionally link to the Driver row via driverId.
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  role      String   @default("DISPATCHER")
-  // Plain-text for demo parity; migrate to bcrypt in Deploy 3.
-  password  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String?
+  role         String    @default("employee")
+  passwordHash String
+  /// Per-user permission grants. JSON array of strings like
+  /// ["view:drivers","manage:dispatch","export:reports"]. Overrides the
+  /// role defaults. Admins ignore this list (they have "all").
+  permissions  Json?
+  driverId     String?   // optional link to Driver record (role=driver)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([role])
 }
 
 model Driver {
