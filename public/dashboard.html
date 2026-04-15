@@ -1306,6 +1306,13 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
         <span class="nav-icon">⊠</span>Alert System
         <span class="nav-badge red">4</span>
       </div>
+      <div class="nav-item" onclick="go('errors-sync',this,'Errors &amp; Sync','System')">
+        <span class="nav-icon">⌖</span>Errors &amp; Sync
+        <span class="nav-badge amber" id="errors-sync-badge" style="display:none">0</span>
+      </div>
+      <div class="nav-item" onclick="go('live-shifts',this,'Live Shifts','Operations')">
+        <span class="nav-icon">◉</span>Live Shifts
+      </div>
       <div class="nav-item" onclick="go('activity-log',this,'Driver Activity Log','System')">
         <span class="nav-icon">⊸</span>Driver Activity Log
       </div>
@@ -2646,6 +2653,37 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     <div></div>
   </div>
 
+  <!-- Per-source trip + settlement uploads (Phase 3 of the Phase-2
+       upgrade plan). Each posts to its own /api/import/* route so
+       Uber, Bolt, Taxi data stay separate at the raw layer while
+       still feeding the unified Trip table. -->
+  <div class="card">
+    <div class="card-header"><div class="card-title">Per-source trip uploads</div><div class="card-sub">Upload directly to the right pipeline. Re-upload is safe — every source has its own dedupe key.</div></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--s3)">
+      <label class="ing-drop" style="display:block">
+        <strong>Uber CSV</strong><br>
+        <span style="color:var(--t3);font-size:11px">→ /api/import/trips/uber</span>
+        <input type="file" accept=".csv,text/csv" style="display:none" onchange="uploadOne(event,'/api/import/trips/uber')">
+      </label>
+      <label class="ing-drop" style="display:block">
+        <strong>Bolt CSV</strong><br>
+        <span style="color:var(--t3);font-size:11px">→ /api/import/trips/bolt</span>
+        <input type="file" accept=".csv,text/csv" style="display:none" onchange="uploadOne(event,'/api/import/trips/bolt')">
+      </label>
+      <label class="ing-drop" style="display:block">
+        <strong>Taxi / Norgestaxi CSV</strong><br>
+        <span style="color:var(--t3);font-size:11px">→ /api/import/trips/taxi</span>
+        <input type="file" accept=".csv,text/csv" style="display:none" onchange="uploadOne(event,'/api/import/trips/taxi')">
+      </label>
+      <label class="ing-drop" style="display:block">
+        <strong>Settlements CSV</strong><br>
+        <span style="color:var(--t3);font-size:11px">→ /api/import/settlements?source=…</span>
+        <input type="file" accept=".csv,text/csv" style="display:none" onchange="uploadSettlements(event)">
+      </label>
+    </div>
+    <div id="per-source-result" style="margin-top:var(--s3)"></div>
+  </div>
+
   <div style="display:flex;align-items:center;gap:var(--s3);margin:var(--s4) 0;color:var(--t3);font-size:12px">
     <hr style="flex:1;border:none;border-top:1px solid var(--b1)">
     <span>or import entity-by-entity below</span>
@@ -2785,6 +2823,38 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     const input = document.getElementById('import-token');
     return (input && input.value.trim()) || sessionStorage.getItem('ft_import_token') || '';
   }
+
+  // Per-source one-shot uploaders for the new Uber/Bolt/Taxi/Settlements
+  // cards. Reuses getToken() above.
+  window.uploadOne = async function(ev, url){
+    const f = ev.target.files?.[0]; if (!f) return;
+    const token = getToken();
+    if (!token){ Toast.error('Paste your admin token above first'); return; }
+    const out = document.getElementById('per-source-result');
+    out.innerHTML = `<div class="ing-result">Uploading <strong>${f.name}</strong> → ${url}…</div>`;
+    try {
+      const text = await f.text();
+      const r = await fetch(url, {
+        method:'POST', credentials:'include',
+        headers:{ 'content-type':'text/csv', 'x-admin-token': token, 'x-file-name': f.name },
+        body: text,
+      });
+      const j = await r.json();
+      out.innerHTML = `<div class="ing-result ${r.ok ? 'ok' : 'err'}">
+        <strong>${url}</strong> · file <code>${f.name}</code> · status ${r.status}<br>
+        inserted: <strong>${j.inserted ?? 0}</strong> · updated: <strong>${j.updated ?? 0}</strong> · skipped: <strong>${j.skipped ?? 0}</strong> · errors: <strong>${(j.errors||[]).length}</strong>
+        ${(j.errors||[]).length ? '<div class="ing-errlist">'+ j.errors.slice(0,20).map(e=>`row ${e.row}: ${e.message}`).join('<br>') +'</div>' : ''}
+      </div>`;
+      ev.target.value = ''; // allow re-selecting the same file
+    } catch (e) {
+      out.innerHTML = `<div class="ing-result err">Upload failed: ${e?.message || e}</div>`;
+    }
+  };
+  window.uploadSettlements = async function(ev){
+    const src = prompt('Settlement source? BOLT, UBER, DISPATCHER, or MANUAL', 'BOLT');
+    if (!src) return;
+    return window.uploadOne(ev, '/api/import/settlements?source=' + encodeURIComponent(src.toUpperCase()));
+  };
 
   window.importSubmit = async function(key){
     const csv = CACHE[key];
@@ -2975,6 +3045,56 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     <div class="tbl-wrap"><table id="import-history-table">
       <thead><tr><th>When</th><th>Entity</th><th>User</th><th class="num">Inserted</th><th class="num">Updated</th><th class="num">Skipped</th><th class="num">Failed</th><th>Status</th><th class="num">Duration</th></tr></thead>
       <tbody id="import-history-tbody"><tr><td colspan="9" class="text-muted text-center" style="padding:var(--s5)">Loading…</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: ERRORS & SYNC ═══ -->
+<div class="page" id="page-errors-sync">
+  <div class="page-header">
+    <div class="ph-left"><div class="ph-title">Errors &amp; Sync</div><div class="ph-sub">Data-integrity issues found across imports, trips, shifts, and dashboards.</div></div>
+    <div class="ph-right">
+      <button class="tb-btn primary" onclick="runDiagnostics()">▶ Run diagnostics</button>
+      <button class="tb-btn" onclick="loadIssues()">⟳ Refresh</button>
+    </div>
+  </div>
+  <div class="ft-alert blue">
+    <div class="ft-alert-dot"></div>
+    <div class="ft-alert-body">
+      <div class="ft-alert-title">What this page detects</div>
+      Duplicate trips, drivers and vehicles · open shifts &gt; 14 h ·
+      trips outside any shift window · inactive drivers receiving new
+      trips · stale active drivers (no trips 30 d) · negative fares ·
+      plate collisions · totals drift between Trip.fare and TripCharge.
+    </div>
+    <div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Open issues</div><div class="card-sub">Click an issue to resolve or dismiss</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Opened</th><th>Kind</th><th>Severity</th><th>Entity</th><th>Suggestion</th><th></th></tr></thead>
+      <tbody id="issues-tbody"><tr><td colspan="6" class="text-muted text-center" style="padding:var(--s5)">Loading…</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: LIVE SHIFTS ═══ -->
+<div class="page" id="page-live-shifts">
+  <div class="page-header">
+    <div class="ph-left"><div class="ph-title">Live Shifts</div><div class="ph-sub">Every driver currently on shift, refreshes every 20 s.</div></div>
+    <div class="ph-right"><button class="tb-btn" onclick="loadLiveShifts()">⟳ Refresh</button></div>
+  </div>
+  <div class="kpi-grid g4">
+    <div class="kc"><div class="kc-label">On shift now</div><div class="kc-value" id="ls-count">—</div></div>
+    <div class="kc"><div class="kc-label">Avg duration</div><div class="kc-value" id="ls-avg-dur">—</div></div>
+    <div class="kc"><div class="kc-label">Stale &gt; 14 h</div><div class="kc-value" style="color:var(--amber)" id="ls-stale">—</div></div>
+    <div class="kc"><div class="kc-label">Sources</div><div class="kc-value" id="ls-sources" style="font-size:14px">—</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Active shifts</div><div class="card-sub">Source · driver · vehicle · clock-in · duration</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Source</th><th>Driver</th><th>Vehicle</th><th>Started</th><th class="num">Duration</th><th>Zone</th><th>Platform</th><th></th></tr></thead>
+      <tbody id="live-shifts-tbody"><tr><td colspan="8" class="text-muted text-center" style="padding:var(--s5)">Loading…</td></tr></tbody>
     </table></div>
   </div>
 </div>
@@ -4462,6 +4582,8 @@ function _applyRoleFilter(){
     'settings-users': null,
     'data-import': null,
     'import-history': null,
+    'errors-sync': null,
+    'live-shifts': 'view:drivers',
   };
 
   document.querySelectorAll('.nav-item, .subnav-item').forEach(item => {
@@ -5530,6 +5652,108 @@ function saveAPIKeys(){
   if(typeof Toast!=='undefined')Toast.success('API config saved \u2014 '+n+' field(s) stored.');
   else alert(n+' API field(s) saved locally.');
 }
+
+// ──────────────────────────────────────────────────────────────────────
+// Errors & Sync — diagnostics page populator + Live Shifts page.
+// ──────────────────────────────────────────────────────────────────────
+async function loadIssues() {
+  const tbody = document.getElementById('issues-tbody'); if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" class="text-muted text-center" style="padding:var(--s5)">Loading…</td></tr>';
+  try {
+    const r = await fetch('/api/diagnostics/issues?status=OPEN', { credentials:'include' });
+    const j = await r.json();
+    const rows = Array.isArray(j?.rows) ? j.rows : [];
+    document.getElementById('errors-sync-badge').style.display = rows.length ? '' : 'none';
+    document.getElementById('errors-sync-badge').textContent = rows.length;
+    if (rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="ft-empty"><div class="ft-empty-icon">✓</div><div class="ft-empty-title">No open issues</div>Click <em>Run diagnostics</em> to scan again.</div></td></tr>';
+      return;
+    }
+    const sev = (s) => `<span class="badge b-${s==='CRITICAL'?'red':s==='HIGH'?'amber':s==='MEDIUM'?'blue':'gray'}">${s}</span>`;
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td class="text-mono">${new Date(r.openedAt).toISOString().replace('T',' ').slice(0,16)}</td>
+        <td><span class="badge b-gray">${r.kind}</span></td>
+        <td>${sev(r.severity)}</td>
+        <td class="text-mono">${r.entityRef || '—'}</td>
+        <td>${r.suggestion || ''}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="ft-cta sm" onclick="resolveIssue('${r.id}','RESOLVED')">Resolve</button>
+          <button class="ft-cta sm ghost" onclick="resolveIssue('${r.id}','DISMISSED')">Dismiss</button>
+        </td>
+      </tr>`).join('');
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-muted text-center" style="padding:var(--s5)">Could not load: ${e?.message || e}</td></tr>`;
+  }
+}
+async function resolveIssue(id, status) {
+  await fetch('/api/diagnostics/issues', {
+    method:'PATCH', headers:{'content-type':'application/json'}, credentials:'include',
+    body: JSON.stringify({ id, status }),
+  });
+  loadIssues();
+}
+async function runDiagnostics() {
+  if (typeof Toast !== 'undefined') Toast.info('Running diagnostics…');
+  await fetch('/api/diagnostics/run', { method:'POST', credentials:'include' });
+  loadIssues();
+}
+document.addEventListener('click', (e) => {
+  const t = e.target?.closest?.('[onclick*="errors-sync"]');
+  if (t) setTimeout(loadIssues, 50);
+});
+
+async function loadLiveShifts() {
+  const tbody = document.getElementById('live-shifts-tbody'); if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="8" class="text-muted text-center" style="padding:var(--s5)">Loading…</td></tr>';
+  try {
+    const r = await fetch('/api/shifts/live', { credentials:'include' });
+    const j = await r.json();
+    const rows = Array.isArray(j?.rows) ? j.rows : [];
+    document.getElementById('ls-count').textContent = j.count ?? rows.length;
+    const durs = rows.map(r => r.minutesOnShift || 0);
+    document.getElementById('ls-avg-dur').textContent = durs.length
+      ? Math.round(durs.reduce((s,n)=>s+n,0)/durs.length) + ' min'
+      : '—';
+    document.getElementById('ls-stale').textContent = rows.filter(r => (r.minutesOnShift||0) > 14*60).length;
+    const srcs = {};
+    rows.forEach(r => { srcs[r.source] = (srcs[r.source]||0)+1; });
+    document.getElementById('ls-sources').textContent =
+      Object.entries(srcs).map(([k,v])=>`${k}:${v}`).join(' · ') || '—';
+    if (rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8"><div class="ft-empty"><div class="ft-empty-icon">●</div><div class="ft-empty-title">Nobody is on shift</div>Drivers will appear here when they tap Start in the portal.</div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(r => {
+      const src = `<span class="badge b-${r.source==='APP'?'green':r.source==='MANUAL'?'amber':'blue'}">${r.source}</span>`;
+      const stale = (r.minutesOnShift||0) > 14*60 ? '<span class="badge b-amber" style="margin-left:4px">stale</span>' : '';
+      return `<tr>
+        <td>${src}</td>
+        <td>${r.driver?.name || '—'}</td>
+        <td class="text-mono">${r.vehicle ? (r.vehicle.carId || r.vehicle.plateNumber) : '—'}</td>
+        <td class="text-mono">${r.clockInAt ? new Date(r.clockInAt).toISOString().slice(11,16) : '—'}</td>
+        <td class="num text-mono">${(r.minutesOnShift||0)} min ${stale}</td>
+        <td>${r.zone || '—'}</td>
+        <td>${r.platformPrimary || '—'}</td>
+        <td style="text-align:right"><button class="ft-cta sm ghost" onclick="closeShift('${r.shiftId}')">Force-stop</button></td>
+      </tr>`;
+    }).join('');
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="8" class="text-muted text-center" style="padding:var(--s5)">Could not load: ${e?.message || e}</td></tr>`;
+  }
+}
+async function closeShift(id) {
+  if (!confirm('Force-close this shift now?')) return;
+  await fetch('/api/shifts/stop', {
+    method:'POST', credentials:'include',
+    headers:{'content-type':'application/json'}, body: JSON.stringify({ shiftId: id }),
+  });
+  loadLiveShifts();
+}
+document.addEventListener('click', (e) => {
+  const t = e.target?.closest?.('[onclick*="live-shifts"]');
+  if (t) { setTimeout(loadLiveShifts, 50); }
+});
 
 // ──────────────────────────────────────────────────────────────────────
 // Quick-jump search (Ctrl-K). Builds an in-memory index of every nav
