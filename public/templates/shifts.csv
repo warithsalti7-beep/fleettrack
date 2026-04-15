@@ -1,0 +1,4 @@
+shift_date,driver_email,car_id,start_time,end_time,hours_online,zone,platform_primary,status
+2025-09-01,olsztynski@fleettrack.no,TR2518,06:00,14:30,8.5,City Centre,Bolt,completed
+2025-09-01,armand@fleettrack.no,TR2537,06:30,14:00,7.5,City Centre,Bolt,completed
+2025-09-02,olsztynski@fleettrack.no,TR2518,05:30,14:00,8.5,Airport,Bolt,completed

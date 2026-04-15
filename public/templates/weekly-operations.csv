@@ -1,0 +1,20 @@
+record_type,date,time,driver_email,car_id,shift_start,shift_end,hours_online,zone,platform,pickup_address,dropoff_address,distance_km,duration_min,fare_nok,payment_method,rating,status,liters_or_kwh,price_per_unit_nok,total_cost_nok,mileage_km,station,type,description,workshop,notes
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# WEEKLY OPERATIONS — fill every Monday for the prior week. One file covers trips, shifts, fuel refills, and maintenance.
+#
+# The `record_type` column tells the system what the row represents.
+# Accepted record_type values:
+#   SHIFT        — one row per driver-day. Fills: date,driver_email,car_id,shift_start,shift_end,hours_online,zone,platform,status
+#   TRIP         — one row per completed ride. Fills: date,time,driver_email,car_id,pickup_address,dropoff_address,distance_km,duration_min,fare_nok,platform,payment_method,rating,status
+#   FUEL         — one row per refill or charging session. Fills: date,car_id,liters_or_kwh,price_per_unit_nok,total_cost_nok,mileage_km,station,notes
+#   MAINTENANCE  — one row per workshop visit. Fills: date,car_id,type,description,total_cost_nok,workshop,mileage_km,status,notes
+#
+# Valid platforms: Bolt | Uber | Bolt+Uber | Norgestaxi | Direct
+# Valid maintenance types: OIL_CHANGE | TYRES | BRAKES | INSPECTION | REPAIR | ACCIDENT | OTHER
+# Dates: YYYY-MM-DD. Times: HH:MM (24h). Leave any column blank if it doesn't apply to that row type.
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+SHIFT,2025-09-01,,olsztynski@fleettrack.no,TR2518,06:00,14:30,8.5,City Centre,Bolt,,,,,,,,completed,,,,,,,,,
+TRIP,2025-09-01,07:12,olsztynski@fleettrack.no,TR2518,,,,,Bolt,Oslo Airport T2,Aker Brygge,48.2,42,582,CARD,5.0,completed,,,,,,,,,
+TRIP,2025-09-01,08:35,olsztynski@fleettrack.no,TR2518,,,,,Bolt,Aker Brygge,Oslo S,3.1,8,124,CARD,5.0,completed,,,,,,,,,
+FUEL,2025-09-01,,,TR2518,,,,,,,,,,,,,,42,3.85,162,18230,Circle K Aker Brygge,,,,
+MAINTENANCE,2025-09-05,,,TR2518,,,,,,,,,,,,,,completed,,,2070,18000,,OIL_CHANGE,Routine 10 000 km service,AutoFix GmbH,

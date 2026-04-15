@@ -26,8 +26,38 @@ export type SessionPayload = {
 const COOKIE_NAME = "ft_session";
 const MAX_AGE_MS = 8 * 60 * 60 * 1000; // 8 h
 
+/**
+ * Return the HMAC secret. Prefers AUTH_SECRET env var (what you want in
+ * production). Falls back to a secret derived from DATABASE_URL + a fixed
+ * salt so the app still boots if AUTH_SECRET was forgotten — cookies stay
+ * valid within a single deploy, invalidate on redeploy (which is fine).
+ *
+ * The fallback keeps the app alive rather than throwing on every API call;
+ * the loud console error reminds operators to set AUTH_SECRET properly.
+ */
+let warnedAboutMissingSecret = false;
 function getSecret(): string {
-  return process.env.AUTH_SECRET || "dev-insecure-secret-please-set-AUTH_SECRET";
+  const explicit = process.env.AUTH_SECRET;
+  if (explicit && explicit.length >= 16) return explicit;
+
+  // Build a deterministic derived secret from other env. Not as secure as
+  // a real random secret (DATABASE_URL is long-lived per project) but
+  // strictly better than a hardcoded fallback, and cookies remain stable
+  // until DATABASE_URL changes.
+  const base = (process.env.DATABASE_URL || "") + "|ft-fallback-v1";
+  if (base.length < 32) {
+    // Genuinely nothing to derive from — last-resort dev default.
+    return "dev-insecure-secret-please-set-AUTH_SECRET-in-vercel";
+  }
+  if (!warnedAboutMissingSecret && process.env.NODE_ENV === "production") {
+    warnedAboutMissingSecret = true;
+    console.error(
+      "[auth] AUTH_SECRET not set (or < 16 chars). Using a derived fallback. " +
+      "Add AUTH_SECRET to Vercel env vars (any 32+ char random string) to " +
+      "make session cookies cryptographically strong.",
+    );
+  }
+  return base;
 }
 
 function b64urlEncode(bytes: Uint8Array): string {
@@ -93,19 +123,29 @@ export async function verifySession(
 }
 
 export function cookieHeader(token: string, maxAgeMs = MAX_AGE_MS): string {
+  // SameSite=Strict — fleet admin app has no cross-origin embedding use case
+  // and Strict blocks the largest class of CSRF attacks.
   const parts = [
     `${COOKIE_NAME}=${token}`,
     `Max-Age=${Math.floor(maxAgeMs / 1000)}`,
     `Path=/`,
     `HttpOnly`,
-    `SameSite=Lax`,
+    `SameSite=Strict`,
   ];
   if (process.env.NODE_ENV === "production") parts.push("Secure");
   return parts.join("; ");
 }
 
 export function clearCookieHeader(): string {
-  return `${COOKIE_NAME}=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax`;
+  const parts = [
+    `${COOKIE_NAME}=`,
+    `Max-Age=0`,
+    `Path=/`,
+    `HttpOnly`,
+    `SameSite=Strict`,
+  ];
+  if (process.env.NODE_ENV === "production") parts.push("Secure");
+  return parts.join("; ");
 }
 
 export const SESSION_COOKIE = COOKIE_NAME;

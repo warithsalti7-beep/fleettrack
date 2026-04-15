@@ -14,6 +14,13 @@ const DEFAULT_MAX_TOKENS = 1024;
 
 export type ClaudeMessage = { role: "user" | "assistant"; content: string };
 
+/** Multimodal content block for vision requests. */
+export type VisionBlock =
+  | { type: "text"; text: string }
+  | { type: "image"; source: { type: "base64"; media_type: string; data: string } };
+
+export type VisionMessage = { role: "user" | "assistant"; content: VisionBlock[] };
+
 export type ClaudeOptions = {
   system?: string;
   maxTokens?: number;
@@ -99,6 +106,43 @@ export async function callClaude(
       .map((c) => c.text)
       .join("") || "";
   return text.trim();
+}
+
+/**
+ * Vision-capable variant — accepts content blocks (text + image) so the
+ * model can OCR / interpret photos. Uses the same Claude model unless
+ * overridden; defaults to Sonnet for better OCR accuracy.
+ */
+export async function callClaudeVision(
+  messages: VisionMessage[],
+  opts: ClaudeOptions = {},
+): Promise<string> {
+  const key = envSoft("ANTHROPIC_API_KEY");
+  if (!key) {
+    throw new AiError("ANTHROPIC_API_KEY not configured.", 503);
+  }
+  const body = {
+    model: opts.model || "claude-sonnet-4-5", // Sonnet for higher OCR accuracy
+    max_tokens: opts.maxTokens ?? 4096,
+    temperature: opts.temperature ?? 0.1,
+    system: opts.system,
+    messages,
+  };
+  const res = await fetch(ANTHROPIC_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": key,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const errTxt = await res.text();
+    throw new AiError(`Anthropic Vision ${res.status}`, res.status >= 500 ? 502 : res.status, errTxt);
+  }
+  const data = (await res.json()) as { content?: Array<{ type: string; text: string }> };
+  return (data.content?.filter((c) => c.type === "text").map((c) => c.text).join("") || "").trim();
 }
 
 /** Parse a JSON response from Claude defensively — strips code fences if present. */

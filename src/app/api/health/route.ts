@@ -17,15 +17,37 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   const started = Date.now();
+  const envStatus = {
+    database: !!process.env.DATABASE_URL,
+    authSecret: !!(process.env.AUTH_SECRET && process.env.AUTH_SECRET.length >= 16),
+    anthropicKey: !!process.env.ANTHROPIC_API_KEY,
+    seedToken: !!process.env.SEED_TOKEN,
+    sentryDsn: !!(process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN),
+  };
   const result: Record<string, unknown> = {
     ok: true,
     status: "ok",
     checks: { api: "ok", env: "ok", db: "ok" },
+    envConfigured: envStatus,
+    warnings: [] as string[],
     timestamp: new Date().toISOString(),
     version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "dev",
     sha: process.env.VERCEL_GIT_COMMIT_SHA || "dev",
     environment: process.env.VERCEL_ENV || "unknown",
   };
+
+  const warnings = result.warnings as string[];
+  if (!envStatus.authSecret) {
+    warnings.push(
+      "AUTH_SECRET not set — using derived fallback. Add AUTH_SECRET (32+ char random string) to Vercel env vars for proper cookie signing.",
+    );
+  }
+  if (!envStatus.anthropicKey) {
+    warnings.push("ANTHROPIC_API_KEY not set — AI recommendations disabled.");
+  }
+  if (!envStatus.seedToken) {
+    warnings.push("SEED_TOKEN not set — /api/seed and /api/import/* endpoints unreachable.");
+  }
 
   if (!process.env.DATABASE_URL) {
     result.ok = false;

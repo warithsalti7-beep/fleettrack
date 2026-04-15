@@ -32,6 +32,7 @@ const PUBLIC_API = new Set<string>([
 const LEGACY_ADMIN_TOKEN_ROUTES = [
   "/api/import/",
   "/api/seed",
+  "/api/auth/bootstrap",
 ];
 
 function isLegacyAdminToken(pathname: string): boolean {
@@ -108,7 +109,8 @@ export async function proxy(request: NextRequest): Promise<NextResponse | undefi
 function withRateHeaders(
   res: NextResponse,
   bucket: string,
-  rl: { remaining?: number; resetAt: number } & { ok: true } | { ok: false; retryAfterSec: number; resetAt: number },
+  rl: ({ remaining?: number; resetAt: number } & { ok: true })
+     | { ok: false; retryAfterSec: number; resetAt: number },
 ): NextResponse {
   if ("remaining" in rl && typeof rl.remaining === "number") {
     res.headers.set("X-RateLimit-Remaining", String(rl.remaining));

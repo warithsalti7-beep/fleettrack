@@ -61,6 +61,9 @@ const FleetAuth = (() => {
   // Mirror key — plain sessionless snapshot of the server session so page
   // guards can run synchronously. Security is enforced by the server
   // ft_session httpOnly cookie; the mirror is advisory only.
+  // DEMO_USERS array deliberately absent — all auth goes through
+  // /api/auth/login against the User table (Deploy 1 removed plaintext
+  // password storage).
   const SESSION_KEY = 'ft_session';
 
   // ── Role defaults (permissions are UI affordances, real checks on server)

@@ -11,19 +11,19 @@ datasource db {
 /// passwordHash format: "pbkdf2$<iterations>$<salt_b64url>$<hash_b64url>".
 /// When role = driver we optionally link to the Driver row via driverId.
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
+  id           String    @id @default(cuid())
+  email        String    @unique
   name         String?
-  role         String   @default("employee")
+  role         String    @default("employee")
   passwordHash String
   /// Per-user permission grants. JSON array of strings like
   /// ["view:drivers","manage:dispatch","export:reports"]. Overrides the
   /// role defaults. Admins ignore this list (they have "all").
   permissions  Json?
-  driverId     String?  // optional link to Driver record (role=driver)
+  driverId     String?   // optional link to Driver record (role=driver)
   lastLoginAt  DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([role])
 }
@@ -120,6 +120,8 @@ model Trip {
   duration       Int?
   fare           Float?
   paymentMethod  String    @default("CASH")
+  platform       String?   // Bolt | Uber | Norgestaxi | Direct | etc.
+  tipsNok        Float?    // Driver tips in NOK (optional)
   startedAt      DateTime?
   completedAt    DateTime?
   rating         Float?
