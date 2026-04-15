@@ -5756,7 +5756,7 @@ document.addEventListener('click', (e) => {
   };
 
   // Demo data — wired to /api/* in production.
-  const vehicles = ];
+  const vehicles = [];
   const t = (b) => $(b);
   if (t('eukontroll-tbody')) {
     t('eukontroll-tbody').innerHTML = vehicles.map(v => `
@@ -5768,7 +5768,7 @@ document.addEventListener('click', (e) => {
   }
 
   if (t('charging-tbody')) {
-    const charging = ];
+    const charging = [];
     t('charging-tbody').innerHTML = charging.map(c => `
       <tr><td class="text-mono">${c.startedAt}</td><td><strong>${c.vehicle}</strong></td><td>${c.loc}</td>
       <td class="num text-mono">${c.kwh.toFixed(1)}</td><td class="num text-mono">${c.rate.toFixed(2)} kr</td>
@@ -5777,7 +5777,7 @@ document.addEventListener('click', (e) => {
   }
 
   if (t('swap-tbody')) {
-    const swaps = ];
+    const swaps = [];
     t('swap-tbody').innerHTML = swaps.map(s => `
       <tr><td>${dstr(s.date)}</td><td><strong>${s.vehicle}</strong></td><td>${s.station}</td>
       <td class="num text-mono">${s.pack}</td><td class="num text-mono">${nok(s.cost)}</td>
@@ -5785,14 +5785,14 @@ document.addEventListener('click', (e) => {
   }
 
   if (t('wash-tbody')) {
-    const washes = ];
+    const washes = [];
     t('wash-tbody').innerHTML = washes.map(w => `
       <tr><td>${dstr(w.date)}</td><td><strong>${w.vehicle}</strong></td><td>${w.type}</td>
       <td>${w.vendor}</td><td>${w.by}</td><td class="num text-mono">${nok(w.cost)}</td></tr>`).join('');
   }
 
   if (t('repair-tbody')) {
-    const repairs = ];
+    const repairs = [];
     const fpill = (f) => { const m = { DRIVER:'red', OTHER_INSURANCE:'blue', FLEET:'amber', MANUFACTURER:'purple', UNKNOWN:'gray' }; return `<span class="badge b-${m[f]||'gray'}">${f}</span>`; };
     const spill = (s) => `<span class="badge b-${s==='DONE'?'green':s==='OPEN'?'amber':s==='IN_PROGRESS'?'blue':'gray'}">${s}</span>`;
     t('repair-tbody').innerHTML = repairs.map(r => `
@@ -5805,7 +5805,7 @@ document.addEventListener('click', (e) => {
   }
 
   if (t('dep-tbody-dash')) {
-    const dep = ];
+    const dep = [];
     t('dep-tbody-dash').innerHTML = dep.map(d => `
       <tr><td>${dstr(d.period)}</td><td><strong>${d.vehicle}</strong></td>
       <td><span class="badge b-gray">${d.method.replace('_',' ')}</span></td>
@@ -5815,7 +5815,7 @@ document.addEventListener('click', (e) => {
   }
 
   if (t('extra-km-tbody')) {
-    const extra = ];
+    const extra = [];
     const sp = (s) => { const m = { BOLT:'purple', UBER:'blue', CSV_TAXI:'teal', ODOMETER_DELTA:'orange', MANUAL:'gray' }; return `<span class="badge b-${m[s]||'gray'}">${s}</span>`; };
     t('extra-km-tbody').innerHTML = extra.map(e => `
       <tr><td>${dstr(e.day)}</td><td>${e.driver}</td><td><strong>${e.vehicle}</strong></td>
