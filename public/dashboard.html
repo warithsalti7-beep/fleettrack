@@ -16,6 +16,7 @@
      so a change here propagates everywhere. Dashboard-specific
      extensions live in the <style> below. -->
 <link rel="stylesheet" href="./design-system.css">
+<link rel="stylesheet" href="./ft-shell.css">
 <style>
 /* ══════════════════════════════════════════════════════
    FLEETTRACK — Design System v3.0
@@ -1333,6 +1334,7 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
         <div class="subnav-item" onclick="go('settings-notifications',this,'Notifications','System / Settings')"><span class="subnav-dot"></span>Notifications</div>
         <div class="subnav-item" onclick="go('settings-users',this,'Users & Permissions','System / Settings')"><span class="subnav-dot"></span>Users & Permissions</div>
         <div class="subnav-item" onclick="go('data-import',this,'Data Import','System / Settings')"><span class="subnav-dot"></span>Data Import <span class="nav-badge" style="margin-left:auto;background:var(--greenbg);color:var(--green);border:1px solid var(--greenborder);font-size:9px;padding:1px 6px;border-radius:10px">CSV</span></div>
+        <div class="subnav-item" onclick="go('import-history',this,'Import History','System / Data')"><span class="subnav-dot"></span>Import History</div>
       </div>
     </div>
 
@@ -1382,9 +1384,19 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
       </div>
     </div>
     <div class="topbar-actions">
+      <button class="tb-btn" onclick="openSearch()" title="Search drivers, vehicles, pages (Ctrl-K)" aria-label="Search">🔍 <span style="color:var(--t3);font-family:var(--mono);font-size:11px;margin-left:4px">Ctrl K</span></button>
       <button class="tb-btn" onclick="go('reports',null,'Reports','System')" aria-label="Open Reports &amp; Exports"><span>⬇</span> <span>Export</span></button>
       <div class="clock-chip" id="clock">--:--:--</div>
       <div class="notif-btn" title="4 active alerts">⚑<div class="notif-pip"></div></div>
+    </div>
+  </div>
+
+  <!-- Quick-jump search overlay (Ctrl-K). Searches drivers, vehicles,
+       and the full sidebar route list in memory — no DB round trip. -->
+  <div id="ft-search-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;backdrop-filter:blur(4px)" onclick="if(event.target===this)closeSearch()">
+    <div style="max-width:560px;margin:12vh auto 0;background:var(--bg2);border:1px solid var(--b2);border-radius:var(--r4);box-shadow:var(--shadow-lg);overflow:hidden">
+      <input id="ft-search-input" placeholder="Jump to driver, vehicle, or page…" style="width:100%;background:transparent;border:none;outline:none;padding:18px 20px;font-size:15px;color:var(--t1);border-bottom:1px solid var(--b1)" autocomplete="off">
+      <div id="ft-search-results" style="max-height:420px;overflow:auto"></div>
     </div>
   </div>
 
@@ -1419,10 +1431,53 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
   <div class="two-col">
     <div class="card"><div class="card-header"><div class="card-title">Platform Split</div></div><div class="ch" style="height:180px"><canvas id="c-platform-donut" role="img" aria-label="Platform revenue split">Bolt 58% Uber 42%.</canvas></div></div>
     <div class="card"><div class="card-header"><div class="card-title">Active Critical Alerts</div></div>
-      <div class="alert a-red"><div class="adot" style="background:var(--red)"></div><div><div class="alert-title">Szymon S. — Acceptance rate 58%</div><div class="alert-body">Below 70% threshold. Platform deactivation risk. Call now.</div></div></div>
-      <div class="alert a-red"><div class="adot" style="background:var(--red)"></div><div><div class="alert-title">VH-14 — Negative profit for 3 days</div><div class="alert-body">BMW 3 Series losing <span class="cur" data-nok="265">265 kr</span>/day. Audit required.</div></div></div>
-      <div class="alert a-amber"><div class="adot" style="background:var(--amber)"></div><div><div class="alert-title">Piotr N. — Idle time 55%</div><div class="alert-body">Driver stationary >40 min. Push zone reposition.</div></div></div>
-      <div class="alert a-amber"><div class="adot" style="background:var(--amber)"></div><div><div class="alert-title">Revenue 11% below yesterday at 13:00</div><div class="alert-body">Lunch slump. Activate shopping mall demand push.</div></div></div>
+      <div class="ft-alert red">
+        <div class="ft-alert-dot"></div>
+        <div class="ft-alert-body">
+          <div class="ft-alert-title">Szymon S. — Acceptance rate 58%</div>
+          Below 70% threshold. Platform deactivation risk.
+        </div>
+        <div class="ft-alert-actions">
+          <a class="ft-cta sm" href="tel:+4741122345" title="Call driver">📞 Call</a>
+          <a class="ft-cta sm ghost" href="/driver-profile?id=drv-szymon" onclick="go('driver-coaching',null,'Coaching','Operations / Drivers');return false">Profile</a>
+          <button class="ft-cta sm ghost" onclick="this.closest('.ft-alert').style.opacity=.35;this.closest('.ft-alert').style.pointerEvents='none'">Snooze 30m</button>
+        </div>
+      </div>
+      <div class="ft-alert red">
+        <div class="ft-alert-dot"></div>
+        <div class="ft-alert-body">
+          <div class="ft-alert-title">VH-14 — Negative profit for 3 days</div>
+          BMW 3 Series losing <span class="cur" data-nok="265">265 kr</span>/day. Audit required.
+        </div>
+        <div class="ft-alert-actions">
+          <button class="ft-cta sm" onclick="go('vehicle-performance',null,'Vehicle P&amp;L','Operations / Vehicles')">Open P&amp;L</button>
+          <button class="ft-cta sm ghost" onclick="go('vehicle-maintenance',null,'Maintenance','Operations / Vehicles')">Check workshop</button>
+          <button class="ft-cta sm ghost" onclick="this.closest('.ft-alert').style.opacity=.35;this.closest('.ft-alert').style.pointerEvents='none'">Snooze 30m</button>
+        </div>
+      </div>
+      <div class="ft-alert amber">
+        <div class="ft-alert-dot"></div>
+        <div class="ft-alert-body">
+          <div class="ft-alert-title">Piotr N. — Idle time 55%</div>
+          Driver stationary &gt;40 min in an oversupplied zone. Push a reposition.
+        </div>
+        <div class="ft-alert-actions">
+          <button class="ft-cta sm" onclick="go('dispatch-repositioning',null,'Repositioning','Operations / Dispatch')">Reposition</button>
+          <a class="ft-cta sm ghost" href="tel:+4741122222">📞 Call</a>
+          <button class="ft-cta sm ghost" onclick="this.closest('.ft-alert').style.opacity=.35;this.closest('.ft-alert').style.pointerEvents='none'">Snooze 30m</button>
+        </div>
+      </div>
+      <div class="ft-alert amber">
+        <div class="ft-alert-dot"></div>
+        <div class="ft-alert-body">
+          <div class="ft-alert-title">Revenue 11% below yesterday at 13:00</div>
+          Lunch slump. Activate shopping-mall demand push.
+        </div>
+        <div class="ft-alert-actions">
+          <button class="ft-cta sm" onclick="go('dispatch-zones',null,'Zone Management','Operations / Dispatch')">Open zones</button>
+          <button class="ft-cta sm ghost" onclick="this.closest('.ft-alert').style.opacity=.35;this.closest('.ft-alert').style.pointerEvents='none'">Snooze 30m</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -2565,6 +2620,20 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     <div id="bundle-report" style="display:none;margin-top:var(--s3)"></div>
   </div>
 
+  <!-- Data-preservation guarantees. Surfaces the contract from
+       src/lib/import.ts so operators can import with confidence. -->
+  <div class="ft-alert blue" style="margin-bottom:var(--s4)">
+    <div class="ft-alert-dot"></div>
+    <div class="ft-alert-body">
+      <div class="ft-alert-title">Your existing data is safe</div>
+      Imports are <strong>additive</strong> and <strong>idempotent</strong>. Re-uploading the
+      same file updates matching rows but never duplicates them, and rows you've
+      imported previously stay put even if they're not in the new CSV.
+      Every run is recorded in <a href="#import-history" onclick="go('import-history',null,'Import History','System / Data');return false" style="color:inherit;text-decoration:underline">Import History</a>.
+    </div>
+    <div></div>
+  </div>
+
   <div style="display:flex;align-items:center;gap:var(--s3);margin:var(--s4) 0;color:var(--t3);font-size:12px">
     <hr style="flex:1;border:none;border-top:1px solid var(--b1)">
     <span>or import entity-by-entity below</span>
@@ -2874,6 +2943,29 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
   });
 })();
 </script>
+
+<!-- ═══ PAGE: IMPORT HISTORY ═══ -->
+<div class="page" id="page-import-history">
+  <div class="page-header">
+    <div class="ph-left"><div class="ph-title">Import History</div><div class="ph-sub">Every CSV upload, who ran it, row counts, duration, and errors.</div></div>
+    <div class="ph-right"><button class="tb-btn" onclick="loadImportHistory()">⟳ Refresh</button></div>
+  </div>
+  <div class="ft-alert blue">
+    <div class="ft-alert-dot"></div>
+    <div class="ft-alert-body">
+      <div class="ft-alert-title">Imports never erase your data</div>
+      Each row shows <code>inserted</code>, <code>updated</code>, <code>skipped</code>, and <code>failed</code> counts. The same file uploaded twice will appear with 0 inserted and <em>N updated</em> — nothing is duplicated, nothing is deleted.
+    </div>
+    <div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Recent imports</div><div class="card-sub">Last 100 runs · newest first</div></div>
+    <div class="tbl-wrap"><table id="import-history-table">
+      <thead><tr><th>When</th><th>Entity</th><th>User</th><th class="num">Inserted</th><th class="num">Updated</th><th class="num">Skipped</th><th class="num">Failed</th><th>Status</th><th class="num">Duration</th></tr></thead>
+      <tbody id="import-history-tbody"><tr><td colspan="9" class="text-muted text-center" style="padding:var(--s5)">Loading…</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
 
 <!-- ═══ PAGE: USERS & PERMISSIONS ═══ -->
 <div class="page" id="page-settings-users">
@@ -4357,6 +4449,7 @@ function _applyRoleFilter(){
     'settings-notifications': null,
     'settings-users': null,
     'data-import': null,
+    'import-history': null,
   };
 
   document.querySelectorAll('.nav-item, .subnav-item').forEach(item => {
@@ -5368,6 +5461,108 @@ function saveAPIKeys(){
   if(typeof Toast!=='undefined')Toast.success('API config saved \u2014 '+n+' field(s) stored.');
   else alert(n+' API field(s) saved locally.');
 }
+
+// ──────────────────────────────────────────────────────────────────────
+// Quick-jump search (Ctrl-K). Builds an in-memory index of every nav
+// target, every driver, every vehicle — then filters as the operator
+// types. Enter jumps to the top match.
+// ──────────────────────────────────────────────────────────────────────
+function buildSearchIndex(){
+  const index = [];
+  document.querySelectorAll('.nav-item[onclick], .subnav-item[onclick]').forEach(el => {
+    const m = el.getAttribute('onclick')?.match(/go\(['"]([a-z0-9_-]+)['"],\s*[^,]+,\s*['"]([^'"]+)['"],\s*['"]([^'"]+)['"]/);
+    if (!m) return;
+    index.push({ kind:'page', id:m[1], label:m[2], group:m[3], go: () => go(m[1], null, m[2], m[3]) });
+  });
+  const data = window.FleetData?.drivers || window.drivers || [];
+  data.forEach(d => index.push({
+    kind:'driver', id:d.id || d.userId || ('drv-'+d.r), label:d.name || d.n, group:'Driver',
+    go: () => { location.href = '/driver-profile?id=' + encodeURIComponent(d.id || d.userId || ('drv-'+d.r)); },
+  }));
+  const veh = window.FleetData?.vehicles || window.vehicles || [];
+  veh.forEach(v => index.push({
+    kind:'vehicle', id:v.id || v.car, label:(v.car || v.carId) + ' · ' + (v.brand || v.model || ''), group:'Vehicle',
+    go: () => go('vehicle-fleet', null, 'Fleet Register', 'Operations / Vehicles'),
+  }));
+  return index;
+}
+let _searchIndex = null;
+function openSearch(){
+  if (!_searchIndex) _searchIndex = buildSearchIndex();
+  const overlay = document.getElementById('ft-search-overlay');
+  const input = document.getElementById('ft-search-input');
+  overlay.style.display = 'block';
+  input.value = '';
+  renderSearchResults('');
+  setTimeout(() => input.focus(), 30);
+}
+function closeSearch(){ document.getElementById('ft-search-overlay').style.display = 'none'; }
+function renderSearchResults(q){
+  const out = document.getElementById('ft-search-results');
+  const qq = q.trim().toLowerCase();
+  const items = (!qq ? _searchIndex.slice(0, 10) : _searchIndex
+    .filter(i => i.label.toLowerCase().includes(qq) || i.group.toLowerCase().includes(qq))
+    .slice(0, 12));
+  if (items.length === 0) { out.innerHTML = '<div style="padding:24px;text-align:center;color:var(--t3);font-size:13px">No matches.</div>'; return; }
+  out.innerHTML = items.map((it, idx) => `
+    <div class="ft-search-item" tabindex="0" data-idx="${idx}" style="display:flex;align-items:center;gap:12px;padding:10px 18px;cursor:pointer;border-bottom:1px solid var(--b1);${idx===0?'background:var(--bg3)':''}">
+      <span class="badge b-${it.kind==='driver'?'blue':it.kind==='vehicle'?'purple':'gray'}">${it.kind}</span>
+      <div style="flex:1"><div style="color:var(--t1);font-size:13px">${it.label}</div><div style="color:var(--t3);font-size:11px;font-family:var(--mono)">${it.group}</div></div>
+      <span style="color:var(--t3);font-family:var(--mono);font-size:10px">↵</span>
+    </div>`).join('');
+  Array.from(out.querySelectorAll('.ft-search-item')).forEach((el, i) => {
+    el.addEventListener('click', () => { items[i].go(); closeSearch(); });
+  });
+}
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openSearch(); }
+  if (e.key === 'Escape') closeSearch();
+  if (e.key === 'Enter' && document.getElementById('ft-search-overlay').style.display === 'block') {
+    const first = document.querySelector('.ft-search-item');
+    if (first) first.click();
+  }
+});
+document.addEventListener('input', (e) => {
+  if (e.target?.id === 'ft-search-input') renderSearchResults(e.target.value);
+});
+
+// ──────────────────────────────────────────────────────────────────────
+// Import History — fetches /api/import/history and renders the table.
+// Runs on every navigation to #import-history so the operator sees the
+// latest state.
+// ──────────────────────────────────────────────────────────────────────
+async function loadImportHistory() {
+  const tbody = document.getElementById('import-history-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="9" class="text-muted text-center" style="padding:var(--s5)">Loading…</td></tr>';
+  try {
+    const r = await fetch('/api/import/history', { credentials: 'include' });
+    const j = await r.json();
+    const rows = Array.isArray(j?.rows) ? j.rows : [];
+    if (rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9"><div class="ft-empty"><div class="ft-empty-icon">↥</div><div class="ft-empty-title">No imports yet</div>Upload a CSV from <a href="#data-import" onclick="go(\'data-import\',null,\'Data Import\',\'System / Settings\');return false">Data Import</a> to see history here.</div></td></tr>';
+      return;
+    }
+    const spill = (s) => `<span class="badge b-${s==='OK'?'green':s==='PARTIAL'?'amber':'red'}">${s}</span>`;
+    tbody.innerHTML = rows.map(r => `
+      <tr><td class="text-mono">${new Date(r.createdAt).toISOString().replace('T',' ').slice(0,19)}</td>
+      <td><span class="badge b-blue">${r.entity}</span></td>
+      <td>${r.actorEmail || '<span class="text-muted">—</span>'}</td>
+      <td class="num text-mono" style="color:var(--green)">+${r.rowsInserted||0}</td>
+      <td class="num text-mono" style="color:var(--blue2)">↻${r.rowsUpdated||0}</td>
+      <td class="num text-mono">${r.rowsSkipped||0}</td>
+      <td class="num text-mono" style="color:${r.rowsFailed?'var(--red)':'var(--t3)'}">${r.rowsFailed||0}</td>
+      <td>${spill(r.status)}</td>
+      <td class="num text-mono">${r.durationMs?(r.durationMs/1000).toFixed(2)+' s':'—'}</td></tr>`).join('');
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="9" class="text-muted text-center" style="padding:var(--s5)">Could not load history: ${e?.message || e}</td></tr>`;
+  }
+}
+// Auto-load when the user navigates here.
+document.addEventListener('click', (e) => {
+  const t = e.target?.closest?.('[onclick*="import-history"]');
+  if (t) setTimeout(loadImportHistory, 50);
+});
 
 // ──────────────────────────────────────────────────────────────────────
 // Populators for the new "driver-dashboard" sections (added 2026-04).

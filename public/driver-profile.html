@@ -6,6 +6,7 @@
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <title>FleetTrack — Driver Profile</title>
 <link rel="stylesheet" href="./design-system.css">
+<link rel="stylesheet" href="./ft-shell.css">
 <style>
 body { background:var(--bg); min-height:100vh; }
 .app { max-width:1400px; margin:0 auto; padding:var(--s4) var(--s5); }
@@ -131,6 +132,20 @@ tbody tr:hover td { background:var(--bg3); }
       <div style="text-align:right"><div class="info-label">Driver Score</div><div style="font-size:26px;font-weight:700;font-family:var(--mono);color:var(--blue2)" id="h-score">—</div></div>
       <div style="text-align:right"><div class="info-label">MTD Payout</div><div style="font-size:16px;font-weight:600;font-family:var(--mono);color:var(--green)" id="h-mtd">—</div></div>
     </div>
+  </div>
+
+  <!-- Unified action row — manager's quick-hit controls for this
+       driver. Uses ft-cta for visual consistency with the rest of the
+       portal. Links pre-fill phone/email from the loaded driver
+       object; suspend/reassign hit POST /api/drivers/:id (PATCH). -->
+  <div style="display:flex; flex-wrap:wrap; gap:var(--s2); margin-bottom:var(--s4)">
+    <a id="act-call" class="ft-cta" href="#" onclick="return actCall()">📞 Call driver</a>
+    <a id="act-mail" class="ft-cta ghost" href="#" onclick="return actMail()">✉ Email</a>
+    <button class="ft-cta ghost" onclick="actToggleStatus()">↻ Toggle status</button>
+    <button class="ft-cta ghost" onclick="actReassign()">🚘 Reassign vehicle</button>
+    <button class="ft-cta ghost" onclick="actCommission()">% Adjust commission</button>
+    <button class="ft-cta ghost" onclick="actGenerateTax()">📄 Generate tax doc</button>
+    <button class="ft-cta danger" onclick="actSuspend()">⛔ Suspend</button>
   </div>
 
   <!-- Alerts area (licence expiring, EU-kontroll due, docs missing…) -->
@@ -700,6 +715,64 @@ function showTab(id, btn){
   document.getElementById('panel-'+id).classList.add('active');
   btn.classList.add('active');
   history.replaceState(null,'', '?id=' + encodeURIComponent(driverId) + '#' + id);
+}
+
+// ──────── action row handlers ────────
+// Each action targets the currently-loaded driver (window._profile).
+// The toggle/suspend/reassign/commission actions issue a PATCH to
+// /api/drivers/:id and optimistically re-render the hero.
+function actCall(){
+  const p = window._profile; if (!p?.driver?.phone) { alert('No phone on file'); return false; }
+  location.href = 'tel:' + p.driver.phone.replace(/\s+/g,'');
+  return false;
+}
+function actMail(){
+  const p = window._profile; if (!p?.driver?.email) return false;
+  location.href = 'mailto:' + p.driver.email + '?subject=FleetTrack — follow up';
+  return false;
+}
+async function actToggleStatus(){
+  const p = window._profile; if (!p?.driver) return;
+  const next = p.driver.status === 'SUSPENDED' ? 'AVAILABLE' : (p.driver.status === 'AVAILABLE' ? 'OFFLINE' : 'AVAILABLE');
+  if (!confirm(`Change status from ${p.driver.status} to ${next}?`)) return;
+  const r = await fetch(`/api/drivers/${p.driver.id}`, {
+    method:'PATCH', headers:{'content-type':'application/json'}, credentials:'include',
+    body: JSON.stringify({ status: next }),
+  });
+  if (r.ok) { p.driver.status = next; renderHero(p); }
+}
+function actReassign(){
+  const p = window._profile; if (!p?.driver) return;
+  const plate = prompt('Enter the plate or car ID to reassign:');
+  if (!plate) return;
+  fetch(`/api/drivers/${p.driver.id}/assign-vehicle`, {
+    method:'POST', headers:{'content-type':'application/json'}, credentials:'include',
+    body: JSON.stringify({ plateOrCarId: plate }),
+  }).then(()=>location.reload()).catch(e=>alert('Reassign failed: '+e));
+}
+function actCommission(){
+  const p = window._profile; if (!p?.driver) return;
+  const cur = Math.round((p.driver.commissionPct||0)*100);
+  const next = prompt(`Commission % (current ${cur}%):`, String(cur));
+  const pct = parseFloat(next);
+  if (!Number.isFinite(pct) || pct < 0 || pct > 100) return;
+  fetch(`/api/drivers/${p.driver.id}`, {
+    method:'PATCH', headers:{'content-type':'application/json'}, credentials:'include',
+    body: JSON.stringify({ commissionPct: pct/100 }),
+  }).then(()=>location.reload());
+}
+function actGenerateTax(){
+  const p = window._profile; if (!p?.driver) return;
+  window.open(`/api/drivers/${p.driver.id}/tax-doc?year=${new Date().getFullYear()}`, '_blank');
+}
+async function actSuspend(){
+  const p = window._profile; if (!p?.driver) return;
+  if (!confirm(`Suspend ${p.driver.name}? This blocks new shift assignments.`)) return;
+  const r = await fetch(`/api/drivers/${p.driver.id}`, {
+    method:'PATCH', headers:{'content-type':'application/json'}, credentials:'include',
+    body: JSON.stringify({ status: 'SUSPENDED' }),
+  });
+  if (r.ok) { p.driver.status = 'SUSPENDED'; renderHero(p); }
 }
 
 function exportDriverCsv(){
