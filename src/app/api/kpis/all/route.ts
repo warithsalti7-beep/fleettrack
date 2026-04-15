@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { subDays, startOfDay, startOfMonth, startOfYear } from "date-fns";
+import { subDays, startOfDay, startOfMonth } from "date-fns";
 import { ALERT_THRESHOLDS } from "@/lib/kpis";
 
 /**
@@ -35,14 +35,12 @@ export async function GET() {
   const now = new Date();
   const today = startOfDay(now);
   const mtd = startOfMonth(now);
-  const ytd = startOfYear(now);
-  const last7 = subDays(now, 7);
   const last30 = subDays(now, 30);
 
   const [
     driversByStatus, vehiclesByStatus,
     tripsLifetime, tripsToday, tripsMtd, tripsCancelledToday,
-    tripsByPlatform, fuel, fuelToday, fuelMtd,
+    tripsByPlatform, fuelToday, fuelMtd,
     maintenanceByStatus, maintenanceMtd, settlementsMtd,
     openShifts, staleShifts, fixedCostsMonthly,
     incidentsByStatus, incidentsMtd, docsExpiring,
@@ -62,7 +60,6 @@ export async function GET() {
         .groupBy({ by: ["externalPlatform"], _count: true, _sum: { fare: true }, where: { status: "COMPLETED", completedAt: { gte: today } } }),
       [] as Array<{ externalPlatform: string | null; _count: number; _sum: { fare: number | null } }>,
     ),
-    safe(() => prisma.fuelLog.aggregate({ _sum: { totalCost: true, liters: true } }), {} as Aggregates),
     safe(() => prisma.fuelLog.aggregate({ _sum: { totalCost: true }, where: { filledAt: { gte: today } } }), {} as Aggregates),
     safe(() => prisma.fuelLog.aggregate({ _sum: { totalCost: true }, where: { filledAt: { gte: mtd } } }), {} as Aggregates),
     safe(() => prisma.maintenance.groupBy({ by: ["status"], _count: true }), [] as Array<{ status: string; _count: number }>),
@@ -91,24 +88,19 @@ export async function GET() {
   const mtdGross = tripsMtd._sum?.fare ?? 0;
   const lifetimeGross = tripsLifetime._sum?.fare ?? 0;
   const tripsTodayCount = tripsToday._count ?? 0;
-  const tripsMtdCount = tripsMtd._count ?? 0;
   const completedTotal = tripsLifetime._count ?? 0;
-  const cancelPctToday = tripsTodayCount + tripsCancelledToday > 0
-    ? (tripsCancelledToday / (tripsTodayCount + tripsCancelledToday)) * 100 : 0;
 
   const fuelMtdCost = fuelMtd._sum?.totalCost ?? 0;
   const netProfitToday = Math.max(0, todayGross - (fuelToday._sum?.totalCost ?? 0));
   const avgRevHourToday = openShifts > 0 ? Math.round(todayGross / openShifts / 8) : 0;
   const monthlyFixed = Math.abs(fixedCostsMonthly._sum?.amountNok ?? 0);
-  const dailyFixed = monthlyFixed / 30;
-  const breakevenDaily = dailyFixed + (fuelMtdCost / 30);
+  const breakevenDaily = monthlyFixed / 30 + fuelMtdCost / 30;
 
   const boltToday = tripsByPlatform.find((p) => (p.externalPlatform || "").toUpperCase() === "BOLT");
   const uberToday = tripsByPlatform.find((p) => (p.externalPlatform || "").toUpperCase() === "UBER");
   const boltShare = boltToday?._sum?.fare && todayGross ? Math.round(((boltToday._sum.fare || 0) / todayGross) * 100) : 0;
   const uberShare = uberToday?._sum?.fare && todayGross ? Math.round(((uberToday._sum.fare || 0) / todayGross) * 100) : 0;
 
-  const settlementsPending = settlementsMtd._sum?.grossRevenue ?? 0;
   const settlementsPayout = settlementsMtd._sum?.payoutTotal ?? 0;
 
   const mStatus = Object.fromEntries(maintenanceByStatus.map((m) => [m.status, m._count]));
