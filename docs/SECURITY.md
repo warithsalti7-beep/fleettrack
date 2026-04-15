@@ -115,15 +115,22 @@ Admin-gated tools also need:
 
 ## Permissions storage
 
-As of Deploy 2, per-user permissions are stored server-side in
-`User.permissions` (JSONB array of strings). `PATCH /api/users/:id` with
-`{ permissions: ["view:drivers", ...] }` writes them, and `/api/auth/me`
-returns them on every page load so the client mirror is fresh.
+Per-user permissions are stored server-side in `User.permissions`
+(JSONB array of strings). `PATCH /api/users/:id` with
+`{ permissions: ["view:drivers", ...] }` writes them, and
+`/api/auth/me` returns them on every page load.
+
+**Client storage is memory-only** as of Deploy 3. All legacy
+`ft_perms_<id>` localStorage keys were removed. The session mirror
+(`ft_session` in localStorage) now contains only `{ userId, email,
+role, name }` — never permissions. Permissions live in an in-memory
+variable inside `FleetAuth` and are repopulated on every page load
+via `refreshSession()`, so a server-side permission change takes
+effect without the user signing out.
 
 The admin UI (`/access-management` and dashboard's Users & Permissions
-page) PATCHes the server on every toggle. The old `localStorage`-keyed
-overrides are still read as a fallback but are no longer written
-exclusively — the server is authoritative.
+page) PATCHes the server on every toggle and re-hydrates the users
+cache to reflect the new value. There is no client-side fallback path.
 
 Current permission strings recognised by the UI:
 

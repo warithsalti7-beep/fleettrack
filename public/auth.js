@@ -78,26 +78,27 @@ const FleetAuth = (() => {
     return (first + (last || '')).toUpperCase().slice(0, 2) || 'FT';
   }
 
+  // In-memory permission cache — NEVER persisted. Hydrated from /api/auth/me
+  // on every page load via refreshSession(). Loss on refresh is intentional:
+  // the server is always the single source of truth for what the user may do.
+  let _permissions = null;
+
   function mirrorFromUser(u){
     if (!u) return null;
-    // Server-supplied permissions take precedence. Legacy localStorage
-    // overrides (ft_perms_<id>) are still read as a fallback so the
-    // old admin UI keeps working until all permission writes go to
-    // /api/users/:id PATCH.
-    const serverPerms = Array.isArray(u.permissions) ? u.permissions : null;
-    const legacyOverride = (()=>{ try { return JSON.parse(localStorage.getItem('ft_perms_'+u.id) || 'null'); } catch(e){ return null; } })();
-    const permissions = serverPerms || legacyOverride || (ROLE_DEFAULT_PERMS[u.role] || []);
     return {
       userId: u.id,
       name:   u.name || u.email,
       email:  u.email,
       role:   u.role,
       avatar: initialsOf(u.name || u.email),
-      permissions,
-      // Driver-only metadata; empty until the server exposes shift/car.
-      carId:  null, brand: null, shift: null,
       loginAt: Date.now(),
     };
+  }
+
+  function setPermissions(u){
+    if (!u) { _permissions = null; return; }
+    if (Array.isArray(u.permissions)) _permissions = u.permissions.slice();
+    else _permissions = (ROLE_DEFAULT_PERMS[u.role] || []).slice();
   }
 
   function readMirror(){
@@ -129,6 +130,7 @@ const FleetAuth = (() => {
       const data = await r.json();
       const mirror = mirrorFromUser(data.user);
       writeMirror(mirror);
+      setPermissions(data.user);
       return { ok: true, session: mirror };
     } catch (e) {
       return { ok: false, error: 'Network error. Check your connection and try again.' };
@@ -140,6 +142,7 @@ const FleetAuth = (() => {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
     } catch(e){}
     writeMirror(null);
+    _permissions = null;
     try { localStorage.removeItem('ft_preview_as'); } catch(e){}
     window.location.href = redirectTo || '/login';
   }
@@ -150,11 +153,13 @@ const FleetAuth = (() => {
   async function refreshSession(){
     try {
       const r = await fetch('/api/auth/me', { credentials: 'same-origin', cache: 'no-store' });
-      if (r.status === 401) { writeMirror(null); return null; }
+      if (r.status === 401) { writeMirror(null); _permissions = null; return null; }
       if (!r.ok) return readMirror(); // transient: keep mirror
       const { user } = await r.json();
       const m = mirrorFromUser(user);
       writeMirror(m);
+      setPermissions(user);
+      try { window.dispatchEvent(new CustomEvent('auth:session:refreshed', { detail: { role: user.role } })); } catch(e){}
       return m;
     } catch(e){
       return readMirror();
@@ -183,7 +188,16 @@ const FleetAuth = (() => {
     const s = readMirror();
     if (!s) return false;
     if (s.role === 'admin') return true;
-    return (s.permissions || []).includes(permission) || (s.permissions || []).includes('all');
+    // Permissions live in memory only — populated by refreshSession.
+    // If the cache is empty (e.g. hasPermission called before the async
+    // refresh completed) fall back to role defaults so the first paint
+    // isn't wrongly locked down for employees.
+    const perms = _permissions || ROLE_DEFAULT_PERMS[s.role] || [];
+    return perms.includes(permission) || perms.includes('all');
+  }
+
+  function getPermissions(){
+    return _permissions ? _permissions.slice() : null;
   }
 
   function validatePassword(pw){
@@ -202,18 +216,17 @@ const FleetAuth = (() => {
   let _hydrating = null;
 
   function mapServerUser(u){
-    // Legacy UI expects an `avatar` field (initials) and a permissions list.
-    const permOverride = (()=>{ try { return JSON.parse(localStorage.getItem('ft_perms_'+u.id) || 'null'); } catch(e){ return null; } })();
+    // Server permissions are authoritative — no client-side overlay.
+    const serverPerms = Array.isArray(u.permissions) ? u.permissions : null;
     return {
       id: u.id,
       email: u.email,
       name: u.name || u.email,
       role: u.role,
       avatar: initialsOf(u.name || u.email),
-      permissions: permOverride || (ROLE_DEFAULT_PERMS[u.role] || []),
+      permissions: serverPerms || (ROLE_DEFAULT_PERMS[u.role] || []),
       createdAt: u.createdAt,
       lastLoginAt: u.lastLoginAt || null,
-      carId: null, brand: null, shift: null,
     };
   }
 
@@ -280,7 +293,7 @@ const FleetAuth = (() => {
   function getRoleOverride(){ return null; }
 
   return {
-    login, logout, getSession, refreshSession, requireAuth, hasPermission, validatePassword,
+    login, logout, getSession, refreshSession, requireAuth, hasPermission, getPermissions, validatePassword,
     getAllUsers, getUsersByRole, hydrateUsers, addCustomUser, removeCustomUser,
     setRoleOverride, getRoleOverride,
   };

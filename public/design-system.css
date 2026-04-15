@@ -79,6 +79,16 @@
   --fast: 0.1s ease;
   --mid:  0.2s ease;
   --slow: 0.35s cubic-bezier(0.4,0,0.2,1);
+
+  /* Layout — dashboard shell */
+  --sidebar-w:   248px;
+  --topbar-h:    56px;
+  --content-pad: 28px;
+
+  /* Size tokens previously duplicated in dashboard.html. s8 is 40px
+     here to match the older dashboard inline scale; use s8 only for
+     whole-page padding steps. */
+  --s8-alt: 40px;
 }
 
 /* ── RESET ── */

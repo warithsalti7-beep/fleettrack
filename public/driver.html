@@ -285,9 +285,8 @@ body { background:var(--bg); min-height:100vh; }
   </div>
 </div>
 
-<script src="./fleet-data.js"></script>
 <script src="./auth.js"></script>
-<script src="./dashboard-live.js" defer></script>
+<script src="./js/fleet-state.js"></script>
 <script>
 // ── Auth guard ───────────────────────────────────────────────────────
 const session = FleetAuth.requireAuth(['driver'], '/login?portal=driver');
