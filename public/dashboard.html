@@ -1398,7 +1398,15 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
 
 <!-- ═══ PAGE: DRIVER ROSTER ═══ -->
 <div class="page" id="page-driver-roster">
-  <div class="page-header"><div class="ph-left"><div class="ph-title">Driver Roster & Profiles</div><div class="ph-sub">Complete driver database — <span data-kpi="driversTotal">—</span> registered drivers</div></div><div class="ph-right"><button class="tb-btn primary" onclick="openAddDriverModal()">+ Add Driver</button></div></div>
+  <div class="page-header"><div class="ph-left"><div class="ph-title">Driver Roster & Profiles</div><div class="ph-sub">Complete driver database — <span data-kpi="driversTotal">—</span> registered drivers</div></div><div class="ph-right">
+    <a href="/admin/drivers" class="tb-btn" title="React-rendered drivers page (Beta)">↗ Drivers (Beta)</a>
+    <button class="tb-btn primary" onclick="openAddDriverModal()">+ Add Driver</button>
+  </div></div>
+  <div style="margin-bottom:var(--s5);padding:var(--s3) var(--s4);background:var(--bluebg);border:1px solid var(--blueborder);border-radius:var(--r3);display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap">
+    <span style="font-size:11px;font-weight:700;padding:2px 8px;background:var(--blue);color:#fff;border-radius:var(--r6);letter-spacing:0.05em">BETA</span>
+    <span style="font-size:13px;color:var(--t2)">A new React-rendered drivers page is available with faster filtering, sorting, and cleaner action flows.</span>
+    <a href="/admin/drivers" style="margin-left:auto;font-size:13px;color:var(--blue2);font-weight:600;text-decoration:none">Open new Drivers page →</a>
+  </div>
   <div class="kpi-grid g4">
     <div class="kc"><div class="kc-label">Total Registered</div><div class="kc-value">19</div></div>
     <div class="kc"><div class="kc-label">Active Today</div><div class="kc-value" style="color:var(--green)">16</div></div>
