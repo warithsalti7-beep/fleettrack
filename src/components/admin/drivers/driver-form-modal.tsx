@@ -1,18 +1,20 @@
 "use client";
 
 /**
- * Create / edit driver modal.
+ * Driver create / edit modal.
  *
- * When `initial` is provided, submits PATCH /api/drivers/:id with only
- * the fields this endpoint accepts (status/rating/totalTrips — extending
- * that is a server-side change). When omitted, submits POST /api/drivers
- * with the full new-driver payload.
+ * - Create: POST /api/drivers with every editable field.
+ * - Edit: PATCH /api/drivers/:id — server now supports all columns, so
+ *   the edit form mirrors the create form (no more status-only mode).
  *
- * Handles: loading state (disabled submit, spinner), error state (banner
- * + per-field validation), keyboard (Esc closes, Enter submits), focus
- * trap (focuses first field on mount).
+ * Field-level validation mirrors the server rules; inline error
+ * messages use fields[] from the server's 400 response.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { Modal } from "@/components/ui/modal";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import type { DriverView } from "./types";
 import { DRIVER_STATUSES } from "./types";
 
@@ -27,240 +29,255 @@ type FormState = {
   email: string;
   phone: string;
   licenseNumber: string;
-  licenseExpiry: string; // YYYY-MM-DD
+  licenseExpiry: string;
   address: string;
   status: string;
+  rating: string;
 };
 
-function initialForm(initial?: DriverView): FormState {
+function emptyForm(initial?: DriverView): FormState {
   return {
-    name: initial?.name ?? "",
-    email: initial?.email ?? "",
-    phone: initial?.phone ?? "",
+    name:          initial?.name ?? "",
+    email:         initial?.email ?? "",
+    phone:         initial?.phone ?? "",
     licenseNumber: initial?.licenseNumber ?? "",
     licenseExpiry: initial?.licenseExpiry ? String(initial.licenseExpiry).slice(0, 10) : "",
-    address: "",
-    status: initial?.status ?? "AVAILABLE",
+    address:       "",
+    status:        initial?.status ?? "AVAILABLE",
+    rating:        initial?.rating != null ? String(initial.rating) : "",
   };
 }
 
 export function DriverFormModal({ initial, onClose, onSaved }: Props) {
   const isEdit = !!initial;
-  const [form, setForm] = useState<FormState>(() => initialForm(initial));
+  const [form, setForm] = useState<FormState>(() => emptyForm(initial));
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const firstFieldRef = useRef<HTMLInputElement>(null);
+  const [topError, setTopError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => { firstFieldRef.current?.focus(); }, []);
+  // Reset when `initial` changes (opening modal for a different driver).
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+    setForm(emptyForm(initial));
+    setTopError(null);
+    setFieldErrors({});
+  }, [initial]);
+
+  function up<K extends keyof FormState>(k: K, v: FormState[K]) {
+    setForm((f) => ({ ...f, [k]: v }));
+    if (fieldErrors[k]) setFieldErrors((e) => ({ ...e, [k]: "" }));
+  }
+
+  // Only send fields that changed (edit) or all fields (create).
+  function buildPayload(): Record<string, unknown> {
+    if (!isEdit) {
+      return {
+        name: form.name.trim(),
+        email: form.email.trim().toLowerCase(),
+        phone: form.phone.trim(),
+        licenseNumber: form.licenseNumber.trim(),
+        licenseExpiry: form.licenseExpiry,
+        address: form.address.trim() || null,
+        status: form.status,
+      };
+    }
+    const orig = emptyForm(initial);
+    const payload: Record<string, unknown> = {};
+    if (form.name !== orig.name) payload.name = form.name.trim();
+    if (form.email !== orig.email) payload.email = form.email.trim().toLowerCase();
+    if (form.phone !== orig.phone) payload.phone = form.phone.trim();
+    if (form.licenseNumber !== orig.licenseNumber) payload.licenseNumber = form.licenseNumber.trim();
+    if (form.licenseExpiry !== orig.licenseExpiry) payload.licenseExpiry = form.licenseExpiry;
+    if (form.status !== orig.status) payload.status = form.status;
+    if (form.rating !== orig.rating && form.rating !== "") payload.rating = Number(form.rating);
+    return payload;
+  }
+
+  function validate(): string | null {
+    if (!isEdit) {
+      if (!form.name.trim()) return "name_required";
+      if (!form.email.trim() || !form.email.includes("@")) return "email_invalid";
+      if (!form.licenseNumber.trim()) return "license_required";
+      if (!form.licenseExpiry) return "license_expiry_required";
+    }
+    if (form.rating) {
+      const n = Number(form.rating);
+      if (!Number.isFinite(n) || n < 0 || n > 5) return "rating_invalid";
+    }
+    return null;
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
+    setTopError(null); setFieldErrors({});
 
-    // Client validation — the server repeats all of these, but fast feedback here.
-    if (!isEdit) {
-      if (!form.name.trim()) return setError("Name is required.");
-      if (!form.email.trim() || !form.email.includes("@")) return setError("A valid email is required.");
-      if (!form.licenseNumber.trim()) return setError("Licence number is required.");
-      if (!form.licenseExpiry) return setError("Licence expiry date is required.");
+    const clientErr = validate();
+    if (clientErr) {
+      const msg: Record<string, string> = {
+        name_required: "Name is required.",
+        email_invalid: "A valid email is required.",
+        license_required: "Licence number is required.",
+        license_expiry_required: "Licence expiry is required.",
+        rating_invalid: "Rating must be between 0 and 5.",
+      };
+      setTopError(msg[clientErr] ?? "Please check the form.");
+      return;
+    }
+
+    const payload = buildPayload();
+    if (isEdit && Object.keys(payload).length === 0) {
+      setTopError("No changes to save.");
+      return;
     }
 
     setSubmitting(true);
     try {
       const res = isEdit
-        ? await fetch(`/api/drivers/${encodeURIComponent(initial.id)}`, {
+        ? await fetch(`/api/drivers/${encodeURIComponent(initial!.id)}`, {
             method: "PATCH",
             credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: form.status }),
+            body: JSON.stringify(payload),
           })
         : await fetch("/api/drivers", {
             method: "POST",
             credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: form.name.trim(),
-              email: form.email.trim().toLowerCase(),
-              phone: form.phone.trim(),
-              licenseNumber: form.licenseNumber.trim(),
-              licenseExpiry: form.licenseExpiry,
-              address: form.address.trim() || null,
-              status: form.status,
-            }),
+            body: JSON.stringify(payload),
           });
 
-      if (res.status === 403) { setError("You don’t have permission to do this."); return; }
-      if (res.status === 409) { setError("A driver with that email already exists."); return; }
-      if (!res.ok) {
-        let detail = "";
-        try { const j = await res.json(); detail = j.detail || j.error || ""; } catch { /* ignore */ }
-        setError(detail || `Request failed (${res.status}).`);
+      if (res.status === 403) { setTopError("You don't have permission to do this."); return; }
+      if (res.status === 409) {
+        let detail = "A driver with that value already exists.";
+        try { const j = await res.json(); detail = j.detail || detail; } catch {}
+        setTopError(detail); return;
+      }
+      if (res.status === 400) {
+        try {
+          const j = await res.json();
+          if (j.fields && typeof j.fields === "object") {
+            setFieldErrors(j.fields);
+            setTopError(j.detail ?? "Some fields are invalid.");
+            return;
+          }
+          setTopError(j.detail ?? "Bad request.");
+        } catch { setTopError("Bad request."); }
         return;
       }
+      if (!res.ok) { setTopError(`Request failed (${res.status}).`); return; }
+
       onSaved(isEdit ? `Updated ${form.name || initial?.name}.` : `Created ${form.name}.`);
     } catch {
-      setError("Network error. Check your connection and try again.");
+      setTopError("Network error. Check your connection and try again.");
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="driver-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    <Modal
+      open
+      onClose={onClose}
+      title={isEdit ? `Edit ${initial?.name ?? "driver"}` : "New driver"}
+      description={isEdit ? "Leave fields unchanged to skip them." : undefined}
+      widthPx={520}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose} disabled={submitting}>Cancel</Button>
+          <Button type="submit" form="driver-form" loading={submitting}>
+            {isEdit ? "Save changes" : "Create driver"}
+          </Button>
+        </>
+      }
     >
-      <div className="w-full max-w-md rounded-xl border border-[rgba(255,255,255,0.09)] bg-[#0c0f18] shadow-2xl max-h-[92vh] overflow-y-auto">
-        <header className="flex items-center justify-between px-5 py-4 border-b border-[rgba(255,255,255,0.05)]">
-          <h2 id="driver-modal-title" className="text-base font-bold">
-            {isEdit ? `Edit ${initial?.name ?? "driver"}` : "New driver"}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="text-[#4d5a72] hover:text-[#8b96b0] text-xl leading-none"
-          >×</button>
-        </header>
-
-        <form onSubmit={submit} className="p-5 space-y-4" noValidate>
-          {isEdit ? (
-            <Field label="Status">
-              <select
-                value={form.status}
-                onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-                className={fieldClass}
-              >
-                {DRIVER_STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
-              </select>
-            </Field>
-          ) : (
-            <>
-              <Field label="Full name" required>
-                <input
-                  ref={firstFieldRef}
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  className={fieldClass}
-                  placeholder="Jane Doe"
-                  autoComplete="name"
-                  required
-                />
-              </Field>
-              <Field label="Email" required>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                  className={fieldClass}
-                  placeholder="jane@example.com"
-                  autoComplete="email"
-                  required
-                />
-              </Field>
-              <Field label="Phone">
-                <input
-                  type="tel"
-                  value={form.phone}
-                  onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                  className={fieldClass}
-                  placeholder="+47 40 00 00 00"
-                  autoComplete="tel"
-                />
-              </Field>
-              <Field label="Licence number" required>
-                <input
-                  value={form.licenseNumber}
-                  onChange={(e) => setForm((f) => ({ ...f, licenseNumber: e.target.value }))}
-                  className={fieldClass}
-                  placeholder="NO-12345678"
-                  required
-                />
-              </Field>
-              <Field label="Licence expiry" required hint="YYYY-MM-DD">
-                <input
-                  type="date"
-                  value={form.licenseExpiry}
-                  onChange={(e) => setForm((f) => ({ ...f, licenseExpiry: e.target.value }))}
-                  className={fieldClass}
-                  required
-                />
-              </Field>
-              <Field label="Address">
-                <input
-                  value={form.address}
-                  onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-                  className={fieldClass}
-                  autoComplete="street-address"
-                />
-              </Field>
-              <Field label="Status">
-                <select
-                  value={form.status}
-                  onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-                  className={fieldClass}
-                >
-                  {DRIVER_STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
-                </select>
-              </Field>
-            </>
+      <form id="driver-form" onSubmit={submit} noValidate className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="Full name"
+            required={!isEdit}
+            value={form.name}
+            onChange={(e) => up("name", e.target.value)}
+            error={fieldErrors.name}
+            autoComplete="name"
+            placeholder="Jane Doe"
+          />
+          <Input
+            label="Email"
+            type="email"
+            required={!isEdit}
+            value={form.email}
+            onChange={(e) => up("email", e.target.value)}
+            error={fieldErrors.email}
+            autoComplete="email"
+            placeholder="jane@example.com"
+          />
+          <Input
+            label="Phone"
+            type="tel"
+            value={form.phone}
+            onChange={(e) => up("phone", e.target.value)}
+            error={fieldErrors.phone}
+            autoComplete="tel"
+            placeholder="+47 40 00 00 00"
+          />
+          <Input
+            label="Licence number"
+            required={!isEdit}
+            value={form.licenseNumber}
+            onChange={(e) => up("licenseNumber", e.target.value)}
+            error={fieldErrors.licenseNumber}
+            placeholder="NO-12345678"
+          />
+          <Input
+            label="Licence expiry"
+            type="date"
+            required={!isEdit}
+            value={form.licenseExpiry}
+            onChange={(e) => up("licenseExpiry", e.target.value)}
+            error={fieldErrors.licenseExpiry}
+            hint="YYYY-MM-DD"
+          />
+          <Select
+            label="Status"
+            value={form.status}
+            onChange={(e) => up("status", e.target.value)}
+            error={fieldErrors.status}
+          >
+            {DRIVER_STATUSES.map((s) => (
+              <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
+            ))}
+          </Select>
+          {!isEdit && (
+            <Input
+              label="Address"
+              wrapperClassName="md:col-span-2"
+              value={form.address}
+              onChange={(e) => up("address", e.target.value)}
+              error={fieldErrors.address}
+              autoComplete="street-address"
+            />
           )}
-
-          {error && (
-            <div
-              role="alert"
-              className="rounded-md border border-[rgba(239,68,68,0.22)] bg-[rgba(239,68,68,0.10)] text-[#ef4444] text-sm px-3 py-2"
-            >
-              {error}
-            </div>
+          {isEdit && (
+            <Input
+              label="Rating (0–5)"
+              type="number"
+              step="0.1" min="0" max="5"
+              value={form.rating}
+              onChange={(e) => up("rating", e.target.value)}
+              error={fieldErrors.rating}
+              hint="Optional; ignored if blank."
+            />
           )}
+        </div>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={submitting}
-              className="px-4 py-2 rounded-md border border-[rgba(255,255,255,0.09)] text-[#8b96b0] hover:text-[#edf0f8] hover:border-[rgba(255,255,255,0.22)] text-sm disabled:opacity-60"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-4 py-2 rounded-md bg-[#3b7ff5] hover:bg-[#619af8] text-white text-sm font-medium disabled:opacity-60 min-w-[110px]"
-            >
-              {submitting ? "Saving…" : isEdit ? "Save changes" : "Create driver"}
-            </button>
+        {topError && (
+          <div
+            role="alert"
+            className="rounded-md border border-danger-border bg-danger-bg text-danger text-sm px-3 py-2"
+          >
+            {topError}
           </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-const fieldClass =
-  "w-full rounded-md bg-[#07090f] border border-[rgba(255,255,255,0.09)] px-3 py-2 text-sm text-[#edf0f8] placeholder:text-[#4d5a72] focus:border-[#3b7ff5] focus:outline-none focus:ring-1 focus:ring-[#3b7ff5]";
-
-function Field({
-  label, required, hint, children,
-}: {
-  label: string; required?: boolean; hint?: string; children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="block text-[11px] uppercase tracking-wider font-mono text-[#8b96b0] mb-1">
-        {label}{required && <span className="ml-1 text-[#ef4444]">*</span>}
-      </span>
-      {children}
-      {hint && <span className="block mt-1 text-[11px] text-[#4d5a72]">{hint}</span>}
-    </label>
+        )}
+      </form>
+    </Modal>
   );
 }

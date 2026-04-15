@@ -1,14 +1,8 @@
 /**
- * /admin/drivers — React-migrated driver management.
+ * /admin/drivers — driver management (React).
  *
- * Server Component:
- *   - Fetches /api/drivers + /api/stats/per-driver in parallel.
- *   - Merges the two into a flat DriverView[] for the client table.
- *   - Renders explicit loading / empty / error UI.
- *
- * All mutations (create / update / delete) happen in the client table
- * via fetch() against the existing API; after success the client calls
- * router.refresh() and this RSC re-runs, so data and UI stay in sync.
+ * Server Component fetches /api/drivers + /api/stats/per-driver in
+ * parallel, merges them, and hands off to the client table.
  */
 import { apiJson } from "@/lib/server-fetch";
 import { DriverTable } from "@/components/admin/drivers/driver-table";
@@ -31,11 +25,12 @@ export default async function AdminDriversPage() {
     return (
       <>
         <PageHeader />
-        <div className="rounded-lg border border-[rgba(239,68,68,0.22)] bg-[rgba(239,68,68,0.10)] p-6">
-          <div className="text-[#ef4444] font-semibold mb-1">
-            Could not load drivers
-          </div>
-          <p className="text-sm text-[#8b96b0]">
+        <div
+          role="alert"
+          className="rounded-lg border border-danger-border bg-danger-bg p-6"
+        >
+          <div className="text-danger font-semibold mb-1">Could not load drivers</div>
+          <p className="text-sm text-muted">
             <code className="font-mono">/api/drivers</code> returned an error or is
             unreachable. Refresh to retry; if the problem persists, check the
             database connection.
@@ -46,7 +41,6 @@ export default async function AdminDriversPage() {
   }
 
   const rows = mergeDriverViews(drivers, perf?.drivers ?? []);
-
   return (
     <>
       <PageHeader count={rows.length} />
@@ -57,15 +51,13 @@ export default async function AdminDriversPage() {
 
 function PageHeader({ count }: { count?: number }) {
   return (
-    <header className="mb-6 flex items-start justify-between gap-4">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Drivers</h1>
-        <p className="text-sm text-[#8b96b0] mt-1">
-          {count == null
-            ? "Loading…"
-            : `${count} driver${count === 1 ? "" : "s"} · performance metrics over the last 7 days`}
-        </p>
-      </div>
+    <header className="mb-6">
+      <h1 className="text-2xl font-bold tracking-tight">Drivers</h1>
+      <p className="text-sm text-muted mt-1">
+        {count == null
+          ? "Loading…"
+          : `${count} driver${count === 1 ? "" : "s"} · performance metrics over the last 7 days`}
+      </p>
     </header>
   );
 }

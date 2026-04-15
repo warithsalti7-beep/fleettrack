@@ -1,18 +1,15 @@
 "use client";
 
-/**
- * Client-side sign-out link. Server components can't attach onClick
- * handlers, so this is broken out so the /admin layout can stay server-
- * rendered while still doing a real POST to /api/auth/logout.
- */
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export function SignOutButton() {
   const [busy, setBusy] = useState(false);
   return (
-    <button
-      type="button"
-      disabled={busy}
+    <Button
+      variant="ghost"
+      size="sm"
+      loading={busy}
       onClick={async () => {
         setBusy(true);
         try {
@@ -20,9 +17,9 @@ export function SignOutButton() {
         } catch { /* swallow */ }
         window.location.href = "/login";
       }}
-      className="block w-full text-left hover:text-[#ef4444] transition-colors disabled:opacity-60"
+      className="w-full justify-start hover:text-danger -mx-1"
     >
       {busy ? "Signing out…" : "Sign out"}
-    </button>
+    </Button>
   );
 }

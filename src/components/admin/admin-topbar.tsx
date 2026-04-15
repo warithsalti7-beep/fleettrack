@@ -1,35 +1,46 @@
-/**
- * Shared topbar rendered at the top of every /admin/* page.
- * Pure server-rendered — takes the user session as plain props.
- */
-const ROLE_TONE: Record<string, string> = {
-  admin:    "bg-[#3b7ff540] text-[#619af8]",
-  employee: "bg-[#8b5cf640] text-[#a78bfa]",
-  driver:   "bg-[#10b98140] text-[#34d399]",
-};
+"use client";
 
+import { RoleChip } from "@/components/ui/status-chip";
+
+/**
+ * Shared topbar — shows session identity and doubles as a mobile
+ * sidebar toggle host. The toggle button is exposed via the
+ * useSidebar context from the layout.
+ */
 export function AdminTopbar({
   email,
   role,
   name,
+  onToggleSidebar,
 }: {
   email: string;
   role: string;
   name: string | null;
+  onToggleSidebar?: () => void;
 }) {
   return (
     <div
       role="banner"
-      className="h-14 border-b border-[rgba(255,255,255,0.05)] bg-[#0c0f18] flex items-center justify-between px-6"
+      className="h-14 border-b border-border-subtle bg-surface-1 flex items-center justify-between px-4 md:px-6"
     >
-      <div className="text-xs font-mono text-[#4d5a72]">
-        FleetTrack · React migration preview
-      </div>
       <div className="flex items-center gap-3">
-        <span className={`text-[10px] uppercase tracking-wider font-mono px-2 py-0.5 rounded ${ROLE_TONE[role] ?? "bg-[#171c2b] text-[#8b96b0]"}`}>
-          {role}
-        </span>
-        <span className="text-xs text-[#8b96b0]">
+        {onToggleSidebar && (
+          <button
+            type="button"
+            onClick={onToggleSidebar}
+            aria-label="Toggle navigation"
+            className="md:hidden size-8 inline-flex items-center justify-center rounded-md border border-border-muted text-muted hover:text-fg"
+          >
+            ☰
+          </button>
+        )}
+        <div className="text-2xs font-mono text-subtle hidden sm:block">
+          FleetTrack · React migration preview
+        </div>
+      </div>
+      <div className="flex items-center gap-3 min-w-0">
+        <RoleChip role={role} />
+        <span className="text-xs text-muted truncate max-w-[160px] md:max-w-none">
           {name || email}
         </span>
       </div>

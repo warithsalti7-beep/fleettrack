@@ -1,56 +1,128 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
-  ({ className, ...props }, ref) => (
-    <div className="relative w-full overflow-auto">
-      <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
+/**
+ * Table primitives — token-driven, responsive-friendly.
+ *
+ * Wrap tables in <TableContainer> for horizontal-scroll on small screens.
+ * <Th right> right-aligns and uses tabular-nums automatically.
+ * Use <TableEmpty> for consistent empty states.
+ */
+
+export function TableContainer({ className, children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <div className={cn("rounded-lg border border-border-muted bg-surface-1 overflow-x-auto", className)}>
+      {children}
     </div>
-  )
-);
-Table.displayName = "Table";
+  );
+}
 
-const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
-  ({ className, ...props }, ref) => (
-    <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
-  )
-);
-TableHeader.displayName = "TableHeader";
+export function Table({ className, ...rest }: React.HTMLAttributes<HTMLTableElement>) {
+  return (
+    <table
+      className={cn("w-full text-sm border-collapse", className)}
+      {...rest}
+    />
+  );
+}
 
-const TableBody = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
-  ({ className, ...props }, ref) => (
-    <tbody ref={ref} className={cn("[&_tr:last-child]:border-0", className)} {...props} />
-  )
-);
-TableBody.displayName = "TableBody";
+export function Thead({ className, ...rest }: React.HTMLAttributes<HTMLTableSectionElement>) {
+  return (
+    <thead
+      className={cn(
+        "text-2xs uppercase tracking-wider font-mono text-muted",
+        "bg-surface-2",
+        className,
+      )}
+      {...rest}
+    />
+  );
+}
 
-const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(
-  ({ className, ...props }, ref) => (
+export function Tbody({ className, ...rest }: React.HTMLAttributes<HTMLTableSectionElement>) {
+  return <tbody className={className} {...rest} />;
+}
+
+export function Tr({ className, ...rest }: React.HTMLAttributes<HTMLTableRowElement>) {
+  return (
     <tr
-      ref={ref}
-      className={cn("border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className)}
-      {...props}
+      className={cn(
+        "border-t border-border-subtle hover:bg-surface-2 transition-colors",
+        className,
+      )}
+      {...rest}
     />
-  )
-);
-TableRow.displayName = "TableRow";
+  );
+}
 
-const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<HTMLTableCellElement>>(
-  ({ className, ...props }, ref) => (
+export interface ThProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
+  right?: boolean;
+  /** If supplied the header is rendered as a clickable sort trigger. */
+  onSort?: () => void;
+  sortActive?: boolean;
+  sortDir?: "asc" | "desc";
+}
+
+export function Th({
+  right, onSort, sortActive, sortDir, className, children, ...rest
+}: ThProps) {
+  return (
     <th
-      ref={ref}
-      className={cn("h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0", className)}
-      {...props}
+      scope="col"
+      className={cn(
+        "px-3 py-3 font-medium",
+        right ? "text-right" : "text-left",
+        className,
+      )}
+      {...rest}
+    >
+      {onSort ? (
+        <button
+          type="button"
+          onClick={onSort}
+          className={cn(
+            "inline-flex items-center gap-1 hover:text-fg transition-colors",
+            sortActive && "text-brand-2",
+          )}
+        >
+          {children}
+          {sortActive && <span aria-hidden className="text-[10px]">{sortDir === "asc" ? "▲" : "▼"}</span>}
+        </button>
+      ) : (
+        children
+      )}
+    </th>
+  );
+}
+
+export interface TdProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
+  right?: boolean;
+  mono?: boolean;
+}
+
+export function Td({ right, mono, className, ...rest }: TdProps) {
+  return (
+    <td
+      className={cn(
+        "px-3 py-3 align-middle",
+        right ? "text-right tabular-nums" : "",
+        mono && "font-mono text-xs",
+        className,
+      )}
+      {...rest}
     />
-  )
-);
-TableHead.displayName = "TableHead";
+  );
+}
 
-const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<HTMLTableCellElement>>(
-  ({ className, ...props }, ref) => (
-    <td ref={ref} className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)} {...props} />
-  )
-);
-TableCell.displayName = "TableCell";
-
-export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell };
+/** Consistent empty-row rendering. */
+export function TableEmpty({
+  colSpan, children,
+}: { colSpan: number; children: React.ReactNode }) {
+  return (
+    <tr>
+      <td colSpan={colSpan} className="py-14 text-center text-sm text-muted">
+        {children}
+      </td>
+    </tr>
+  );
+}

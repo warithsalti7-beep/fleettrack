@@ -1402,10 +1402,14 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
     <a href="/admin/drivers" class="tb-btn" title="React-rendered drivers page (Beta)">↗ Drivers (Beta)</a>
     <button class="tb-btn primary" onclick="openAddDriverModal()">+ Add Driver</button>
   </div></div>
-  <div style="margin-bottom:var(--s5);padding:var(--s3) var(--s4);background:var(--bluebg);border:1px solid var(--blueborder);border-radius:var(--r3);display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap">
-    <span style="font-size:11px;font-weight:700;padding:2px 8px;background:var(--blue);color:#fff;border-radius:var(--r6);letter-spacing:0.05em">BETA</span>
-    <span style="font-size:13px;color:var(--t2)">A new React-rendered drivers page is available with faster filtering, sorting, and cleaner action flows.</span>
-    <a href="/admin/drivers" style="margin-left:auto;font-size:13px;color:var(--blue2);font-weight:600;text-decoration:none">Open new Drivers page →</a>
+  <div style="margin-bottom:var(--space-5);padding:var(--space-3) var(--space-4);background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:var(--radius-md);display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap">
+    <span style="font-size:10.5px;font-weight:700;padding:2px 8px;background:var(--warn);color:#fff;border-radius:999px;letter-spacing:0.05em">DEPRECATED</span>
+    <span style="font-size:13px;color:var(--t2)">
+      This page is being retired. Use the new <strong>Drivers</strong> page for sorting, filtering, and inline edits — actions here may be removed in a future release.
+    </span>
+    <a href="/admin/drivers" style="margin-left:auto;font-size:13px;color:var(--warn);font-weight:600;text-decoration:none">
+      Switch to the new Drivers page →
+    </a>
   </div>
   <div class="kpi-grid g4">
     <div class="kc"><div class="kc-label">Total Registered</div><div class="kc-value">19</div></div>

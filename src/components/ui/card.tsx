@@ -1,50 +1,73 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
+/**
+ * Card — surface container for grouped content. Token-based so it
+ * adapts to the light/dark theme automatically.
+ *
+ * Layout is opt-in via CardHeader / CardBody / CardFooter. An `accent`
+ * prop on Card renders a vertical strip at the top, useful for KPI
+ * cards to communicate tone at a glance.
+ */
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Narrow accent strip at the top. */
+  accent?: "brand" | "success" | "danger" | "warn" | "info" | "none";
+  /** Tighter layout — use when a card is nested or dense. */
+  dense?: boolean;
+}
+
+const ACCENT_BG: Record<NonNullable<CardProps["accent"]>, string> = {
+  brand:   "bg-brand",
+  success: "bg-success",
+  danger:  "bg-danger",
+  warn:    "bg-warn",
+  info:    "bg-info",
+  none:    "",
+};
+
+export const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
+  { className, children, accent = "none", dense, ...rest },
+  ref,
+) {
+  return (
     <div
       ref={ref}
-      className={cn("rounded-lg border bg-card text-card-foreground shadow-sm", className)}
-      {...props}
-    />
-  )
-);
-Card.displayName = "Card";
+      className={cn(
+        "relative rounded-lg border border-border-muted bg-surface-1 shadow-sm",
+        "overflow-hidden",
+        dense ? "p-3" : "p-5",
+        className,
+      )}
+      {...rest}
+    >
+      {accent !== "none" && (
+        <span aria-hidden className={cn("absolute inset-x-0 top-0 h-[3px]", ACCENT_BG[accent])} />
+      )}
+      {children}
+    </div>
+  );
+});
 
-const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex flex-col space-y-1.5 p-6", className)} {...props} />
-  )
-);
-CardHeader.displayName = "CardHeader";
+export function CardHeader({ className, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("mb-3 flex items-start justify-between gap-3", className)} {...rest} />;
+}
 
-const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
-  ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn("text-2xl font-semibold leading-none tracking-tight", className)} {...props} />
-  )
-);
-CardTitle.displayName = "CardTitle";
+export function CardTitle({ className, ...rest }: React.HTMLAttributes<HTMLHeadingElement>) {
+  return <h3 className={cn("text-xs uppercase tracking-wider font-mono text-muted", className)} {...rest} />;
+}
 
-const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
-  ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn("text-sm text-muted-foreground", className)} {...props} />
-  )
-);
-CardDescription.displayName = "CardDescription";
+export function CardValue({ className, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("text-2xl font-bold text-fg leading-tight tabular-nums", className)} {...rest} />;
+}
 
-const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
-  )
-);
-CardContent.displayName = "CardContent";
+export function CardSub({ className, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("text-xs text-subtle mt-1", className)} {...rest} />;
+}
 
-const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex items-center p-6 pt-0", className)} {...props} />
-  )
-);
-CardFooter.displayName = "CardFooter";
+export function CardBody({ className, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn(className)} {...rest} />;
+}
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+export function CardFooter({ className, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("mt-4 flex items-center justify-end gap-2", className)} {...rest} />;
+}

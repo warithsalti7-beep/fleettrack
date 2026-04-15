@@ -1,23 +1,63 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-export type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
+/**
+ * Input primitive with optional label, error, and helper text. Pairs
+ * naturally with <Field> patterns in forms. A11y-first:
+ *  - label + input are linked via id/for
+ *  - error surfaces via aria-describedby + aria-invalid
+ */
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  wrapperClassName?: string;
+}
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => {
-    return (
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Input(
+  { label, hint, error, required, id, className, wrapperClassName, ...rest },
+  ref,
+) {
+  const autoId = React.useId();
+  const inputId = id ?? autoId;
+  const hintId = hint ? `${inputId}-hint` : undefined;
+  const errorId = error ? `${inputId}-error` : undefined;
+  const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
+
+  return (
+    <div className={cn("block", wrapperClassName)}>
+      {label && (
+        <label
+          htmlFor={inputId}
+          className="block text-2xs uppercase tracking-wider font-mono text-muted mb-1"
+        >
+          {label}{required && <span className="ml-1 text-danger">*</span>}
+        </label>
+      )}
       <input
-        type={type}
-        className={cn(
-          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-          className
-        )}
         ref={ref}
-        {...props}
+        id={inputId}
+        required={required}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy}
+        className={cn(
+          "w-full rounded-md px-3 py-2 text-sm",
+          "bg-surface-0 text-fg placeholder:text-subtle",
+          "border border-border-muted",
+          "focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand",
+          "disabled:opacity-60 disabled:cursor-not-allowed",
+          error && "border-danger-border focus:border-danger focus:ring-danger",
+          className,
+        )}
+        {...rest}
       />
-    );
-  }
-);
-Input.displayName = "Input";
-
-export { Input };
+      {hint && !error && (
+        <p id={hintId} className="mt-1 text-xs text-subtle">{hint}</p>
+      )}
+      {error && (
+        <p id={errorId} role="alert" className="mt-1 text-xs text-danger">{error}</p>
+      )}
+    </div>
+  );
+});
