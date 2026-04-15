@@ -65,20 +65,31 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        await prisma.fixedCost.create({
-          data: {
-            vehicleId,
-            category,
-            description,
-            amountNok: amount,
-            frequency,
-            startDate,
-            endDate,
-            vendor: asStr(r.vendor),
-            notes: asStr(r.notes),
-          },
+        const data = {
+          vehicleId,
+          category,
+          description,
+          amountNok: amount,
+          frequency,
+          startDate,
+          endDate,
+          vendor: asStr(r.vendor),
+          notes: asStr(r.notes),
+        };
+        // Natural key: the same recurring cost should map to the same
+        // row each time — (vehicleId, category, description, startDate).
+        // A vehicleId NULL-safe match is required because fleet-wide
+        // rows (vehicleId = null) must still dedupe.
+        const existing = await prisma.fixedCost.findFirst({
+          where: { vehicleId, category, description, startDate },
         });
-        report.inserted++;
+        if (existing) {
+          await prisma.fixedCost.update({ where: { id: existing.id }, data });
+          report.updated++;
+        } else {
+          await prisma.fixedCost.create({ data });
+          report.inserted++;
+        }
       } catch (e) {
         report.errors.push({
           row: i + 2,

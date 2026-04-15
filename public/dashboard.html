@@ -10,6 +10,12 @@
 <script src="./fleet-data.js"></script>
 <script src="./auth.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Shared design tokens (colors, typography, spacing, radius, shadows,
+     light/dark theming). All other portal pages (login, driver,
+     employee, driver-profile, access-management) import the same file,
+     so a change here propagates everywhere. Dashboard-specific
+     extensions live in the <style> below. -->
+<link rel="stylesheet" href="./design-system.css">
 <style>
 /* ══════════════════════════════════════════════════════
    FLEETTRACK — Design System v3.0

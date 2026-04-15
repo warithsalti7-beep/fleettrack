@@ -30,20 +30,36 @@ export async function POST(req: NextRequest) {
           (await prisma.vehicle.findUnique({ where: { plateNumber: carId } }));
         if (!driver) { report.errors.push({ row: i + 2, email_or_id: email, message: "Unknown driver_email" }); continue; }
         if (!vehicle) { report.errors.push({ row: i + 2, email_or_id: carId, message: "Unknown car_id" }); continue; }
-        await prisma.shift.create({
-          data: {
+        // Natural key: a driver has at most one shift per (shiftDate,
+        // startTime) in a given vehicle. Re-uploading the same roster
+        // updates the clock-in/zone/platform fields without creating a
+        // duplicate shift row.
+        const existing = await prisma.shift.findFirst({
+          where: {
             driverId: driver.id,
             vehicleId: vehicle.id,
             shiftDate: date,
             startTime,
-            endTime,
-            hoursOnline: asFloat(r.hours_online),
-            zone: asStr(r.zone),
-            platformPrimary: asStr(r.platform_primary),
-            status: (asStr(r.status) || "completed"),
           },
         });
-        report.inserted++;
+        const data = {
+          driverId: driver.id,
+          vehicleId: vehicle.id,
+          shiftDate: date,
+          startTime,
+          endTime,
+          hoursOnline: asFloat(r.hours_online),
+          zone: asStr(r.zone),
+          platformPrimary: asStr(r.platform_primary),
+          status: asStr(r.status) || "completed",
+        };
+        if (existing) {
+          await prisma.shift.update({ where: { id: existing.id }, data });
+          report.updated++;
+        } else {
+          await prisma.shift.create({ data });
+          report.inserted++;
+        }
       } catch (e) {
         report.errors.push({
           row: i + 2,

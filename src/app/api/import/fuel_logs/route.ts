@@ -31,18 +31,46 @@ export async function POST(req: NextRequest) {
         continue;
       }
       try {
-        await prisma.fuelLog.create({
-          data: {
-            vehicleId: vehicle.id,
-            liters,
-            pricePerLiter: price,
-            totalCost: total ?? +(liters * price).toFixed(2),
-            mileageAtFill: asInt(r.mileage_at_fill_km) ?? 0,
-            station: asStr(r.station),
-            filledAt: date,
-          },
-        });
-        report.inserted++;
+        const source = (asStr(r.source) || "CSV").toUpperCase();
+        const externalId = asStr(r.external_id) || asStr(r.receipt_id) || null;
+        const data = {
+          vehicleId: vehicle.id,
+          liters,
+          pricePerLiter: price,
+          totalCost: total ?? +(liters * price).toFixed(2),
+          mileageAtFill: asInt(r.mileage_at_fill_km) ?? 0,
+          station: asStr(r.station),
+          filledAt: date,
+          source,
+          externalId,
+        };
+        // Idempotency — prefer (source,externalId) when both present;
+        // fall back to a natural-key dedupe on
+        // (vehicleId, filledAt, liters, pricePerLiter) so that scanning
+        // the same Circle K receipt twice is a no-op.
+        let existing = null as { id: string } | null;
+        if (externalId) {
+          existing = await prisma.fuelLog.findUnique({
+            where: { source_externalId: { source, externalId } },
+          }).catch(() => null);
+        }
+        if (!existing) {
+          existing = await prisma.fuelLog.findFirst({
+            where: {
+              vehicleId: vehicle.id,
+              filledAt: date,
+              liters,
+              pricePerLiter: price,
+            },
+          });
+        }
+        if (existing) {
+          await prisma.fuelLog.update({ where: { id: existing.id }, data });
+          report.updated++;
+        } else {
+          await prisma.fuelLog.create({ data });
+          report.inserted++;
+        }
       } catch (e) {
         report.errors.push({
           row: i + 2,

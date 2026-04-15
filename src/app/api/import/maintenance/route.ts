@@ -31,20 +31,32 @@ export async function POST(req: NextRequest) {
       }
       try {
         const status = (asStr(r.status) || "COMPLETED").toUpperCase();
-        await prisma.maintenance.create({
-          data: {
-            vehicleId: vehicle.id,
-            type: type.toUpperCase(),
-            description,
-            cost: asFloat(r.cost_nok),
-            technicianName: asStr(r.workshop),
-            status,
-            scheduledAt: date,
-            completedAt: status === "COMPLETED" ? date : null,
-            notes: asInt(r.mileage_at_service_km) ? `Mileage at service: ${r.mileage_at_service_km} km` : null,
-          },
+        const data = {
+          vehicleId: vehicle.id,
+          type: type.toUpperCase(),
+          description,
+          cost: asFloat(r.cost_nok),
+          technicianName: asStr(r.workshop),
+          status,
+          scheduledAt: date,
+          completedAt: status === "COMPLETED" ? date : null,
+          notes: asInt(r.mileage_at_service_km)
+            ? `Mileage at service: ${r.mileage_at_service_km} km`
+            : null,
+        };
+        // Natural key: one maintenance record per
+        // (vehicle, type, scheduledAt) avoids the "scheduled → done"
+        // transition creating a second row.
+        const existing = await prisma.maintenance.findFirst({
+          where: { vehicleId: vehicle.id, type: type.toUpperCase(), scheduledAt: date },
         });
-        report.inserted++;
+        if (existing) {
+          await prisma.maintenance.update({ where: { id: existing.id }, data });
+          report.updated++;
+        } else {
+          await prisma.maintenance.create({ data });
+          report.inserted++;
+        }
       } catch (e) {
         report.errors.push({
           row: i + 2,

@@ -4,6 +4,38 @@
  * Every successful run writes an ImportLog row so we have a legal /
  * tax audit trail. Errors are PII-scrubbed before they touch Sentry
  * or the response body.
+ *
+ * ──────────────────────────────────────────────────────────────
+ * IMPORTANT — data-preservation guarantees for operators
+ * ──────────────────────────────────────────────────────────────
+ *
+ *  1. Imports are ADDITIVE. No route ever issues DELETE / TRUNCATE.
+ *     Uploading a CSV never erases rows that are not in the file.
+ *
+ *  2. Imports are IDEMPOTENT. Every entity has a natural key used
+ *     to UPSERT:
+ *       - Driver        → email
+ *       - Vehicle       → carId (falls back to plateNumber)
+ *       - User          → email
+ *       - Trip          → (externalPlatform, externalId); plain
+ *                         CREATE when both are missing (manual entry)
+ *       - Shift         → (driverId, vehicleId, shiftDate, startTime)
+ *       - FuelLog       → (source, externalId); or (vehicleId,
+ *                         filledAt, liters) as fallback
+ *       - Maintenance   → (vehicleId, type, scheduledAt)
+ *       - FixedCost     → (vehicleId NULL-safe, category,
+ *                         description, startDate)
+ *
+ *     Re-uploading the same file is always a no-op — matching rows
+ *     are UPDATED with the CSV values but NEVER duplicated.
+ *
+ *  3. Imports MERGE row-by-row. A partial file (new rows for new
+ *     drivers only) leaves every previously-imported row intact.
+ *
+ *  4. Every run writes an ImportLog row recording who, what, when,
+ *     success count, failure count, and a hash of the file. You can
+ *     trace every historical change back through System → Import
+ *     History.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { captureError } from "./sentry";
