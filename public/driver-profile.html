@@ -376,82 +376,21 @@ async function loadProfile() {
   return demoProfile(driverId);
 }
 
-// Demo data — mirrors the shape returned by /api/drivers/:id/profile.
+// Empty fallback — returned when /api/drivers/:id/profile is unreachable.
+// Intentionally zero demo data; the page renders its empty states so the
+// operator never sees fake driver / vehicle info.
 function demoProfile(id) {
   return {
-    driver: {
-      id, name:'Olsztynski M.', email:'m.olsztynski@fleettrack.no', phone:'+47 411 22 333',
-      address:'Storgata 14, 0184 Oslo', personalNumber:'01019012345',
-      licenseNumber:'NO-DL-771203', licenseExpiry:'2026-08-14',
-      employmentType:'EMPLOYEE', orgNumber:null, vatRegistered:false,
-      commissionPct:0.65, bankAccount:'1503.12.34567', bankName:'DNB',
-      status:'AVAILABLE', rating:4.86, totalTrips:1284, joinedAt:'2022-03-01',
-      score:91, mtdPayoutNok:46200
-    },
-    documents: [
-      { type:'LICENSE', side:'FRONT', number:'NO-DL-771203', country:'NO', issuedAt:'2016-08-14', expiresAt:'2026-08-14', fileUrl:null, verifiedAt:'2024-10-01' },
-      { type:'LICENSE', side:'BACK',  number:'NO-DL-771203', country:'NO', issuedAt:'2016-08-14', expiresAt:'2026-08-14', fileUrl:null, verifiedAt:'2024-10-01' },
-      { type:'PASSPORT', side:'SINGLE', number:'PL-AB123456', country:'PL', issuedAt:'2020-02-12', expiresAt:'2030-02-11', fileUrl:null, verifiedAt:'2024-10-01' },
-      { type:'ID_CARD',  side:'FRONT',  number:'9104-2233',   country:'NO', issuedAt:'2023-01-05', expiresAt:'2028-01-05', fileUrl:null, verifiedAt:null },
-      { type:'ID_CARD',  side:'BACK',   number:'9104-2233',   country:'NO', issuedAt:'2023-01-05', expiresAt:'2028-01-05', fileUrl:null, verifiedAt:null },
-    ],
-    vehicles: [
-      { carId:'TR2518', plateNumber:'EL 12345', make:'NIO', model:'ET5', year:2024, fuelType:'EV_NIO',
-        insuranceProvider:'If Skadeforsikring', insuranceExpiry:'2026-06-30',
-        euKontrollNext:'2027-02-14', tyreSeason:'SUMMER', mileage:48120, status:'AVAILABLE' },
-      { carId:'TR2511', plateNumber:'EK 98123', make:'Tesla', model:'Model 3', year:2022, fuelType:'EV_TESLA',
-        insuranceProvider:'Gjensidige', insuranceExpiry:'2026-03-15',
-        euKontrollNext:'2026-11-02', tyreSeason:'WINTER', mileage:91400, status:'AVAILABLE' },
-    ],
-    extraKm:       [ { day:'2026-04-12', vehicle:'TR2518', km:42.1, source:'BOLT', notes:'deadhead to airport queue' },
-                     { day:'2026-04-11', vehicle:'TR2518', km:18.7, source:'UBER', notes:'repositioning' },
-                     { day:'2026-04-10', vehicle:'TR2511', km:61.3, source:'CSV_TAXI', notes:'Norgestaxi daily CSV' } ],
-    washes:        [ { washedAt:'2026-04-12', vehicle:'TR2518', type:'FULL', vendor:'Oslo Bilvask', costNok:260 },
-                     { washedAt:'2026-04-05', vehicle:'TR2518', type:'EXTERIOR', vendor:'Circle K', costNok:120 } ],
-    charging:      [ { startedAt:'2026-04-13T05:02', vehicle:'TR2518', location:'Depot', kwh:52.4, ratePerKwhNok:3.0, totalCostNok:157, source:'NIO_API' },
-                     { startedAt:'2026-04-12T22:10', vehicle:'TR2511', location:'Supercharger Sandvika', kwh:38.1, ratePerKwhNok:3.0, totalCostNok:114, source:'TESLA_API' } ],
-    batterySwaps:  [ { swappedAt:'2026-04-07', vehicle:'TR2518', stationName:'NIO PSS Oslo N', packKwh:100, costNok:298 } ],
-    parking:       [ { issuedAt:'2026-04-03', vehicle:'TR2518', issuer:'Oslo Kommune', reason:'No ticket', amountNok:900, paid:true, chargedBackToDriverId:id, chargedBackAmountNok:900 },
-                     { issuedAt:'2026-03-28', vehicle:'TR2511', issuer:'Aimo Park', reason:'Expired', amountNok:550, paid:true, chargedBackToDriverId:null, chargedBackAmountNok:null } ],
-    repairs:       [ { occurredAt:'2026-03-22', vehicle:'TR2511', category:'GLASS', description:'Stone chip — windscreen replaced', vendor:'Hurtigruta Carglass', costNok:4200, faultCategory:'OTHER_INSURANCE', insuranceClaim:'IF-2026-81203', deductibleNok:2500, status:'DONE' },
-                     { occurredAt:'2026-04-08', vehicle:'TR2518', category:'TYRE',  description:'Puncture — front left', vendor:'Dekkmann', costNok:1850, faultCategory:'DRIVER', insuranceClaim:null, deductibleNok:null, status:'DONE' } ],
-    payroll: {
-      periodLabel:'2026-04-01 → 2026-04-14',
-      lines: [
-        { label:'Gross trip revenue', amountNok: 71200, note:'Bolt + Uber + taxi platforms' },
-        { label:'Platform fees',      amountNok: -8450, note:'15% avg across platforms' },
-        { label:'Net revenue',        amountNok: 62750 },
-        { label:'Commission @ 65%',   amountNok: 40787, note:'driver split' },
-        { label:'Charge-backs (parking, repairs at fault)', amountNok: -2750 },
-        { label:'Bonuses',            amountNok:  1500, note:'weekend peak bonus' },
-        { label:'MTD payout',         amountNok: 39537, note:'gross to driver' },
-      ]
-    },
-    tax: {
-      rulesVersion:'NO-2026',
-      DAILY: { vat:6120, vatDeductible:920, withheld:11200, employerNi:5740, netToState:22140, entries:[
-        { periodStart:'2026-04-13', kind:'VAT_COLLECTED', base:51000, rate:0.12, amount:6120, vehicle:'TR2518', tripId:null },
-        { periodStart:'2026-04-13', kind:'VAT_DEDUCTIBLE', base:7700, rate:0.12, amount:924, vehicle:'TR2518', tripId:null },
-        { periodStart:'2026-04-13', kind:'INCOME_TAX_WITHHELD', base:39537, rate:0.283, amount:11189, vehicle:null, tripId:null },
-        { periodStart:'2026-04-13', kind:'EMPLOYER_NI', base:40737, rate:0.141, amount:5744, vehicle:null, tripId:null }
-      ]},
-      MONTHLY: { vat:21800, vatDeductible:3400, withheld:45900, employerNi:23400, netToState:87700, entries:[
-        { periodStart:'2026-04-01', kind:'VAT_COLLECTED', base:181000, rate:0.12, amount:21720, vehicle:null, tripId:null },
-        { periodStart:'2026-04-01', kind:'INCOME_TAX_WITHHELD', base:162000, rate:0.283, amount:45846, vehicle:null, tripId:null }
-      ]}
-    },
-    depreciation: [
-      { periodStart:'2026-04-01', vehicle:'TR2518', method:'DECLINING_24', openingValueNok:430000, amountNok:8600, closingValueNok:421400 },
-      { periodStart:'2026-04-01', vehicle:'TR2511', method:'DECLINING_24', openingValueNok:275000, amountNok:5500, closingValueNok:269500 }
-    ],
-    fixedCosts: [
-      { category:'LEASE',      description:'NIO ET5 lease',        vendor:'NIO Finans',      frequency:'MONTHLY', amountNok:-7900 },
-      { category:'INSURANCE',  description:'Fleet CASCO',          vendor:'If',              frequency:'MONTHLY', amountNok:-1850 },
-      { category:'LOYVE',      description:'Taxi licence (løyve)', vendor:'Statsforvalteren', frequency:'YEARLY', amountNok:-2400 },
-      { category:'TAXIMETER',  description:'Taximeter calibration',vendor:'Frogner Taxi',    frequency:'YEARLY',  amountNok:-1200 },
-      { category:'SOFTWARE',   description:'Dispatch + CRM',       vendor:'FleetTrack',      frequency:'MONTHLY', amountNok:-490 },
-      { category:'ACCOUNTING', description:'Bookkeeping',          vendor:'Tripletex',       frequency:'MONTHLY', amountNok:-990 }
-    ]
+    driver: { id, name: '', email: '', phone: '', address: '', personalNumber: null,
+              licenseNumber: '', licenseExpiry: null, employmentType: 'EMPLOYEE',
+              orgNumber: null, vatRegistered: false, commissionPct: 0.5,
+              bankAccount: null, bankName: null, status: 'AVAILABLE',
+              rating: null, totalTrips: 0, joinedAt: null, score: null, mtdPayoutNok: 0 },
+    documents: [], vehicles: [],
+    extraKm: [], washes: [], charging: [], batterySwaps: [], parking: [], repairs: [],
+    payroll: { periodLabel: '', lines: [] },
+    tax: { rulesVersion: 'NO-2026' },
+    depreciation: [], fixedCosts: [],
   };
 }
 

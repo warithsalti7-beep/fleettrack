@@ -162,12 +162,7 @@ if (can('manage:dispatch')) {
     <div class="card-header"><div class="card-title">Dispatch Queue</div><div class="card-sub">Open pickups</div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Time</th><th>Pickup</th><th>Driver</th><th>Status</th></tr></thead>
-      <tbody>
-        <tr><td>12:42</td><td>Oslo Airport T2</td><td>Olsztynski M.</td><td><span class="badge b-green">En route</span></td></tr>
-        <tr><td>12:38</td><td>Sentralstasjon</td><td>Armand N.</td><td><span class="badge b-blue">Assigned</span></td></tr>
-        <tr><td>12:35</td><td>Majorstuen Torg</td><td>—</td><td><span class="badge b-amber">Queued</span></td></tr>
-        <tr><td>12:31</td><td>Aker Brygge</td><td>Szymon S.</td><td><span class="badge b-green">En route</span></td></tr>
-      </tbody>
+      <tbody><tr><td colspan="4" class="text-muted text-center" style="padding:var(--s5);font-size:12.5px">No active dispatch queue — queued pickups appear here as trips come in.</td></tr></tbody>
     </table></div>
   </div>`);
 }
@@ -186,11 +181,8 @@ if (can('view:drivers')) {
 if (can('view:alerts')) {
   row.push(`<div class="card" style="margin-bottom:0">
     <div class="card-header"><div class="card-title">Alerts</div><div class="card-sub">Active</div></div>
-    <div style="font-size:13px;line-height:1.7">
-      <div style="padding:var(--s3);background:var(--redbg);border:1px solid var(--redborder);border-radius:var(--r2);margin-bottom:var(--s2)"><strong style="color:var(--red)">⚑ High:</strong> VH-14 — Negative profit 3 days</div>
-      <div style="padding:var(--s3);background:var(--amberbg);border:1px solid var(--amberborder);border-radius:var(--r2);margin-bottom:var(--s2)"><strong style="color:var(--amber)">⚠ Med:</strong> Liu Wei — License expires in 25 days</div>
-      <div style="padding:var(--s3);background:var(--amberbg);border:1px solid var(--amberborder);border-radius:var(--r2);margin-bottom:var(--s2)"><strong style="color:var(--amber)">⚠ Med:</strong> TR3319 — Maintenance due in 500km</div>
-      <div style="padding:var(--s3);background:var(--bluebg);border:1px solid var(--blueborder);border-radius:var(--r2)"><strong style="color:var(--blue2)">ℹ Info:</strong> Q1 VAT filing confirmed — 447 170 kr</div>
+    <div id="emp-alerts" style="font-size:13px;line-height:1.7;color:var(--t3)">
+      Active alerts appear here — pulled from /api/diagnostics/issues.
     </div>
   </div>`);
 }
@@ -213,12 +205,7 @@ if (can('manage:maintenance')) {
     <div class="card-header"><div class="card-title">Maintenance Schedule</div><div class="card-sub">Next 14 days</div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Car</th><th>Service</th><th>Due</th><th>Workshop</th><th>Est. cost</th></tr></thead>
-      <tbody>
-        <tr><td>TR2518 (NIO ET5)</td><td>10 000 km service</td><td>2026-04-16</td><td>AutoFix GmbH</td><td><span class="cur" data-nok="2070">2 070 kr</span></td></tr>
-        <tr><td>TR709 (Tesla Model S)</td><td>Tire replacement (2)</td><td>2026-04-18</td><td>TirePro</td><td><span class="cur" data-nok="3220">3 220 kr</span></td></tr>
-        <tr><td>TR3323 (KIA NIRO)</td><td>Annual inspection</td><td>2026-04-20</td><td>DealerService</td><td><span class="cur" data-nok="1380">1 380 kr</span></td></tr>
-        <tr><td>TR2540 (NIO ET5)</td><td>Brake fluid</td><td>2026-04-24</td><td>AutoFix GmbH</td><td><span class="cur" data-nok="920">920 kr</span></td></tr>
-      </tbody>
+      <tbody><tr><td colspan="5" class="text-muted text-center" style="padding:var(--s5);font-size:12.5px">No upcoming services — scheduled services appear here once Maintenance CSV is uploaded.</td></tr></tbody>
     </table></div>
   </div>`);
 }
@@ -284,19 +271,17 @@ if (payRows) {
 }
 
 function downloadReport(kind){
+  // Exports pull LIVE data via /api/export/*. No demo fallbacks.
   const map = {
-    'today-trips': { rows: [['Time','Driver','Car','Pickup','Dropoff','Fare (NOK)'],
-      ['12:42','Olsztynski M.','TR2518','Oslo Airport T2','Aker Brygge','582'],
-      ['12:38','Armand N.','TR2537','Sentralstasjon','Majorstuen','310'],
-      ['12:31','Szymon S.','TR2540','Aker Brygge','Frogner','245']] },
-    'payroll-today': { rows: [...payRows.querySelectorAll('tr')].map(tr =>
-      [...tr.querySelectorAll('th,td')].map(c=>c.innerText.replace(/\s+/g,' ').trim())) },
-    'maintenance-schedule': { rows: [['Car','Service','Due','Workshop','Est. cost (NOK)'],
-      ['TR2518 (NIO ET5)','10 000 km service','2026-04-16','AutoFix GmbH','2 070'],
-      ['TR709 (Tesla Model S)','Tire replacement (2)','2026-04-18','TirePro','3 220'],
-      ['TR3323 (KIA NIRO)','Annual inspection','2026-04-20','DealerService','1 380'],
-      ['TR2540 (NIO ET5)','Brake fluid','2026-04-24','AutoFix GmbH','920']] },
+    'today-trips':         { url: '/api/export/trips?window=today' },
+    'payroll-today':       { rows: [...payRows.querySelectorAll('tr')].map(tr =>
+                              [...tr.querySelectorAll('th,td')].map(c=>c.innerText.replace(/\s+/g,' ').trim())) },
+    'maintenance-schedule':{ url: '/api/export/maintenance?window=next14' },
   };
+  if (map[kind]?.url) {
+    window.open(map[kind].url, '_blank');
+    return;
+  }
   const data = map[kind];
   if(!data){ Toast.error('Unknown report'); return; }
   const csv = data.rows.map(r => r.map(c => /[",\n]/.test(c) ? `"${c.replace(/"/g,'""')}"` : c).join(',')).join('\n');

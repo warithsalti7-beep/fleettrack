@@ -1433,19 +1433,19 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
     <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">Net Profit</div><div class="kc-value" data-kpi="netProfit">—</div><div class="kc-delta neu" data-kpi="netProfitDelta">computed from imports</div><div class="kc-sub" data-kpi="netProfitSub"></div></div>
     <div class="kc"><div class="kc-accent" style="background:var(--blue)"></div><div class="kc-label">Active Drivers</div><div class="kc-value" data-kpi="activeDrivers">—</div><div class="kc-delta neu" data-kpi="activeDriversDelta"></div><div class="kc-sub" data-kpi="activeDriversSub"></div></div>
     <div class="kc"><div class="kc-accent" style="background:var(--blue)"></div><div class="kc-label">Trips Done</div><div class="kc-value" data-kpi="tripsToday">—</div><div class="kc-delta neu" data-kpi="tripsTodayDelta"></div><div class="kc-sub">Source: imported trips today</div></div>
-    <div class="kc"><div class="kc-accent" style="background:var(--amber)"></div><div class="kc-label">Utilization</div><div class="kc-value" data-kpi="utilizationPct">—</div><div class="kc-bar"><div class="kc-bar-fill" data-kpi="utilizationBar" style="width:0%;background:var(--amber)"></div></div><div class="kc-sub">Target: &gt;70%</div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--amber)"></div><div class="kc-label">Utilization</div><div class="kc-value" data-kpi="utilizationPct">—</div><div class="kc-bar"><div class="kc-bar-fill" data-kpi="utilizationBar" style="width:0%;background:var(--amber)"></div></div><div class="kc-sub"></div></div>
     <div class="kc"><div class="kc-accent" style="background:var(--teal)"></div><div class="kc-label">Avg Rev/Hour</div><div class="kc-value" data-kpi="avgRevPerHour">—</div><div class="kc-delta neu" data-kpi="avgRevPerHourDelta"></div><div class="kc-sub">Across active drivers</div></div>
   </div>
   <div class="kpi-grid g6">
-    <div class="kc"><div class="kc-label">Acceptance Rate</div><div class="kc-value" data-kpi="acceptancePct">—</div><div class="kc-bar"><div class="kc-bar-fill" style="width:83.5%;background:var(--green)"></div></div><div class="kc-sub">Target: >80%</div></div>
-    <div class="kc"><div class="kc-label">Cancellation Rate</div><div class="kc-value" data-kpi="cancelPct">—</div><div class="kc-delta up">↑ Below 10% limit</div><div class="kc-sub">Safe zone</div></div>
+    <div class="kc"><div class="kc-label">Acceptance Rate</div><div class="kc-value" data-kpi="acceptancePct">—</div><div class="kc-bar"><div class="kc-bar-fill" style="width:83.5%;background:var(--green)"></div></div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Cancellation Rate</div><div class="kc-value" data-kpi="cancelPct">—</div><div class="kc-delta up"></div><div class="kc-sub">Safe zone</div></div>
     <div class="kc"><div class="kc-label">Avg Idle Time</div><div class="kc-value" data-kpi="idlePct">—</div><div class="kc-bar"><div class="kc-bar-fill" style="width:24.1%;background:var(--green)"></div></div><div class="kc-sub">Target: <30%</div></div>
     <div class="kc"><div class="kc-label">Trips/Active Hr</div><div class="kc-value" data-kpi="tripsPerActiveHr">—</div><div class="kc-delta neu">Target: 2.5</div><div class="kc-sub">Below optimal</div></div>
-    <div class="kc"><div class="kc-label">Cost Per Trip</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">Revenue/trip: <span class="cur" data-nok="0">—</span></div></div>
+    <div class="kc"><div class="kc-label">Cost Per Trip</div><div class="kc-value">—</div><div class="kc-sub">Revenue/trip: <span class="cur" data-nok="0">—</span></div></div>
     <div class="kc"><div class="kc-label">Platform Split</div><div class="kc-value" data-kpi="platformSplit">—</div><div class="split-bar"><div class="sb-seg" style="width:58%;background:rgba(139,92,246,0.4);color:#c4b5fd">Bolt</div><div class="sb-seg" style="width:42%;background:rgba(59,130,246,0.4);color:#93c5fd">Uber</div></div></div>
   </div>
   <div class="two-col">
-    <div class="card"><div class="card-header"><div class="card-title">Revenue vs Target — Hourly</div><div class="card-sub">Today 06:00–now</div></div><div class="ch" style="height:200px"><canvas id="c-rev-hourly" role="img" aria-label="Hourly revenue vs target">Revenue data.</canvas></div></div>
+    <div class="card"><div class="card-header"><div class="card-title">Revenue vs Target — Hourly</div><div class="card-sub"></div></div><div class="ch" style="height:200px"><canvas id="c-rev-hourly" role="img" aria-label="Hourly revenue vs target">Revenue data.</canvas></div></div>
     <div class="card"><div class="card-header"><div class="card-title">Trip Volume by Hour</div></div><div class="ch" style="height:200px"><canvas id="c-trips-hourly" role="img" aria-label="Trips by hour">Trip volume data.</canvas></div></div>
   </div>
   <div class="two-col">
@@ -1468,24 +1468,24 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
 <div class="page" id="page-command-centre">
   <div class="page-header"><div class="ph-left"><div class="ph-title">FleetTrack Command Centre</div><div class="ph-sub">Full operational control panel — all systems at a glance</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Fleet Status</div><div class="kc-value" style="color:var(--green)">Operational</div><div class="kc-sub">16 active · 2 workshop · 1 offline</div></div>
-    <div class="kc"><div class="kc-label">Today Revenue Pace</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-delta up">On track for <span class="cur" data-nok="0">—</span> EOD</div></div>
-    <div class="kc"><div class="kc-label">Open Alerts</div><div class="kc-value" style="color:var(--red)">4</div><div class="kc-sub">2 critical · 2 warnings</div></div>
-    <div class="kc"><div class="kc-label">Platform Health</div><div class="kc-value" style="color:var(--green)">Good</div><div class="kc-sub">Bolt avg 86% · Uber avg 80%</div></div>
+    <div class="kc"><div class="kc-label">Fleet Status</div><div class="kc-value" style="color:var(--green)">Operational</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Today Revenue Pace</div><div class="kc-value">—</div><div class="kc-delta up">On track for <span class="cur" data-nok="0">—</span> EOD</div></div>
+    <div class="kc"><div class="kc-label">Open Alerts</div><div class="kc-value" style="color:var(--red)">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Platform Health</div><div class="kc-value" style="color:var(--green)">Good</div><div class="kc-sub"></div></div>
   </div>
   <div class="three-col">
     <div class="card"><div class="card-header"><div class="card-title">Driver Status Board</div></div>
       <div class="info-row"><div class="ir-label">On trip</div><div class="ir-val" style="color:var(--green)">11 drivers</div></div>
       <div class="info-row"><div class="ir-label">Available / waiting</div><div class="ir-val" style="color:var(--blue2)">5 drivers</div></div>
       <div class="info-row"><div class="ir-label">In workshop</div><div class="ir-val" style="color:var(--amber)">2 drivers</div></div>
-      <div class="info-row"><div class="ir-label">Scheduled (next shift)</div><div class="ir-val">3 drivers</div></div>
+      <div class="info-row"><div class="ir-label">Scheduled (next shift)</div><div class="ir-val">—</div></div>
       <div class="info-row"><div class="ir-label">Offline / no-show</div><div class="ir-val" style="color:var(--red)">1 driver</div></div>
     </div>
     <div class="card"><div class="card-header"><div class="card-title">Vehicle Status Board</div></div>
       <div class="info-row"><div class="ir-label">On road (active)</div><div class="ir-val" style="color:var(--green)">11 cars</div></div>
       <div class="info-row"><div class="ir-label">In workshop</div><div class="ir-val" style="color:var(--amber)">2 cars (TR2538, TR3338)</div></div>
       <div class="info-row"><div class="ir-label">Parked / idle</div><div class="ir-val" style="color:var(--t2)">1 car</div></div>
-      <div class="info-row"><div class="ir-label">Total fleet</div><div class="ir-val">14 cars</div></div>
+      <div class="info-row"><div class="ir-label">Total fleet</div><div class="ir-val">—</div></div>
       <div class="info-row"><div class="ir-label">Insurance expiring <30d</div><div class="ir-val" style="color:var(--amber)">1 vehicle</div></div>
     </div>
     <div class="card"><div class="card-header"><div class="card-title">Platform Health</div></div>
@@ -1503,9 +1503,9 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
   <div class="page-header"><div class="ph-left"><div class="ph-title">Driver Roster & Profiles</div><div class="ph-sub">Complete driver database — 19 registered drivers</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Add Driver — not implemented yet')">+ Add Driver</button></div></div>
   <div class="kpi-grid g4">
     <div class="kc"><div class="kc-label">Total Registered</div><div class="kc-value" data-kpi="driversTotal2">—</div></div>
-    <div class="kc"><div class="kc-label">Active Today</div><div class="kc-value" style="color:var(--green)">16</div></div>
-    <div class="kc"><div class="kc-label">Licenses Expiring <60d</div><div class="kc-value" style="color:var(--amber)">2</div></div>
-    <div class="kc"><div class="kc-label">On Improvement Plan</div><div class="kc-value" style="color:var(--red)">3</div></div>
+    <div class="kc"><div class="kc-label">Active Today</div><div class="kc-value" style="color:var(--green)">—</div></div>
+    <div class="kc"><div class="kc-label">Licenses Expiring <60d</div><div class="kc-value" style="color:var(--amber)">—</div></div>
+    <div class="kc"><div class="kc-label">On Improvement Plan</div><div class="kc-value" style="color:var(--red)">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Driver Database</div><div class="card-actions"><select style="font-size:11px"><option>All Status</option><option>Active</option><option>Inactive</option></select></div></div>
     <div class="tbl-wrap"><table>
@@ -1523,7 +1523,7 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
     <div class="kc"><div class="kc-label">Average Tier (60–79)</div><div class="kc-value" style="color:var(--blue2)" data-kpi="midTier">—</div></div>
     <div class="kc"><div class="kc-label">Low Tier (<60)</div><div class="kc-value" style="color:var(--red)" data-kpi="lowTier">—</div></div>
   </div>
-  <div class="card"><div class="card-header"><div class="card-title">Score Formula — v2 (April 2026)</div><div class="card-sub">Composite 0–100; safety &amp; customer signals now count</div></div>
+  <div class="card"><div class="card-header"><div class="card-title">Score Formula — v2 (April 2026)</div><div class="card-sub"></div></div>
     <div class="fbox">Driver Score v2 =
   30% · Rev/hr (capped at 25 kr/h so a single airport run can't dominate)
 + 15% · Utilization
@@ -1568,10 +1568,10 @@ high-revenue / low-rating / harsh-braking driver no longer scores 90.</div>
   <div class="page-header"><div class="ph-left"><div class="ph-title">Shifts & Scheduling</div><div class="ph-sub">Shift allocation, attendance, and demand-aligned scheduling</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('New Shift — not implemented yet')">+ New Shift</button></div></div>
   <div class="kpi-grid g5">
     <div class="kc"><div class="kc-label">Today's Scheduled</div><div class="kc-value" data-kpi="driversTotal2">—</div></div>
-    <div class="kc"><div class="kc-label">Confirmed Present</div><div class="kc-value" style="color:var(--green)">16</div></div>
-    <div class="kc"><div class="kc-label">No-Shows</div><div class="kc-value" style="color:var(--red)">1</div></div>
+    <div class="kc"><div class="kc-label">Confirmed Present</div><div class="kc-value" style="color:var(--green)">—</div></div>
+    <div class="kc"><div class="kc-label">No-Shows</div><div class="kc-value" style="color:var(--red)">—</div></div>
     <div class="kc"><div class="kc-label">Avg Shift Length</div><div class="kc-value" data-kpi="avgShiftLength">—</div></div>
-    <div class="kc"><div class="kc-label">Peak Coverage (07–09)</div><div class="kc-value" style="color:var(--green)">14/19</div></div>
+    <div class="kc"><div class="kc-label">Peak Coverage (07–09)</div><div class="kc-value" style="color:var(--green)">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Today's Shift Schedule</div></div>
     <div class="tbl-wrap"><table>
@@ -1592,9 +1592,9 @@ high-revenue / low-rating / harsh-braking driver no longer scores 90.</div>
 <div class="page" id="page-driver-compliance">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Compliance & Documents</div><div class="ph-sub">License tracking, certifications, and regulatory requirements</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">All docs valid</div><div class="kc-value" style="color:var(--green)" data-kpi="docsValid">—</div><div class="kc-sub">of 19 total</div></div>
+    <div class="kc"><div class="kc-label">All docs valid</div><div class="kc-value" style="color:var(--green)" data-kpi="docsValid">—</div><div class="kc-sub"></div></div>
     <div class="kc"><div class="kc-label">License expiring <60d</div><div class="kc-value" style="color:var(--amber)" data-kpi="docsExpiring">—</div></div>
-    <div class="kc"><div class="kc-label">TFL/PCO badge renewal</div><div class="kc-value" style="color:var(--amber)">3 drivers</div></div>
+    <div class="kc"><div class="kc-label">TFL/PCO badge renewal</div><div class="kc-value" style="color:var(--amber)">—</div></div>
     <div class="kc"><div class="kc-label">Overdue medicals</div><div class="kc-value" style="color:var(--red)" data-kpi="docsOverdue">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Document Expiry Tracker</div></div>
@@ -1609,10 +1609,10 @@ high-revenue / low-rating / harsh-braking driver no longer scores 90.</div>
 <div class="page" id="page-driver-payroll">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Payroll & Payouts</div><div class="ph-sub">Driver earnings, commissions, bonuses, and deductions</div></div><div class="ph-right"><button class="tb-btn primary" onclick="exportNearestTable(this,'payroll')" aria-label="Export payroll">⬇ Export Payroll</button></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Total Payouts Today</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">65% of net revenue</div></div>
-    <div class="kc"><div class="kc-label">Avg Payout / Driver</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Highest Earner</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">—</div></div>
-    <div class="kc"><div class="kc-label">Lowest Earner</div><div class="kc-value" style="color:var(--amber)"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">—</div></div>
+    <div class="kc"><div class="kc-label">Total Payouts Today</div><div class="kc-value">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Avg Payout / Driver</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Highest Earner</div><div class="kc-value" style="color:var(--green)">—</div><div class="kc-sub">—</div></div>
+    <div class="kc"><div class="kc-label">Lowest Earner</div><div class="kc-value" style="color:var(--amber)">—</div><div class="kc-sub">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Payroll Breakdown — Today</div></div>
     <div class="tbl-wrap"><table id="rpt-payroll">
@@ -1626,10 +1626,10 @@ high-revenue / low-rating / harsh-braking driver no longer scores 90.</div>
 <div class="page" id="page-driver-coaching">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Coaching & Performance Flags</div><div class="ph-sub">Active improvement plans, flags, and intervention history</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">On Improvement Plan</div><div class="kc-value" style="color:var(--red)">3</div></div>
-    <div class="kc"><div class="kc-label">Flagged This Week</div><div class="kc-value" style="color:var(--amber)">5</div></div>
-    <div class="kc"><div class="kc-label">Coaching Sessions Due</div><div class="kc-value">2</div></div>
-    <div class="kc"><div class="kc-label">Exited Plan (Good)</div><div class="kc-value" style="color:var(--green)">1</div><div class="kc-sub">This month</div></div>
+    <div class="kc"><div class="kc-label">On Improvement Plan</div><div class="kc-value" style="color:var(--red)">—</div></div>
+    <div class="kc"><div class="kc-label">Flagged This Week</div><div class="kc-value" style="color:var(--amber)">—</div></div>
+    <div class="kc"><div class="kc-label">Coaching Sessions Due</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Exited Plan (Good)</div><div class="kc-value" style="color:var(--green)">—</div><div class="kc-sub">This month</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Active Improvement Plans</div></div>
     <div class="tbl-wrap"><table id="rpt-driver-coaching">
@@ -1644,9 +1644,9 @@ high-revenue / low-rating / harsh-braking driver no longer scores 90.</div>
   <div class="page-header"><div class="ph-left"><div class="ph-title">Fleet Register</div><div class="ph-sub">All 14 vehicles — specs, assignment, and operational status</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Add Vehicle — not implemented yet')">+ Add Vehicle</button></div></div>
   <div class="kpi-grid g5">
     <div class="kc"><div class="kc-label">Total Fleet</div><div class="kc-value" data-kpi="vehiclesTotal2">—</div></div>
-    <div class="kc"><div class="kc-label">In Service</div><div class="kc-value" style="color:var(--green)">11</div></div>
-    <div class="kc"><div class="kc-label">In Workshop</div><div class="kc-value" style="color:var(--amber)">2</div></div>
-    <div class="kc"><div class="kc-label">Parked / Idle</div><div class="kc-value" style="color:var(--amber)">1</div></div>
+    <div class="kc"><div class="kc-label">In Service</div><div class="kc-value" style="color:var(--green)">—</div></div>
+    <div class="kc"><div class="kc-label">In Workshop</div><div class="kc-value" style="color:var(--amber)">—</div></div>
+    <div class="kc"><div class="kc-label">Parked / Idle</div><div class="kc-value" style="color:var(--amber)">—</div></div>
     <div class="kc"><div class="kc-label">Avg Age</div><div class="kc-value" data-kpi="avgVehicleAge">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Vehicle Register</div></div>
@@ -1663,8 +1663,8 @@ high-revenue / low-rating / harsh-braking driver no longer scores 90.</div>
   <div class="kpi-grid g4">
     <div class="kc"><div class="kc-label">Best Vehicle</div><div class="kc-value" style="color:var(--green)">VH-07</div><div class="kc-sub"><span class="cur" data-nok="0">—</span>/day profit</div></div>
     <div class="kc"><div class="kc-label">Worst Vehicle</div><div class="kc-value" style="color:var(--red)">VH-14</div><div class="kc-sub"><span class="cur" data-nok="0">—</span>/day loss</div></div>
-    <div class="kc"><div class="kc-label">Fleet Avg Cost/km</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Downtime Rate</div><div class="kc-value" style="color:var(--amber)">8%</div></div>
+    <div class="kc"><div class="kc-label">Fleet Avg Cost/km</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Downtime Rate</div><div class="kc-value" style="color:var(--amber)">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">All Vehicles — P&L Ranked</div></div>
     <div class="tbl-wrap"><table id="rpt-vehicle-ranking">
@@ -1694,21 +1694,21 @@ Cost/km = (fuel + maintenance + depreciation) / total_km</div>
 <div class="page" id="page-vehicle-maintenance">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Maintenance Tracker</div><div class="ph-sub">Scheduled, active, and historical maintenance — zero unplanned downtime goal</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Log Service — not implemented yet')">+ Log Service</button></div></div>
   <div class="kpi-grid g5">
-    <div class="kc"><div class="kc-label">Currently in Workshop</div><div class="kc-value" style="color:var(--amber)">2</div></div>
-    <div class="kc"><div class="kc-label">Due Within 500km</div><div class="kc-value" style="color:var(--amber)">3</div></div>
-    <div class="kc"><div class="kc-label">MTD Maintenance Cost</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Avg Days in Workshop</div><div class="kc-value">1.8d</div></div>
-    <div class="kc"><div class="kc-label">Emergency Repairs MTD</div><div class="kc-value" style="color:var(--red)">2</div></div>
+    <div class="kc"><div class="kc-label">Currently in Workshop</div><div class="kc-value" style="color:var(--amber)">—</div></div>
+    <div class="kc"><div class="kc-label">Due Within 500km</div><div class="kc-value" style="color:var(--amber)">—</div></div>
+    <div class="kc"><div class="kc-label">MTD Maintenance Cost</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Avg Days in Workshop</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Emergency Repairs MTD</div><div class="kc-value" style="color:var(--red)">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Maintenance Schedule</div></div>
     <div class="tbl-wrap"><table id="rpt-maintenance">
       <thead><tr><th>Vehicle</th><th>Type</th><th>Description</th><th>Date In</th><th>Date Out</th><th>Workshop</th><th>Cost</th><th>km at Service</th><th>Next Due km</th><th>Status</th></tr></thead>
       <tbody>
-        <tr><td>VH-14</td><td><span class="badge b-red">Emergency</span></td><td>Brake pad replacement + fluid</td><td>2024-01-08</td><td>2024-01-09</td><td>AutoFix GmbH</td><td><span class="cur" data-nok="0">—</span></td><td>87,412</td><td>97,412</td><td><span class="badge b-amber">In Workshop</span></td></tr>
-        <tr><td>VH-21</td><td><span class="badge b-amber">Routine</span></td><td>10,000km oil service + filter</td><td>2024-01-08</td><td>2024-01-08</td><td>DealerService</td><td><span class="cur" data-nok="0">—</span></td><td>72,100</td><td>82,100</td><td><span class="badge b-amber">In Workshop</span></td></tr>
-        <tr><td>VH-07</td><td><span class="badge b-blue">Upcoming</span></td><td>10,000km service</td><td>2024-01-15</td><td>—</td><td>TBD</td><td>~<span class="cur" data-nok="0">—</span></td><td>—</td><td>91,200</td><td><span class="badge b-gray">Scheduled</span></td></tr>
-        <tr><td>VH-03</td><td><span class="badge b-blue">Upcoming</span></td><td>Tire replacement (2 fronts)</td><td>2024-01-16</td><td>—</td><td>TirePro</td><td>~<span class="cur" data-nok="0">—</span></td><td>—</td><td>—</td><td><span class="badge b-gray">Scheduled</span></td></tr>
-        <tr><td>VH-09</td><td><span class="badge b-green">Completed</span></td><td>Annual inspection + MOT</td><td>2024-01-03</td><td>2024-01-03</td><td>MOT Centre</td><td><span class="cur" data-nok="0">—</span></td><td>64,300</td><td>—</td><td><span class="badge b-green">Pass</span></td></tr>
+        <tr><td>VH-14</td><td><span class="badge b-red">Emergency</span></td><td>Brake pad replacement + fluid</td><td>—</td><td>—</td><td>AutoFix GmbH</td><td><span class="cur" data-nok="0">—</span></td><td>—</td><td>—</td><td><span class="badge b-amber">In Workshop</span></td></tr>
+        <tr><td>VH-21</td><td><span class="badge b-amber">Routine</span></td><td>10,000km oil service + filter</td><td>—</td><td>—</td><td>DealerService</td><td><span class="cur" data-nok="0">—</span></td><td>—</td><td>—</td><td><span class="badge b-amber">In Workshop</span></td></tr>
+        <tr><td>VH-07</td><td><span class="badge b-blue">Upcoming</span></td><td>10,000km service</td><td>—</td><td>—</td><td>TBD</td><td>~<span class="cur" data-nok="0">—</span></td><td>—</td><td>—</td><td><span class="badge b-gray">Scheduled</span></td></tr>
+        <tr><td>VH-03</td><td><span class="badge b-blue">Upcoming</span></td><td>Tire replacement (2 fronts)</td><td>—</td><td>—</td><td>TirePro</td><td>~<span class="cur" data-nok="0">—</span></td><td>—</td><td>—</td><td><span class="badge b-gray">Scheduled</span></td></tr>
+        <tr><td>VH-09</td><td><span class="badge b-green">Completed</span></td><td>Annual inspection + MOT</td><td>—</td><td>—</td><td>MOT Centre</td><td><span class="cur" data-nok="0">—</span></td><td>—</td><td>—</td><td><span class="badge b-green">Pass</span></td></tr>
       </tbody>
     </table></div>
   </div>
@@ -1727,20 +1727,20 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
 <div class="page" id="page-vehicle-fuel">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Fuel Management</div><div class="ph-sub">Consumption, cost, efficiency, and card usage tracking</div></div></div>
   <div class="kpi-grid g5">
-    <div class="kc"><div class="kc-label">Fuel Cost Today</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">6.5% of gross revenue</div></div>
-    <div class="kc"><div class="kc-label">Avg Fuel Cost/km</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">Fleet average</div></div>
-    <div class="kc"><div class="kc-label">Highest Fuel/km</div><div class="kc-value" style="color:var(--red)"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">VH-14 (BMW)</div></div>
-    <div class="kc"><div class="kc-label">Fuel Card Usage</div><div class="kc-value">97%</div><div class="kc-sub">3% cash (flagged)</div></div>
-    <div class="kc"><div class="kc-label">Monthly Fuel Budget</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">On track</div></div>
+    <div class="kc"><div class="kc-label">Fuel Cost Today</div><div class="kc-value">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Avg Fuel Cost/km</div><div class="kc-value">—</div><div class="kc-sub">Fleet average</div></div>
+    <div class="kc"><div class="kc-label">Highest Fuel/km</div><div class="kc-value" style="color:var(--red)">—</div><div class="kc-sub">VH-14 (BMW)</div></div>
+    <div class="kc"><div class="kc-label">Fuel Card Usage</div><div class="kc-value">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Monthly Fuel Budget</div><div class="kc-value">—</div><div class="kc-sub">On track</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Fuel Log — Vehicle Summary</div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Vehicle</th><th>Model</th><th>Fuel Type</th><th>km Today</th><th>Litres Used</th><th>L/100km</th><th>Cost/km</th><th>Total Fuel Cost</th><th>Efficiency Rating</th></tr></thead>
       <tbody>
-        <tr><td>VH-07</td><td>Skoda Octavia</td><td>Diesel</td><td>312</td><td>18.7</td><td>6.0</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-green">Excellent</span></td></tr>
-        <tr><td>VH-03</td><td>Toyota Corolla</td><td>Hybrid</td><td>288</td><td>14.4</td><td>5.0</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-green">Excellent</span></td></tr>
-        <tr><td>VH-11</td><td>VW Passat</td><td>Diesel</td><td>264</td><td>17.2</td><td>6.5</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-blue">Good</span></td></tr>
-        <tr class="tr-amber"><td>VH-14</td><td>BMW 3 Series</td><td>Petrol</td><td>198</td><td>21.8</td><td>11.0</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-red">Poor</span></td></tr>
+        <tr><td>VH-07</td><td>Skoda Octavia</td><td>Diesel</td><td>—</td><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-green">Excellent</span></td></tr>
+        <tr><td>VH-03</td><td>Toyota Corolla</td><td>Hybrid</td><td>—</td><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-green">Excellent</span></td></tr>
+        <tr><td>VH-11</td><td>VW Passat</td><td>Diesel</td><td>—</td><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-blue">Good</span></td></tr>
+        <tr class="tr-amber"><td>VH-14</td><td>BMW 3 Series</td><td>Petrol</td><td>—</td><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-red">Poor</span></td></tr>
       </tbody>
     </table></div>
   </div>
@@ -1750,10 +1750,10 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
 <div class="page" id="page-vehicle-telematics">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Telematics & GPS</div><div class="ph-sub">Live vehicle location, speed, driving behaviour, and route data</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">GPS Active</div><div class="kc-value" style="color:var(--green)">13/14</div></div>
-    <div class="kc"><div class="kc-label">Harsh Braking Events</div><div class="kc-value" style="color:var(--amber)">7</div><div class="kc-sub">Today fleet-wide</div></div>
-    <div class="kc"><div class="kc-label">Speed Violations</div><div class="kc-value" style="color:var(--red)">2</div></div>
-    <div class="kc"><div class="kc-label">Avg Speed</div><div class="kc-value">34 km/h</div><div class="kc-sub">City average</div></div>
+    <div class="kc"><div class="kc-label">GPS Active</div><div class="kc-value" style="color:var(--green)">—</div></div>
+    <div class="kc"><div class="kc-label">Harsh Braking Events</div><div class="kc-value" style="color:var(--amber)">—</div><div class="kc-sub">Today fleet-wide</div></div>
+    <div class="kc"><div class="kc-label">Speed Violations</div><div class="kc-value" style="color:var(--red)">—</div></div>
+    <div class="kc"><div class="kc-label">Avg Speed</div><div class="kc-value">—</div><div class="kc-sub">City average</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Driver Behaviour Scores (Telematics)</div></div>
     <div class="tbl-wrap"><table>
@@ -1767,11 +1767,11 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
 <div class="page" id="page-trip-log">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Live Trip Log</div><div class="ph-sub">Real-time feed of all active and recent trips</div></div></div>
   <div class="kpi-grid g5">
-    <div class="kc"><div class="kc-label">Active Trips Now</div><div class="kc-value" style="color:var(--green)">11</div></div>
+    <div class="kc"><div class="kc-label">Active Trips Now</div><div class="kc-value" style="color:var(--green)">—</div></div>
     <div class="kc"><div class="kc-label">Completed Today</div><div class="kc-value" data-kpi="tripsToday2">—</div></div>
-    <div class="kc"><div class="kc-label">Cancelled Today</div><div class="kc-value" style="color:var(--red)">12</div></div>
-    <div class="kc"><div class="kc-label">Avg Trip Duration</div><div class="kc-value">22 min</div></div>
-    <div class="kc"><div class="kc-label">Avg Fare</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
+    <div class="kc"><div class="kc-label">Cancelled Today</div><div class="kc-value" style="color:var(--red)">—</div></div>
+    <div class="kc"><div class="kc-label">Avg Trip Duration</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Avg Fare</div><div class="kc-value">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Recent Trips — Last 20</div></div>
     <div class="tbl-wrap"><table id="trip-log-table">
@@ -1785,10 +1785,10 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
 <div class="page" id="page-financial">
   <div class="page-header"><div class="ph-left"><div class="ph-title">P&L Dashboard</div><div class="ph-sub">Daily, weekly, monthly profit & loss with per-trip economics</div></div><div class="ph-right"><button class="tb-btn primary" onclick="exportNearestTable(this,'pnl')" aria-label="Export P&amp;L">⬇ Export P&L</button></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Gross Revenue</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Net Revenue</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">After platform fees</div></div>
-    <div class="kc"><div class="kc-label">Net Profit</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">16.6% margin</div></div>
-    <div class="kc"><div class="kc-label">Break-Even</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">Daily requirement</div></div>
+    <div class="kc"><div class="kc-label">Gross Revenue</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Net Revenue</div><div class="kc-value">—</div><div class="kc-sub">After platform fees</div></div>
+    <div class="kc"><div class="kc-label">Net Profit</div><div class="kc-value" style="color:var(--green)">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Break-Even</div><div class="kc-value">—</div><div class="kc-sub">Daily requirement</div></div>
   </div>
   <div class="three-col">
     <div class="card" style="margin-bottom:0">
@@ -1805,7 +1805,7 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
       <div class="pl-row"><span style="color:var(--t2)">Margin</span><span style="color:var(--green);font-weight:600">16.6%</span></div>
     </div>
     <div class="card" style="margin-bottom:0">
-      <div class="card-header"><div class="card-title">Monthly Projection</div><div class="card-sub">×30 days</div></div>
+      <div class="card-header"><div class="card-title">Monthly Projection</div><div class="card-sub"></div></div>
       <div class="pl-row"><span style="color:var(--t2)">Revenue</span><span style="color:var(--green);font-weight:600"><span class="cur" data-nok="0">—</span></span></div>
       <div class="pl-row"><span style="color:var(--t2)">Platform commissions</span><span style="color:var(--red)"><span class="cur" data-nok="0">—</span></span></div>
       <div class="pl-row"><span style="color:var(--t2)">Driver payouts</span><span style="color:var(--red)"><span class="cur" data-nok="0">—</span></span></div>
@@ -1835,28 +1835,28 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
 <div class="page" id="page-efficiency">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Efficiency & KPIs</div><div class="ph-sub">What every metric means and what to do when it's wrong</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Revenue/Hour</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-delta up">↑ Target: <span class="cur" data-nok="0">—</span></div></div>
+    <div class="kc"><div class="kc-label">Revenue/Hour</div><div class="kc-value">—</div><div class="kc-delta up">↑ Target: <span class="cur" data-nok="0">—</span></div></div>
     <div class="kc"><div class="kc-label">Trips/Hour</div><div class="kc-value" data-kpi="tripsPerActiveHr">—</div><div class="kc-delta neu">Target: 2.5</div></div>
     <div class="kc"><div class="kc-label">Idle Time</div><div class="kc-value" data-kpi="idlePct">—</div><div class="kc-delta up">↑ <30% target</div></div>
-    <div class="kc"><div class="kc-label">Time Between Trips</div><div class="kc-value">8.4 min</div><div class="kc-delta up">↑ <10 min target</div></div>
+    <div class="kc"><div class="kc-label">Time Between Trips</div><div class="kc-value">—</div><div class="kc-delta up">↑ <10 min target</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Metric Reference — Operational Decision Guide</div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Metric</th><th>Formula</th><th>Value</th><th>Target</th><th>If Below → Action</th><th>If Above → Action</th></tr></thead>
       <tbody>
         <tr><td><strong>Revenue/hr</strong></td><td style="font-family:var(--mono);font-size:11px">Revenue/active_hrs</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>Reposition to busy zone; check vehicle</td><td>Sustain; monitor acceptance rate</td></tr>
-        <tr><td><strong>Trips/hr</strong></td><td style="font-family:var(--mono);font-size:11px">Completed/active_hrs</td><td>2.1</td><td>2.5</td><td>Low-demand zone or rejecting trips</td><td>Check quality — rush = cancellations</td></tr>
-        <tr><td><strong>Idle time%</strong></td><td style="font-family:var(--mono);font-size:11px">idle_min/shift_min</td><td>24.1%</td><td><30%</td><td>Normal; <18% = peak performance</td><td>>40% = reposition urgently</td></tr>
-        <tr><td><strong>Utilization%</strong></td><td style="font-family:var(--mono);font-size:11px">busy/(busy+idle)</td><td>68.4%</td><td>>70%</td><td><60%: schedule vs demand mismatch</td><td>>85%: fatigue risk; check breaks</td></tr>
-        <tr><td><strong>Time between trips</strong></td><td style="font-family:var(--mono);font-size:11px">AVG(next_start−end)</td><td>8.4 min</td><td><10 min</td><td>>15 min: repositioning gap</td><td><3 min: verify data accuracy</td></tr>
-        <tr><td><strong>Avg trip distance</strong></td><td style="font-family:var(--mono);font-size:11px">SUM(km)/trips</td><td>14.2 km</td><td>12–18 km</td><td>Short = high idle; check platform filters</td><td>Long = fewer trips; check surge pricing</td></tr>
+        <tr><td><strong>Trips/hr</strong></td><td style="font-family:var(--mono);font-size:11px">Completed/active_hrs</td><td>—</td><td>—</td><td>Low-demand zone or rejecting trips</td><td>Check quality — rush = cancellations</td></tr>
+        <tr><td><strong>Idle time%</strong></td><td style="font-family:var(--mono);font-size:11px">idle_min/shift_min</td><td>—</td><td><30%</td><td>Normal; <18% = peak performance</td><td>>40% = reposition urgently</td></tr>
+        <tr><td><strong>Utilization%</strong></td><td style="font-family:var(--mono);font-size:11px">busy/(busy+idle)</td><td>—</td><td>>70%</td><td><60%: schedule vs demand mismatch</td><td>>85%: fatigue risk; check breaks</td></tr>
+        <tr><td><strong>Time between trips</strong></td><td style="font-family:var(--mono);font-size:11px">AVG(next_start−end)</td><td>—</td><td><10 min</td><td>>15 min: repositioning gap</td><td><3 min: verify data accuracy</td></tr>
+        <tr><td><strong>Avg trip distance</strong></td><td style="font-family:var(--mono);font-size:11px">SUM(km)/trips</td><td>—</td><td>12–18 km</td><td>Short = high idle; check platform filters</td><td>Long = fewer trips; check surge pricing</td></tr>
       </tbody>
     </table></div>
   </div>
   <div class="kpi-grid g3">
-    <div class="kc"><div class="kc-label">Peak Efficiency Window</div><div class="kc-value">07:30–09:30</div><div class="kc-delta up">+34% vs daily avg</div></div>
-    <div class="kc"><div class="kc-label">Lowest Efficiency</div><div class="kc-value">13:00–15:30</div><div class="kc-delta dn">−28% vs daily avg</div></div>
-    <div class="kc"><div class="kc-label">Avg Time to First Trip</div><div class="kc-value">6.2 min</div><div class="kc-sub">After shift start</div></div>
+    <div class="kc"><div class="kc-label">Peak Efficiency Window</div><div class="kc-value">07:30–09:30</div><div class="kc-delta up"></div></div>
+    <div class="kc"><div class="kc-label">Lowest Efficiency</div><div class="kc-value">13:00–15:30</div><div class="kc-delta dn"></div></div>
+    <div class="kc"><div class="kc-label">Avg Time to First Trip</div><div class="kc-value">—</div><div class="kc-sub">After shift start</div></div>
   </div>
 </div>
 
@@ -1864,24 +1864,24 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
 <div class="page" id="page-platforms">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Platform Analysis</div><div class="ph-sub">Bolt vs Uber — comparative performance and balancing strategy</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Bolt Revenue</div><div class="kc-value" style="color:#a78bfa"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">58% of total</div></div>
-    <div class="kc"><div class="kc-label">Uber Revenue</div><div class="kc-value" style="color:var(--blue2)"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">42% of total</div></div>
-    <div class="kc"><div class="kc-label">Bolt Rev/Hour</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-delta up">↑ +<span class="cur" data-nok="0">—</span> vs Uber</div></div>
-    <div class="kc"><div class="kc-label">Uber Rev/Hour</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
+    <div class="kc"><div class="kc-label">Bolt Revenue</div><div class="kc-value" style="color:#a78bfa">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Uber Revenue</div><div class="kc-value" style="color:var(--blue2)">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Bolt Rev/Hour</div><div class="kc-value">—</div><div class="kc-delta up">↑ +<span class="cur" data-nok="0">—</span> vs Uber</div></div>
+    <div class="kc"><div class="kc-label">Uber Rev/Hour</div><div class="kc-value">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Head-to-Head Comparison</div></div>
     <div class="tbl-wrap"><table id="rpt-platforms">
       <thead><tr><th>Metric</th><th>Bolt</th><th>Uber</th><th>Delta</th><th>Winner</th></tr></thead>
       <tbody>
-        <tr><td>Total trips</td><td>109</td><td>78</td><td>+31</td><td><span class="badge b-purple">Bolt</span></td></tr>
+        <tr><td>Total trips</td><td>—</td><td>—</td><td>—</td><td><span class="badge b-purple">Bolt</span></td></tr>
         <tr><td>Revenue/trip</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>+<span class="cur" data-nok="0">—</span></td><td><span class="badge b-blue">Uber (slim)</span></td></tr>
         <tr><td>Revenue/hour</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>+<span class="cur" data-nok="0">—</span></td><td><span class="badge b-purple">Bolt</span></td></tr>
-        <tr><td>Commission rate</td><td>15%</td><td>25%</td><td>−10pp Bolt</td><td><span class="badge b-purple">Bolt</span></td></tr>
+        <tr><td>Commission rate</td><td>—</td><td>—</td><td>−10pp Bolt</td><td><span class="badge b-purple">Bolt</span></td></tr>
         <tr><td>Net to operator/trip</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>+<span class="cur" data-nok="0">—</span></td><td><span class="badge b-purple">Bolt</span></td></tr>
-        <tr><td>Acceptance rate</td><td>86%</td><td>80%</td><td>+6pp</td><td><span class="badge b-purple">Bolt</span></td></tr>
-        <tr><td>Cancellation rate</td><td>5.1%</td><td>7.8%</td><td>−2.7pp</td><td><span class="badge b-purple">Bolt</span></td></tr>
+        <tr><td>Acceptance rate</td><td>—</td><td>—</td><td>+6pp</td><td><span class="badge b-purple">Bolt</span></td></tr>
+        <tr><td>Cancellation rate</td><td>—</td><td>—</td><td>−2.7pp</td><td><span class="badge b-purple">Bolt</span></td></tr>
         <tr><td>Surge availability</td><td>Moderate</td><td>High</td><td>—</td><td><span class="badge b-blue">Uber</span></td></tr>
-        <tr><td>Airport trips</td><td>12</td><td>24</td><td>+12</td><td><span class="badge b-blue">Uber</span></td></tr>
+        <tr><td>Airport trips</td><td>—</td><td>—</td><td>—</td><td><span class="badge b-blue">Uber</span></td></tr>
       </tbody>
     </table></div>
   </div>
@@ -1900,12 +1900,12 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
     <div class="tbl-wrap"><table id="rpt-zones">
       <thead><tr><th>Zone</th><th>Trips</th><th>Revenue</th><th>Rev/Trip</th><th>Peak Hours</th><th>D/S Ratio</th><th>Priority</th><th>Repositioning Action</th></tr></thead>
       <tbody>
-        <tr><td><strong>City Centre</strong></td><td>68</td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>08–10, 17–20</td><td style="color:var(--green);font-weight:600">1.4×</td><td><span class="badge b-green">P1</span></td><td>Hold — highest revenue density</td></tr>
-        <tr><td><strong>Airport</strong></td><td>31</td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>06–09, 14–18</td><td style="color:var(--green);font-weight:600">2.1×</td><td><span class="badge b-green">P1</span></td><td>Pre-position 3–4 drivers before waves</td></tr>
-        <tr><td><strong>Business Park</strong></td><td>42</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>07–09, 16–19</td><td style="color:var(--teal);font-weight:600">1.2×</td><td><span class="badge b-teal">P2</span></td><td>Commuter window only; exit by 10:00</td></tr>
-        <tr><td><strong>Suburbs North</strong></td><td>24</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>07–09, 17–18</td><td style="color:var(--amber)">0.9×</td><td><span class="badge b-amber">P3</span></td><td>Max 2 drivers; oversupplied midday</td></tr>
-        <tr><td><strong>Shopping Mall</strong></td><td>18</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>12–15, 18–20</td><td style="color:var(--amber)">0.8×</td><td><span class="badge b-amber">P3</span></td><td>Avoid off-peak; short trips hurt util%</td></tr>
-        <tr class="tr-red"><td><strong>Hospital / Uni</strong></td><td>4</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>None consistent</td><td>0.3×</td><td><span class="badge b-red">Avoid</span></td><td>Exit entirely — lowest rev/trip in fleet</td></tr>
+        <tr><td><strong>City Centre</strong></td><td>—</td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>08–10, 17–20</td><td style="color:var(--green);font-weight:600">1.4×</td><td><span class="badge b-green">P1</span></td><td>Hold — highest revenue density</td></tr>
+        <tr><td><strong>Airport</strong></td><td>—</td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>06–09, 14–18</td><td style="color:var(--green);font-weight:600">2.1×</td><td><span class="badge b-green">P1</span></td><td>Pre-position 3–4 drivers before waves</td></tr>
+        <tr><td><strong>Business Park</strong></td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>07–09, 16–19</td><td style="color:var(--teal);font-weight:600">1.2×</td><td><span class="badge b-teal">P2</span></td><td>Commuter window only; exit by 10:00</td></tr>
+        <tr><td><strong>Suburbs North</strong></td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>07–09, 17–18</td><td style="color:var(--amber)">0.9×</td><td><span class="badge b-amber">P3</span></td><td>Max 2 drivers; oversupplied midday</td></tr>
+        <tr><td><strong>Shopping Mall</strong></td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>12–15, 18–20</td><td style="color:var(--amber)">0.8×</td><td><span class="badge b-amber">P3</span></td><td>Avoid off-peak; short trips hurt util%</td></tr>
+        <tr class="tr-red"><td><strong>Hospital / Uni</strong></td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>None consistent</td><td>0.3×</td><td><span class="badge b-red">Avoid</span></td><td>Exit entirely — lowest rev/trip in fleet</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -1958,10 +1958,10 @@ Weekend rule: City Centre +30% allocation Friday–Saturday 18:00+</div>
 <div class="page" id="page-compliance">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Regulatory Compliance</div><div class="ph-sub">All regulatory, licensing, and legal requirements — fleet-wide</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Compliance Score</div><div class="kc-value" style="color:var(--amber)">88%</div></div>
-    <div class="kc"><div class="kc-label">Open Issues</div><div class="kc-value" style="color:var(--amber)">2</div></div>
-    <div class="kc"><div class="kc-label">Overdue Actions</div><div class="kc-value" style="color:var(--red)">1</div></div>
-    <div class="kc"><div class="kc-label">Next Regulatory Review</div><div class="kc-value">14 days</div></div>
+    <div class="kc"><div class="kc-label">Compliance Score</div><div class="kc-value" style="color:var(--amber)">—</div></div>
+    <div class="kc"><div class="kc-label">Open Issues</div><div class="kc-value" style="color:var(--amber)">—</div></div>
+    <div class="kc"><div class="kc-label">Overdue Actions</div><div class="kc-value" style="color:var(--red)">—</div></div>
+    <div class="kc"><div class="kc-label">Next Regulatory Review</div><div class="kc-value">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Compliance Checklist — Fleet-Wide</div></div>
     <div class="tbl-wrap"><table id="rpt-compliance">
@@ -1975,11 +1975,11 @@ Weekend rule: City Centre +30% allocation Friday–Saturday 18:00+</div>
 <div class="page" id="page-incidents">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Incidents & Accidents</div><div class="ph-sub">Accident reporting, claims management, and safety audit trail</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Report Incident — not implemented yet')">+ Report Incident</button></div></div>
   <div class="kpi-grid g5">
-    <div class="kc"><div class="kc-label">Open Incidents</div><div class="kc-value" style="color:var(--red)">1</div></div>
-    <div class="kc"><div class="kc-label">MTD Total Incidents</div><div class="kc-value">3</div></div>
-    <div class="kc"><div class="kc-label">Insurance Claims MTD</div><div class="kc-value" style="color:var(--amber)">1</div></div>
-    <div class="kc"><div class="kc-label">Claim Value (open)</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">At-Fault Incidents MTD</div><div class="kc-value" style="color:var(--red)">1</div></div>
+    <div class="kc"><div class="kc-label">Open Incidents</div><div class="kc-value" style="color:var(--red)">—</div></div>
+    <div class="kc"><div class="kc-label">MTD Total Incidents</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Insurance Claims MTD</div><div class="kc-value" style="color:var(--amber)">—</div></div>
+    <div class="kc"><div class="kc-label">Claim Value (open)</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">At-Fault Incidents MTD</div><div class="kc-value" style="color:var(--red)">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Incident Log</div></div>
     <div class="tbl-wrap"><table>
@@ -1993,10 +1993,10 @@ Weekend rule: City Centre +30% allocation Friday–Saturday 18:00+</div>
 <div class="page" id="page-ratings">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Ratings & Reviews</div><div class="ph-sub">Passenger ratings from Bolt and Uber — driver-level and fleet average</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Fleet Avg Rating</div><div class="kc-value">4.71</div><div class="kc-sub">Out of 5.0</div></div>
-    <div class="kc"><div class="kc-label">Bolt Avg Rating</div><div class="kc-value">4.74</div></div>
-    <div class="kc"><div class="kc-label">Uber Avg Rating</div><div class="kc-value">4.68</div></div>
-    <div class="kc"><div class="kc-label">Drivers Below 4.5</div><div class="kc-value" style="color:var(--red)">2</div><div class="kc-sub">Risk of deactivation</div></div>
+    <div class="kc"><div class="kc-label">Fleet Avg Rating</div><div class="kc-value">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Bolt Avg Rating</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Uber Avg Rating</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Drivers Below 4.5</div><div class="kc-value" style="color:var(--red)">—</div><div class="kc-sub">Risk of deactivation</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Driver Ratings — All Platforms</div></div>
     <div class="tbl-wrap"><table>
@@ -2010,10 +2010,10 @@ Weekend rule: City Centre +30% allocation Friday–Saturday 18:00+</div>
 <div class="page" id="page-complaints">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Complaints & Resolution</div><div class="ph-sub">Customer complaints, investigation status, and resolution tracking</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Log Complaint — not implemented yet')">+ Log Complaint</button></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Open Complaints</div><div class="kc-value" style="color:var(--amber)">3</div></div>
-    <div class="kc"><div class="kc-label">Resolved MTD</div><div class="kc-value" style="color:var(--green)">11</div></div>
-    <div class="kc"><div class="kc-label">Avg Resolution Time</div><div class="kc-value">1.8 days</div></div>
-    <div class="kc"><div class="kc-label">Refunds Issued MTD</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
+    <div class="kc"><div class="kc-label">Open Complaints</div><div class="kc-value" style="color:var(--amber)">—</div></div>
+    <div class="kc"><div class="kc-label">Resolved MTD</div><div class="kc-value" style="color:var(--green)">—</div></div>
+    <div class="kc"><div class="kc-label">Avg Resolution Time</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Refunds Issued MTD</div><div class="kc-value">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Open Complaints</div></div>
     <div class="tbl-wrap"><table>
@@ -2107,53 +2107,53 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     <table id="rpt-daily-pnl">
       <thead><tr><th>Line Item</th><th>Amount (NOK)</th><th>% of Gross</th></tr></thead>
       <tbody>
-        <tr><td>Gross revenue</td><td>55 430</td><td>100.0%</td></tr>
-        <tr><td>Platform commission (15%)</td><td>-8 315</td><td>-15.0%</td></tr>
-        <tr><td>Net revenue</td><td>47 115</td><td>85.0%</td></tr>
-        <tr><td>Driver payouts (65%)</td><td>-30 625</td><td>-55.3%</td></tr>
-        <tr><td>Fuel costs</td><td>-3 590</td><td>-6.5%</td></tr>
-        <tr><td>Fixed costs (lease + insurance)</td><td>-2 575</td><td>-4.6%</td></tr>
-        <tr><td>Maintenance (amortized)</td><td>-1 130</td><td>-2.0%</td></tr>
-        <tr><td>Net profit</td><td>9 200</td><td>16.6%</td></tr>
+        <tr><td>Gross revenue</td><td>—</td><td>—</td></tr>
+        <tr><td>Platform commission (15%)</td><td>—</td><td>—</td></tr>
+        <tr><td>Net revenue</td><td>—</td><td>—</td></tr>
+        <tr><td>Driver payouts (65%)</td><td>—</td><td>—</td></tr>
+        <tr><td>Fuel costs</td><td>—</td><td>—</td></tr>
+        <tr><td>Fixed costs (lease + insurance)</td><td>—</td><td>—</td></tr>
+        <tr><td>Maintenance (amortized)</td><td>—</td><td>—</td></tr>
+        <tr><td>Net profit</td><td>—</td><td>—</td></tr>
       </tbody>
     </table>
 
     <table id="rpt-weekly-pnl">
       <thead><tr><th>Day</th><th>Revenue</th><th>Costs</th><th>Profit</th><th>Margin</th><th>Trips</th></tr></thead>
       <tbody>
-        <tr><td>Mon 2026-04-07</td><td>52 180</td><td>43 420</td><td>8 760</td><td>16.8%</td><td>181</td></tr>
-        <tr><td>Tue 2026-04-08</td><td>48 900</td><td>41 110</td><td>7 790</td><td>15.9%</td><td>170</td></tr>
-        <tr><td>Wed 2026-04-09</td><td>51 240</td><td>42 760</td><td>8 480</td><td>16.5%</td><td>178</td></tr>
-        <tr><td>Thu 2026-04-10</td><td>54 620</td><td>45 390</td><td>9 230</td><td>16.9%</td><td>186</td></tr>
-        <tr><td>Fri 2026-04-11</td><td>61 380</td><td>50 245</td><td>11 135</td><td>18.1%</td><td>206</td></tr>
-        <tr><td>Sat 2026-04-12</td><td>58 945</td><td>48 610</td><td>10 335</td><td>17.5%</td><td>198</td></tr>
-        <tr><td>Sun 2026-04-13</td><td>55 430</td><td>46 230</td><td>9 200</td><td>16.6%</td><td>189</td></tr>
-        <tr><td>Week total</td><td>382 695</td><td>317 765</td><td>64 930</td><td>17.0%</td><td>1 308</td></tr>
+        <tr><td>Mon 2026-04-07</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Tue 2026-04-08</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Wed 2026-04-09</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Thu 2026-04-10</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Fri 2026-04-11</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Sat 2026-04-12</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Sun 2026-04-13</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Week total</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
       </tbody>
     </table>
 
     <table id="rpt-monthly-pnl">
       <thead><tr><th>Category</th><th>Mar 2026</th><th>Apr 2026 (MTD)</th><th>Change</th></tr></thead>
       <tbody>
-        <tr><td>Gross revenue</td><td>1 612 840</td><td>716 905</td><td>+3.1%</td></tr>
-        <tr><td>Platform commissions</td><td>-241 926</td><td>-107 536</td><td>+3.1%</td></tr>
-        <tr><td>Net revenue</td><td>1 370 914</td><td>609 369</td><td>+3.1%</td></tr>
-        <tr><td>Driver payouts</td><td>-891 346</td><td>-396 090</td><td>+3.1%</td></tr>
-        <tr><td>Fuel</td><td>-104 435</td><td>-46 600</td><td>+3.5%</td></tr>
-        <tr><td>Fixed costs</td><td>-74 920</td><td>-33 475</td><td>+0.4%</td></tr>
-        <tr><td>Maintenance</td><td>-32 810</td><td>-14 690</td><td>+2.1%</td></tr>
-        <tr><td>Net profit</td><td>267 403</td><td>118 514</td><td>+2.9%</td></tr>
-        <tr><td>Net margin</td><td>16.6%</td><td>16.5%</td><td>-0.1pp</td></tr>
+        <tr><td>Gross revenue</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Platform commissions</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Net revenue</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Driver payouts</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Fuel</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Fixed costs</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Maintenance</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Net profit</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Net margin</td><td>—</td><td>—</td><td>-0.1pp</td></tr>
       </tbody>
     </table>
 
     <table id="rpt-vat">
       <thead><tr><th>Period</th><th>Gross Revenue</th><th>VAT Collected (12%)</th><th>Input VAT (25%)</th><th>Net Payable</th><th>Status</th></tr></thead>
       <tbody>
-        <tr><td>Q1 2026 (Jan-Mar)</td><td>4 712 580</td><td>565 510</td><td>118 340</td><td>447 170</td><td>Filed 2026-04-10</td></tr>
-        <tr><td>Q4 2025 (Oct-Dec)</td><td>4 384 210</td><td>526 105</td><td>109 820</td><td>416 285</td><td>Filed 2026-01-12</td></tr>
-        <tr><td>Q3 2025 (Jul-Sep)</td><td>4 812 900</td><td>577 548</td><td>123 480</td><td>454 068</td><td>Filed 2025-10-14</td></tr>
-        <tr><td>Q2 2025 (Apr-Jun)</td><td>4 156 420</td><td>498 770</td><td>104 990</td><td>393 780</td><td>Filed 2025-07-15</td></tr>
+        <tr><td>Q1 2026 (Jan-Mar)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>Filed 2026-04-10</td></tr>
+        <tr><td>Q4 2025 (Oct-Dec)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>Filed 2026-01-12</td></tr>
+        <tr><td>Q3 2025 (Jul-Sep)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>Filed 2025-10-14</td></tr>
+        <tr><td>Q2 2025 (Apr-Jun)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>Filed 2025-07-15</td></tr>
       </tbody>
     </table>
 
@@ -2259,7 +2259,7 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     <div class="card-header">
       <div style="display:flex;align-items:center;gap:12px">
         <div style="width:36px;height:36px;background:var(--purplebg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">⚡</div>
-        <div><div class="card-title">Bolt Fleet API</div><div class="card-sub">fleet.bolt.eu · OAuth2 + API Key</div></div>
+        <div><div class="card-title">Bolt Fleet API</div><div class="card-sub"></div></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span class="badge b-amber" id="bolt-status">Not Connected</span>
@@ -2301,7 +2301,7 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     <div class="card-header">
       <div style="display:flex;align-items:center;gap:12px">
         <div style="width:36px;height:36px;background:var(--bluebg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">🚗</div>
-        <div><div class="card-title">Uber Fleet API</div><div class="card-sub">developer.uber.com · OAuth2 Bearer</div></div>
+        <div><div class="card-title">Uber Fleet API</div><div class="card-sub"></div></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span class="badge b-amber" id="uber-status">Not Connected</span>
@@ -2386,7 +2386,7 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     <div class="card-header">
       <div style="display:flex;align-items:center;gap:12px">
         <div style="width:36px;height:36px;background:var(--redbg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">⚡</div>
-        <div><div class="card-title">Tesla Fleet API</div><div class="card-sub">fleet-api.prd.na.vn.cloud.tesla.com · OAuth2 + TLS vehicle commands</div></div>
+        <div><div class="card-title">Tesla Fleet API</div><div class="card-sub"></div></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span class="badge b-amber" id="tesla-status">Not Connected</span>
@@ -2456,7 +2456,7 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
 
   <!-- Webhook & Sync status -->
   <div class="card">
-    <div class="card-header"><div class="card-title">Sync Status & Webhook Log</div><div class="card-sub">Last 10 API events</div></div>
+    <div class="card-header"><div class="card-title">Sync Status & Webhook Log</div><div class="card-sub"></div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Time</th><th>API</th><th>Endpoint</th><th>Status</th><th>Records</th><th>Latency</th></tr></thead>
       <tbody id="api-log-tbody">
@@ -2955,7 +2955,7 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
     <div></div>
   </div>
   <div class="card">
-    <div class="card-header"><div class="card-title">Recent imports</div><div class="card-sub">Last 100 runs · newest first</div></div>
+    <div class="card-header"><div class="card-title">Recent imports</div><div class="card-sub"></div></div>
     <div class="tbl-wrap"><table id="import-history-table">
       <thead><tr><th>When</th><th>Entity</th><th>User</th><th class="num">Inserted</th><th class="num">Updated</th><th class="num">Skipped</th><th class="num">Failed</th><th>Status</th><th class="num">Duration</th></tr></thead>
       <tbody id="import-history-tbody"><tr><td colspan="9" class="text-muted text-center" style="padding:var(--s5)">Loading…</td></tr></tbody>
@@ -3401,11 +3401,11 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
   </div>
 
   <div class="kpi-grid g5">
-    <div class="kc"><div class="kc-label">Total Online Hours</div><div class="kc-value">94.3h</div><div class="kc-sub">Fleet today</div></div>
+    <div class="kc"><div class="kc-label">Total Online Hours</div><div class="kc-value">—</div><div class="kc-sub">Fleet today</div></div>
     <div class="kc"><div class="kc-label">Total Completed Trips</div><div class="kc-value" data-kpi="tripsToday2">—</div><div class="kc-sub">Bolt + Uber combined</div></div>
-    <div class="kc"><div class="kc-label">Total Rejected (Driver)</div><div class="kc-value" style="color:var(--amber)">38</div><div class="kc-sub">Fleet-wide today</div></div>
-    <div class="kc"><div class="kc-label">Rider Cancels</div><div class="kc-value" style="color:var(--amber)">12</div><div class="kc-sub">Not driver fault</div></div>
-    <div class="kc"><div class="kc-label">Drivers w/ Spot Active</div><div class="kc-value">0</div><div class="kc-sub">No Spot logins today</div></div>
+    <div class="kc"><div class="kc-label">Total Rejected (Driver)</div><div class="kc-value" style="color:var(--amber)">—</div><div class="kc-sub">Fleet-wide today</div></div>
+    <div class="kc"><div class="kc-label">Rider Cancels</div><div class="kc-value" style="color:var(--amber)">—</div><div class="kc-sub">Not driver fault</div></div>
+    <div class="kc"><div class="kc-label">Drivers w/ Spot Active</div><div class="kc-value">—</div><div class="kc-sub">No Spot logins today</div></div>
   </div>
 
   <div class="card">
@@ -3443,8 +3443,8 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
       </div>
     </div>
     <div class="card"><div class="card-header"><div class="card-title">Activity Pattern Analysis</div></div>
-      <div class="info-row"><div class="ir-label">Avg Bolt online time/driver</div><div class="ir-val">4.2 hrs</div></div>
-      <div class="info-row"><div class="ir-label">Avg Uber online time/driver</div><div class="ir-val">1.8 hrs</div></div>
+      <div class="info-row"><div class="ir-label">Avg Bolt online time/driver</div><div class="ir-val">—</div></div>
+      <div class="info-row"><div class="ir-label">Avg Uber online time/driver</div><div class="ir-val">—</div></div>
       <div class="info-row"><div class="ir-label">Drivers active only on Bolt</div><div class="ir-val" style="color:var(--amber)">6 drivers</div></div>
       <div class="info-row"><div class="ir-label">Drivers active on both platforms</div><div class="ir-val" style="color:var(--green)">11 drivers</div></div>
       <div class="info-row"><div class="ir-label">Drivers with Spot login</div><div class="ir-val" style="color:var(--t3)">0 today</div></div>
@@ -3468,10 +3468,10 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
   </div>
 
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Total Revenue (today)</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">Trip + surge + fees</div></div>
-    <div class="kc"><div class="kc-label">Total Costs (today)</div><div class="kc-value" style="color:var(--red)"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Net Profit</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">16.6% margin</div></div>
-    <div class="kc"><div class="kc-label">Profit per Vehicle</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">Active vehicles avg (11)</div></div>
+    <div class="kc"><div class="kc-label">Total Revenue (today)</div><div class="kc-value" style="color:var(--green)">—</div><div class="kc-sub">Trip + surge + fees</div></div>
+    <div class="kc"><div class="kc-label">Total Costs (today)</div><div class="kc-value" style="color:var(--red)">—</div></div>
+    <div class="kc"><div class="kc-label">Net Profit</div><div class="kc-value" style="color:var(--green)">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Profit per Vehicle</div><div class="kc-value">—</div><div class="kc-sub">Active vehicles avg (11)</div></div>
   </div>
 
   <div class="card">
@@ -3516,18 +3516,18 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
       <div class="pl-row"><span style="color:var(--t2)">Insurance + lease (daily)</span><span style="color:var(--red)">NOK 2,320</span></div>
       <div class="pl-row pl-total"><span>Total Costs</span><span style="color:var(--red)">NOK 38,400</span></div>
     </div>
-    <div class="card" style="margin-bottom:0"><div class="card-header"><div class="card-title">EV-Specific Costs</div><div class="card-sub">NIO ET5, EL6 · Tesla Model Y, 3, S</div></div>
-      <div class="info-row"><div class="ir-label">Avg consumption</div><div class="ir-val">18 kWh/100km</div></div>
-      <div class="info-row"><div class="ir-label">Charging rate</div><div class="ir-val">NOK 3.20/kWh</div></div>
+    <div class="card" style="margin-bottom:0"><div class="card-header"><div class="card-title">EV-Specific Costs</div><div class="card-sub"></div></div>
+      <div class="info-row"><div class="ir-label">Avg consumption</div><div class="ir-val">—</div></div>
+      <div class="info-row"><div class="ir-label">Charging rate</div><div class="ir-val">—</div></div>
       <div class="info-row"><div class="ir-label">Cost per 100km</div><div class="ir-val">NOK 57.60</div></div>
       <div class="info-row"><div class="ir-label">Cost per km</div><div class="ir-val">NOK 0.58</div></div>
       <div class="info-row"><div class="ir-label">Battery degradation/month</div><div class="ir-val">~NOK 800</div></div>
       <div class="info-row"><div class="ir-label">Maintenance advantage vs ICE</div><div class="ir-val" style="color:var(--green)">~35% lower</div></div>
     </div>
     <div class="card" style="margin-bottom:0"><div class="card-header"><div class="card-title">Tax Summary (Norway)</div></div>
-      <div class="info-row"><div class="ir-label">MVA (transport VAT)</div><div class="ir-val">12%</div></div>
-      <div class="info-row"><div class="ir-label">Arbeidsgiveravgift</div><div class="ir-val">14.1% of gross</div></div>
-      <div class="info-row"><div class="ir-label">Corporate tax</div><div class="ir-val">22% of profit</div></div>
+      <div class="info-row"><div class="ir-label">MVA (transport VAT)</div><div class="ir-val">—</div></div>
+      <div class="info-row"><div class="ir-label">Arbeidsgiveravgift</div><div class="ir-val">—</div></div>
+      <div class="info-row"><div class="ir-label">Corporate tax</div><div class="ir-val">—</div></div>
       <div class="info-row"><div class="ir-label">MVA filing frequency</div><div class="ir-val">Bi-monthly</div></div>
       <div class="info-row"><div class="ir-label">Corporate tax filing</div><div class="ir-val">Annual</div></div>
       <div class="info-row"><div class="ir-label">Payroll tax filing</div><div class="ir-val">Monthly</div></div>
@@ -3588,81 +3588,81 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
 <!-- empty placeholders for remaining pages -->
 <div class="page" id="page-drivers"><div class="page-header"><div class="ph-left"><div class="ph-title">Drivers</div><div class="ph-sub">Select a sub-section from the sidebar</div></div></div>
   <div class="three-col">
-    <div class="card" style="cursor:pointer" onclick="go('driver-roster',null,'Driver Roster','Operations / Drivers')"><div class="card-header"><div class="card-title">Roster & Profiles</div><div class="card-sub">19 active drivers across 14 vehicles</div></div><div class="kc-value" style="font-size:22px">19</div><div class="kc-sub">Full roster, contact details, shift tags</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('driver-performance',null,'Driver Performance','Operations / Drivers')"><div class="card-header"><div class="card-title">Performance Scores</div><div class="card-sub">Acceptance, utilisation, revenue/hr</div></div><div class="kc-value" style="font-size:22px">82<span style="font-size:14px;color:var(--t2)">/100</span></div><div class="kc-sub">Fleet average score</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('driver-shifts',null,'Shifts & Scheduling','Operations / Drivers')"><div class="card-header"><div class="card-title">Shifts & Scheduling</div><div class="card-sub">AM / PM rotation, coverage gaps</div></div><div class="kc-value" style="font-size:22px">13<span style="font-size:14px;color:var(--t2)"> / 6</span></div><div class="kc-sub">AM shift / PM shift drivers</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('driver-compliance',null,'Compliance','Operations / Drivers')"><div class="card-header"><div class="card-title">Compliance & Docs</div><div class="card-sub">Kjøreseddel, NO licence, ID</div></div><div class="kc-value" style="font-size:22px;color:var(--amber)">2</div><div class="kc-sub">Documents expiring in 60 days</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('driver-payroll',null,'Payroll','Operations / Drivers')"><div class="card-header"><div class="card-title">Payroll & Payouts</div><div class="card-sub">Weekly settlements, commission splits</div></div><div class="kc-value" style="font-size:22px"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">MTD driver payouts</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('driver-coaching',null,'Coaching','Operations / Drivers')"><div class="card-header"><div class="card-title">Coaching & Flags <span class="badge b-red">3</span></div><div class="card-sub">Harsh events, low ratings</div></div><div class="kc-value" style="font-size:22px;color:var(--red)">3</div><div class="kc-sub">Drivers flagged for review</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('driver-roster',null,'Driver Roster','Operations / Drivers')"><div class="card-header"><div class="card-title">Roster & Profiles</div><div class="card-sub"></div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">Full roster, contact details, shift tags</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('driver-performance',null,'Driver Performance','Operations / Drivers')"><div class="card-header"><div class="card-title">Performance Scores</div><div class="card-sub">Acceptance, utilisation, revenue/hr</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">Fleet average score</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('driver-shifts',null,'Shifts & Scheduling','Operations / Drivers')"><div class="card-header"><div class="card-title">Shifts & Scheduling</div><div class="card-sub">AM / PM rotation, coverage gaps</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">AM shift / PM shift drivers</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('driver-compliance',null,'Compliance','Operations / Drivers')"><div class="card-header"><div class="card-title">Compliance & Docs</div><div class="card-sub">Kjøreseddel, NO licence, ID</div></div><div class="kc-value" style="font-size:22px;color:var(--amber)">—</div><div class="kc-sub">Documents expiring in 60 days</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('driver-payroll',null,'Payroll','Operations / Drivers')"><div class="card-header"><div class="card-title">Payroll & Payouts</div><div class="card-sub">Weekly settlements, commission splits</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">MTD driver payouts</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('driver-coaching',null,'Coaching','Operations / Drivers')"><div class="card-header"><div class="card-title">Coaching & Flags <span class="badge b-red">3</span></div><div class="card-sub">Harsh events, low ratings</div></div><div class="kc-value" style="font-size:22px;color:var(--red)">—</div><div class="kc-sub">Drivers flagged for review</div></div>
   </div>
 </div>
 <div class="page" id="page-vehicles"><div class="page-header"><div class="ph-left"><div class="ph-title">Vehicles</div><div class="ph-sub">Select a sub-section from the sidebar</div></div></div>
   <div class="three-col">
-    <div class="card" style="cursor:pointer" onclick="go('vehicle-fleet',null,'Fleet Register','Operations / Vehicles')"><div class="card-header"><div class="card-title">Fleet Register</div><div class="card-sub">All vehicles, specs, assignment</div></div><div class="kc-value" style="font-size:22px">14</div><div class="kc-sub">11 active, 2 workshop, 1 idle</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('vehicle-performance',null,'Vehicle Performance','Operations / Vehicles')"><div class="card-header"><div class="card-title">Performance & P&L</div><div class="card-sub">Revenue, profit, cost-per-km</div></div><div class="kc-value" style="font-size:22px"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">Avg vehicle daily revenue</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('vehicle-maintenance',null,'Maintenance','Operations / Vehicles')"><div class="card-header"><div class="card-title">Maintenance Tracker</div><div class="card-sub">Scheduled, active, historical</div></div><div class="kc-value" style="font-size:22px;color:var(--amber)">2</div><div class="kc-sub">Currently in workshop</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('vehicle-fuel',null,'Fuel Management','Operations / Vehicles')"><div class="card-header"><div class="card-title">Fuel / Charging</div><div class="card-sub">kWh &amp; litres, card usage</div></div><div class="kc-value" style="font-size:22px"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">Fuel cost today</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('vehicle-insurance',null,'Insurance','Operations / Vehicles')"><div class="card-header"><div class="card-title">Insurance &amp; Docs</div><div class="card-sub">Policies, MOT, løyve</div></div><div class="kc-value" style="font-size:22px">14<span style="font-size:14px;color:var(--green)"> ✓</span></div><div class="kc-sub">All insured &amp; certified</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('vehicle-telematics',null,'Telematics','Operations / Vehicles')"><div class="card-header"><div class="card-title">Telematics &amp; GPS</div><div class="card-sub">Live location, behaviour, routes</div></div><div class="kc-value" style="font-size:22px;color:var(--green)">12/14</div><div class="kc-sub">GPS active</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('vehicle-fleet',null,'Fleet Register','Operations / Vehicles')"><div class="card-header"><div class="card-title">Fleet Register</div><div class="card-sub">All vehicles, specs, assignment</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub"></div></div>
+    <div class="card" style="cursor:pointer" onclick="go('vehicle-performance',null,'Vehicle Performance','Operations / Vehicles')"><div class="card-header"><div class="card-title">Performance & P&L</div><div class="card-sub">Revenue, profit, cost-per-km</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">Avg vehicle daily revenue</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('vehicle-maintenance',null,'Maintenance','Operations / Vehicles')"><div class="card-header"><div class="card-title">Maintenance Tracker</div><div class="card-sub">Scheduled, active, historical</div></div><div class="kc-value" style="font-size:22px;color:var(--amber)">—</div><div class="kc-sub">Currently in workshop</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('vehicle-fuel',null,'Fuel Management','Operations / Vehicles')"><div class="card-header"><div class="card-title">Fuel / Charging</div><div class="card-sub">kWh &amp; litres, card usage</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">Fuel cost today</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('vehicle-insurance',null,'Insurance','Operations / Vehicles')"><div class="card-header"><div class="card-title">Insurance &amp; Docs</div><div class="card-sub">Policies, MOT, løyve</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">All insured &amp; certified</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('vehicle-telematics',null,'Telematics','Operations / Vehicles')"><div class="card-header"><div class="card-title">Telematics &amp; GPS</div><div class="card-sub">Live location, behaviour, routes</div></div><div class="kc-value" style="font-size:22px;color:var(--green)">—</div><div class="kc-sub">GPS active</div></div>
   </div>
 </div>
 <div class="page" id="page-trips"><div class="page-header"><div class="ph-left"><div class="ph-title">Trips</div><div class="ph-sub">Select a sub-section from the sidebar</div></div></div>
   <div class="three-col">
-    <div class="card" style="cursor:pointer" onclick="go('trip-log',null,'Trip Log','Operations / Trips')"><div class="card-header"><div class="card-title">Live Trip Log</div><div class="card-sub">Real-time feed from Bolt &amp; Uber</div></div><div class="kc-value" style="font-size:22px">189</div><div class="kc-sub">Trips today so far</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('trip-history',null,'Trip History','Operations / Trips')"><div class="card-header"><div class="card-title">Trip History</div><div class="card-sub">Full searchable database</div></div><div class="kc-value" style="font-size:22px">5 462</div><div class="kc-sub">Trips MTD</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('trip-cancellations',null,'Cancellations','Operations / Trips')"><div class="card-header"><div class="card-title">Cancellations &amp; No-shows</div><div class="card-sub">Platform &amp; driver cancels</div></div><div class="kc-value" style="font-size:22px;color:var(--amber)">4.2%</div><div class="kc-sub">Cancellation rate</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('trip-disputes',null,'Disputes','Operations / Trips')"><div class="card-header"><div class="card-title">Disputes &amp; Claims <span class="badge b-red">2</span></div><div class="card-sub">Rider disputes, chargebacks</div></div><div class="kc-value" style="font-size:22px;color:var(--red)">2</div><div class="kc-sub">Open disputes</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('trip-receipts',null,'Receipts','Operations / Trips')"><div class="card-header"><div class="card-title">Receipts &amp; Invoices</div><div class="card-sub">Customer-facing receipts</div></div><div class="kc-value" style="font-size:22px">5 248</div><div class="kc-sub">Receipts issued MTD</div></div>
-    <div class="card"><div class="card-header"><div class="card-title">Avg Fare</div><div class="card-sub">All platforms combined</div></div><div class="kc-value" style="font-size:22px"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">52 kr tip avg</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('trip-log',null,'Trip Log','Operations / Trips')"><div class="card-header"><div class="card-title">Live Trip Log</div><div class="card-sub">Real-time feed from Bolt &amp; Uber</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">Trips today so far</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('trip-history',null,'Trip History','Operations / Trips')"><div class="card-header"><div class="card-title">Trip History</div><div class="card-sub">Full searchable database</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">Trips MTD</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('trip-cancellations',null,'Cancellations','Operations / Trips')"><div class="card-header"><div class="card-title">Cancellations &amp; No-shows</div><div class="card-sub">Platform &amp; driver cancels</div></div><div class="kc-value" style="font-size:22px;color:var(--amber)">—</div><div class="kc-sub">Cancellation rate</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('trip-disputes',null,'Disputes','Operations / Trips')"><div class="card-header"><div class="card-title">Disputes &amp; Claims <span class="badge b-red">2</span></div><div class="card-sub">Rider disputes, chargebacks</div></div><div class="kc-value" style="font-size:22px;color:var(--red)">—</div><div class="kc-sub">Open disputes</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('trip-receipts',null,'Receipts','Operations / Trips')"><div class="card-header"><div class="card-title">Receipts &amp; Invoices</div><div class="card-sub">Customer-facing receipts</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">Receipts issued MTD</div></div>
+    <div class="card"><div class="card-header"><div class="card-title">Avg Fare</div><div class="card-sub">All platforms combined</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub"></div></div>
   </div>
 </div>
 <div class="page" id="page-dispatch"><div class="page-header"><div class="ph-left"><div class="ph-title">Dispatch</div><div class="ph-sub">Select a sub-section from the sidebar</div></div></div>
   <div class="three-col">
-    <div class="card" style="cursor:pointer" onclick="go('dispatch-live',null,'Live Dispatch','Operations / Dispatch')"><div class="card-header"><div class="card-title">Live Map &amp; Dispatch</div><div class="card-sub">Real-time GPS view</div></div><div class="kc-value" style="font-size:22px;color:var(--green)">12</div><div class="kc-sub">Drivers on road</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('dispatch-zones',null,'Zone Management','Operations / Dispatch')"><div class="card-header"><div class="card-title">Zone Management</div><div class="card-sub">Define &amp; edit demand zones</div></div><div class="kc-value" style="font-size:22px">8</div><div class="kc-sub">Active zones tracked</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('dispatch-repositioning',null,'Repositioning','Operations / Dispatch')"><div class="card-header"><div class="card-title">Repositioning Engine</div><div class="card-sub">Auto zone-push rules</div></div><div class="kc-value" style="font-size:22px">4</div><div class="kc-sub">Active repositioning rules</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('dispatch-queue',null,'Queue','Operations / Dispatch')"><div class="card-header"><div class="card-title">Airport / Hub Queue</div><div class="card-sub">Pre-positioned at OSL &amp; Oslo S</div></div><div class="kc-value" style="font-size:22px">3</div><div class="kc-sub">Drivers in airport queue</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('dispatch-live',null,'Live Dispatch','Operations / Dispatch')"><div class="card-header"><div class="card-title">Live Map &amp; Dispatch</div><div class="card-sub">Real-time GPS view</div></div><div class="kc-value" style="font-size:22px;color:var(--green)">—</div><div class="kc-sub">Drivers on road</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('dispatch-zones',null,'Zone Management','Operations / Dispatch')"><div class="card-header"><div class="card-title">Zone Management</div><div class="card-sub">Define &amp; edit demand zones</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">Active zones tracked</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('dispatch-repositioning',null,'Repositioning','Operations / Dispatch')"><div class="card-header"><div class="card-title">Repositioning Engine</div><div class="card-sub">Auto zone-push rules</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">Active repositioning rules</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('dispatch-queue',null,'Queue','Operations / Dispatch')"><div class="card-header"><div class="card-title">Airport / Hub Queue</div><div class="card-sub">Pre-positioned at OSL &amp; Oslo S</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">Drivers in airport queue</div></div>
   </div>
 </div>
 <div class="page" id="page-dispatch-live"><div class="page-header"><div class="ph-left"><div class="ph-title">Live Map & Dispatch</div><div class="ph-sub">Requires live GPS integration. Connect your telematics API to activate this view.</div></div></div><div class="alert a-blue" style="max-width:500px"><div class="adot" style="background:var(--blue)"></div><div><div class="alert-title">GPS integration required</div><div class="alert-body">Connect your Bolt Fleet API or Uber Fleet API, or a third-party telematics provider (Samsara, Geotab, Webfleet) to populate live map data.</div></div></div></div>
 <div class="page" id="page-dispatch-zones"><div class="page-header"><div class="ph-left"><div class="ph-title">Zone Management</div><div class="ph-sub">Define and edit geographic zones for repositioning and demand tracking</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Active Zones</div><div class="kc-value">8</div></div>
+    <div class="kc"><div class="kc-label">Active Zones</div><div class="kc-value">—</div></div>
     <div class="kc"><div class="kc-label">Top Zone (rev)</div><div class="kc-value">Sentrum</div><div class="kc-sub"><span class="cur" data-nok="0">—</span> today</div></div>
-    <div class="kc"><div class="kc-label">Lowest Demand</div><div class="kc-value" style="color:var(--red)">Nordstrand</div><div class="kc-sub">1.2 trips/hr</div></div>
-    <div class="kc"><div class="kc-label">Avg Wait (riders)</div><div class="kc-value">4.3 min</div></div>
+    <div class="kc"><div class="kc-label">Lowest Demand</div><div class="kc-value" style="color:var(--red)">Nordstrand</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Avg Wait (riders)</div><div class="kc-value">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Zone Demand &amp; Supply</div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Zone</th><th>Drivers in zone</th><th>Open requests</th><th>Avg wait</th><th>Trips/hr</th><th>Revenue today</th><th>Heat</th></tr></thead>
       <tbody>
-        <tr><td>Sentrum / City Ctr</td><td>5</td><td>3</td><td>2.8 min</td><td>18.4</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-red">Hot</span></td></tr>
-        <tr><td>OSL Gardermoen</td><td>2</td><td>1</td><td>6.1 min</td><td>7.2</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-amber">Warm</span></td></tr>
-        <tr><td>Oslo S / Bjørvika</td><td>2</td><td>2</td><td>3.4 min</td><td>10.6</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-red">Hot</span></td></tr>
-        <tr><td>Grünerløkka</td><td>1</td><td>0</td><td>5.7 min</td><td>4.1</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-blue">Normal</span></td></tr>
-        <tr><td>Frogner</td><td>1</td><td>1</td><td>4.9 min</td><td>5.8</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-blue">Normal</span></td></tr>
-        <tr><td>Majorstuen</td><td>1</td><td>0</td><td>6.4 min</td><td>3.2</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-gray">Cool</span></td></tr>
-        <tr><td>Nydalen</td><td>0</td><td>0</td><td>—</td><td>1.8</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-gray">Cool</span></td></tr>
-        <tr><td>Nordstrand</td><td>0</td><td>0</td><td>—</td><td>1.2</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-gray">Cold</span></td></tr>
+        <tr><td>Sentrum / City Ctr</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-red">Hot</span></td></tr>
+        <tr><td>OSL Gardermoen</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-amber">Warm</span></td></tr>
+        <tr><td>Oslo S / Bjørvika</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-red">Hot</span></td></tr>
+        <tr><td>Grünerløkka</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-blue">Normal</span></td></tr>
+        <tr><td>Frogner</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-blue">Normal</span></td></tr>
+        <tr><td>Majorstuen</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-gray">Cool</span></td></tr>
+        <tr><td>Nydalen</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-gray">Cool</span></td></tr>
+        <tr><td>Nordstrand</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="badge b-gray">Cold</span></td></tr>
       </tbody>
     </table></div>
   </div>
 </div>
 <div class="page" id="page-dispatch-repositioning"><div class="page-header"><div class="ph-left"><div class="ph-title">Repositioning Engine</div><div class="ph-sub">Automated zone push rules and manual repositioning controls</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Active Rules</div><div class="kc-value">4</div></div>
-    <div class="kc"><div class="kc-label">Repositions Today</div><div class="kc-value">22</div></div>
-    <div class="kc"><div class="kc-label">Avg Response</div><div class="kc-value">3.9 min</div></div>
-    <div class="kc"><div class="kc-label">Rev uplift (est)</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="0">—</span></div></div>
+    <div class="kc"><div class="kc-label">Active Rules</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Repositions Today</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Avg Response</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Rev uplift (est)</div><div class="kc-value" style="color:var(--green)">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Active Repositioning Rules</div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Rule</th><th>Trigger</th><th>Action</th><th>Active window</th><th>Fired today</th><th>Status</th></tr></thead>
       <tbody>
-        <tr><td>Airport refill</td><td>OSL queue &lt; 3 drivers</td><td>Push nearest idle driver to Gardermoen</td><td>06:00–23:30</td><td>8</td><td><span class="badge b-green">Active</span></td></tr>
-        <tr><td>City surge</td><td>Sentrum wait &gt; 4 min</td><td>Notify drivers within 2 km</td><td>All day</td><td>11</td><td><span class="badge b-green">Active</span></td></tr>
-        <tr><td>Night ferry</td><td>Oslo S 22:00–01:00</td><td>Pre-stage 2 drivers Bjørvika</td><td>22:00–01:00</td><td>2</td><td><span class="badge b-green">Active</span></td></tr>
-        <tr><td>Frogner event</td><td>Calendar: event tagged</td><td>Redirect up to 4 drivers</td><td>Event-driven</td><td>1</td><td><span class="badge b-amber">Armed</span></td></tr>
+        <tr><td>Airport refill</td><td>OSL queue &lt; 3 drivers</td><td>Push nearest idle driver to Gardermoen</td><td>06:00–23:30</td><td>—</td><td><span class="badge b-green">Active</span></td></tr>
+        <tr><td>City surge</td><td>Sentrum wait &gt; 4 min</td><td>Notify drivers within 2 km</td><td>All day</td><td>—</td><td><span class="badge b-green">Active</span></td></tr>
+        <tr><td>Night ferry</td><td>Oslo S 22:00–01:00</td><td>Pre-stage 2 drivers Bjørvika</td><td>22:00–01:00</td><td>—</td><td><span class="badge b-green">Active</span></td></tr>
+        <tr><td>Frogner event</td><td>Calendar: event tagged</td><td>Redirect up to 4 drivers</td><td>Event-driven</td><td>—</td><td><span class="badge b-amber">Armed</span></td></tr>
       </tbody>
     </table></div>
   </div>
@@ -3675,10 +3675,10 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
 </div>
 <div class="page" id="page-dispatch-queue"><div class="page-header"><div class="ph-left"><div class="ph-title">Airport / Hub Queue</div><div class="ph-sub">Manage pre-positioned drivers at high-value locations</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">OSL Queue</div><div class="kc-value">3</div><div class="kc-sub">Avg wait 18 min</div></div>
-    <div class="kc"><div class="kc-label">Oslo S Queue</div><div class="kc-value">2</div><div class="kc-sub">Avg wait 9 min</div></div>
-    <div class="kc"><div class="kc-label">Avg Airport Fare</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Queue Pickups Today</div><div class="kc-value">41</div></div>
+    <div class="kc"><div class="kc-label">OSL Queue</div><div class="kc-value">—</div><div class="kc-sub">Avg wait 18 min</div></div>
+    <div class="kc"><div class="kc-label">Oslo S Queue</div><div class="kc-value">—</div><div class="kc-sub">Avg wait 9 min</div></div>
+    <div class="kc"><div class="kc-label">Avg Airport Fare</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Queue Pickups Today</div><div class="kc-value">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Current Queue Order — OSL Gardermoen</div></div>
     <div class="tbl-wrap"><table>
@@ -3695,74 +3695,74 @@ shifts: (driver_id, shift_date), (vehicle_id, shift_date)</div>
 </div>
 <div class="page" id="page-finance-daily"><div class="page-header"><div class="ph-left"><div class="ph-title">Daily P&L</div><div class="ph-sub">See the P&L Dashboard tab for full daily breakdown</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Gross Revenue</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">Today, 13 Apr</div></div>
-    <div class="kc"><div class="kc-label">Net Revenue</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">After platform fees</div></div>
-    <div class="kc"><div class="kc-label">Net Profit</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">16.6% margin</div></div>
-    <div class="kc"><div class="kc-label">vs. Yesterday</div><div class="kc-value" style="color:var(--green)">+4.1%</div></div>
+    <div class="kc"><div class="kc-label">Gross Revenue</div><div class="kc-value">—</div><div class="kc-sub">Today, 13 Apr</div></div>
+    <div class="kc"><div class="kc-label">Net Revenue</div><div class="kc-value">—</div><div class="kc-sub">After platform fees</div></div>
+    <div class="kc"><div class="kc-label">Net Profit</div><div class="kc-value" style="color:var(--green)">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">vs. Yesterday</div><div class="kc-value" style="color:var(--green)">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Last 7 Days — Daily P&L</div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Date</th><th>Trips</th><th>Gross</th><th>Platform fee</th><th>Driver payouts</th><th>Fuel</th><th>Fixed+Maint</th><th>Net profit</th><th>Margin</th></tr></thead>
       <tbody>
-        <tr><td>2026-04-13</td><td>187</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>16.6%</td></tr>
-        <tr><td>2026-04-12</td><td>172</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>16.4%</td></tr>
-        <tr><td>2026-04-11</td><td>203</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>17.2%</td></tr>
-        <tr><td>2026-04-10</td><td>164</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>15.4%</td></tr>
-        <tr><td>2026-04-09</td><td>158</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>15.1%</td></tr>
-        <tr><td>2026-04-08</td><td>143</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>14.1%</td></tr>
-        <tr><td>2026-04-07</td><td>139</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--amber)"><span class="cur" data-nok="0">—</span></td><td>13.9%</td></tr>
+        <tr><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>—</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--amber)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
       </tbody>
     </table></div>
   </div>
 </div>
 <div class="page" id="page-finance-weekly"><div class="page-header"><div class="ph-left"><div class="ph-title">Weekly Summary</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Week Gross</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">W15 · 07–13 Apr</div></div>
-    <div class="kc"><div class="kc-label">Week Net Profit</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Trips</div><div class="kc-value">1 166</div></div>
-    <div class="kc"><div class="kc-label">vs. Prior Week</div><div class="kc-value" style="color:var(--green)">+6.8%</div></div>
+    <div class="kc"><div class="kc-label">Week Gross</div><div class="kc-value">—</div><div class="kc-sub">W15 · 07–13 Apr</div></div>
+    <div class="kc"><div class="kc-label">Week Net Profit</div><div class="kc-value" style="color:var(--green)">—</div></div>
+    <div class="kc"><div class="kc-label">Trips</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">vs. Prior Week</div><div class="kc-value" style="color:var(--green)">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Weekly Totals — Last 6 Weeks</div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Week</th><th>Trips</th><th>Gross</th><th>Driver payouts</th><th>Operating costs</th><th>Net profit</th><th>Margin</th></tr></thead>
       <tbody>
-        <tr><td>W15 · 07–13 Apr</td><td>1 166</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>15.7%</td></tr>
-        <tr><td>W14 · 31 Mar–06 Apr</td><td>1 092</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>15.4%</td></tr>
-        <tr><td>W13 · 24–30 Mar</td><td>1 104</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>15.6%</td></tr>
-        <tr><td>W12 · 17–23 Mar</td><td>1 038</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>14.8%</td></tr>
-        <tr><td>W11 · 10–16 Mar</td><td>1 017</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>14.6%</td></tr>
-        <tr><td>W10 · 03–09 Mar</td><td>989</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--amber)"><span class="cur" data-nok="0">—</span></td><td>14.2%</td></tr>
+        <tr><td>W15 · 07–13 Apr</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>W14 · 31 Mar–06 Apr</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>W13 · 24–30 Mar</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>W12 · 17–23 Mar</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>W11 · 10–16 Mar</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>W10 · 03–09 Mar</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--amber)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
       </tbody>
     </table></div>
   </div>
 </div>
 <div class="page" id="page-finance-monthly"><div class="page-header"><div class="ph-left"><div class="ph-title">Monthly Report</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">MTD Gross</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">Apr 2026 · 13 days</div></div>
-    <div class="kc"><div class="kc-label">MTD Net Profit</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Projected Full Month</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">vs. March</div><div class="kc-value" style="color:var(--green)">+3.9%</div></div>
+    <div class="kc"><div class="kc-label">MTD Gross</div><div class="kc-value">—</div><div class="kc-sub">Apr 2026 · 13 days</div></div>
+    <div class="kc"><div class="kc-label">MTD Net Profit</div><div class="kc-value" style="color:var(--green)">—</div></div>
+    <div class="kc"><div class="kc-label">Projected Full Month</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">vs. March</div><div class="kc-value" style="color:var(--green)">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Monthly Summary — Last 6 Months</div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Month</th><th>Trips</th><th>Gross</th><th>Driver payouts</th><th>Operating costs</th><th>Net profit</th><th>Margin</th></tr></thead>
       <tbody>
-        <tr><td>Apr 2026 (MTD)</td><td>2 241</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>15.7%</td></tr>
-        <tr><td>Mar 2026</td><td>4 927</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>15.7%</td></tr>
-        <tr><td>Feb 2026</td><td>4 512</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>14.8%</td></tr>
-        <tr><td>Jan 2026</td><td>4 318</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--amber)"><span class="cur" data-nok="0">—</span></td><td>13.8%</td></tr>
-        <tr><td>Dec 2025</td><td>4 892</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>15.9%</td></tr>
-        <tr><td>Nov 2025</td><td>4 605</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>15.0%</td></tr>
+        <tr><td>Apr 2026 (MTD)</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>Mar 2026</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>Feb 2026</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>Jan 2026</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--amber)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>Dec 2025</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
+        <tr><td>Nov 2025</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td style="color:var(--green)"><span class="cur" data-nok="0">—</span></td><td>—</td></tr>
       </tbody>
     </table></div>
   </div>
 </div>
 <div class="page" id="page-finance-breakeven"><div class="page-header"><div class="ph-left"><div class="ph-title">Break-Even Analysis</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Daily Break-Even</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">Fleet-wide target</div></div>
-    <div class="kc"><div class="kc-label">Current Daily Avg</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Days Above BE (30d)</div><div class="kc-value" style="color:var(--green)">27</div></div>
-    <div class="kc"><div class="kc-label">Days Below BE (30d)</div><div class="kc-value" style="color:var(--red)">3</div></div>
+    <div class="kc"><div class="kc-label">Daily Break-Even</div><div class="kc-value">—</div><div class="kc-sub">Fleet-wide target</div></div>
+    <div class="kc"><div class="kc-label">Current Daily Avg</div><div class="kc-value" style="color:var(--green)">—</div></div>
+    <div class="kc"><div class="kc-label">Days Above BE (30d)</div><div class="kc-value" style="color:var(--green)">—</div></div>
+    <div class="kc"><div class="kc-label">Days Below BE (30d)</div><div class="kc-value" style="color:var(--red)">—</div></div>
   </div>
   <div class="card" style="max-width:600px"><div class="card-header"><div class="card-title">Break-Even Formula</div></div><div class="fbox">Break-even daily revenue = Fixed costs / (1 − Variable cost ratio)
 Fixed costs (daily)   = Lease + Insurance + Admin = <span class="cur" data-nok="0">—</span>
@@ -3779,18 +3779,18 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 </div>
 <div class="page" id="page-costs"><div class="page-header"><div class="ph-left"><div class="ph-title">Cost Management</div><div class="ph-sub">Select a cost category from the sidebar</div></div></div>
   <div class="three-col">
-    <div class="card" style="cursor:pointer" onclick="go('cost-fuel',null,'Fuel Costs','Financial / Costs')"><div class="card-header"><div class="card-title">Fuel &amp; Charging</div><div class="card-sub">Daily fills, kWh, card usage</div></div><div class="kc-value" style="font-size:22px"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">MTD spend</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('cost-maintenance',null,'Maintenance Costs','Financial / Costs')"><div class="card-header"><div class="card-title">Maintenance</div><div class="card-sub">Scheduled + emergency</div></div><div class="kc-value" style="font-size:22px"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">MTD spend</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('cost-fixed',null,'Fixed Overheads','Financial / Costs')"><div class="card-header"><div class="card-title">Fixed Overheads</div><div class="card-sub">Lease, insurance, office</div></div><div class="kc-value" style="font-size:22px"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">MTD allocation</div></div>
-    <div class="card" style="cursor:pointer" onclick="go('cost-penalties',null,'Fines & Penalties','Financial / Costs')"><div class="card-header"><div class="card-title">Fines &amp; Penalties</div><div class="card-sub">Parking, traffic, tolls</div></div><div class="kc-value" style="font-size:22px;color:var(--amber)"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">MTD</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('cost-fuel',null,'Fuel Costs','Financial / Costs')"><div class="card-header"><div class="card-title">Fuel &amp; Charging</div><div class="card-sub">Daily fills, kWh, card usage</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">MTD spend</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('cost-maintenance',null,'Maintenance Costs','Financial / Costs')"><div class="card-header"><div class="card-title">Maintenance</div><div class="card-sub">Scheduled + emergency</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">MTD spend</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('cost-fixed',null,'Fixed Overheads','Financial / Costs')"><div class="card-header"><div class="card-title">Fixed Overheads</div><div class="card-sub">Lease, insurance, office</div></div><div class="kc-value" style="font-size:22px">—</div><div class="kc-sub">MTD allocation</div></div>
+    <div class="card" style="cursor:pointer" onclick="go('cost-penalties',null,'Fines & Penalties','Financial / Costs')"><div class="card-header"><div class="card-title">Fines &amp; Penalties</div><div class="card-sub">Parking, traffic, tolls</div></div><div class="kc-value" style="font-size:22px;color:var(--amber)">—</div><div class="kc-sub">MTD</div></div>
   </div>
 </div>
 <div class="page" id="page-cost-fuel"><div class="page-header"><div class="ph-left"><div class="ph-title">Fuel Cost Tracker</div><div class="ph-sub">See Vehicle → Fuel Management for full fuel data</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Today</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">6.5% of gross</div></div>
-    <div class="kc"><div class="kc-label">MTD</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Monthly Budget</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">On track</div></div>
-    <div class="kc"><div class="kc-label">Avg Cost / km</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
+    <div class="kc"><div class="kc-label">Today</div><div class="kc-value">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">MTD</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Monthly Budget</div><div class="kc-value">—</div><div class="kc-sub">On track</div></div>
+    <div class="kc"><div class="kc-label">Avg Cost / km</div><div class="kc-value">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Recent Fuel &amp; Charging Transactions</div></div>
     <div class="tbl-wrap"><table>
@@ -3801,10 +3801,10 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 </div>
 <div class="page" id="page-cost-maintenance"><div class="page-header"><div class="ph-left"><div class="ph-title">Maintenance Costs</div><div class="ph-sub">See Vehicle → Maintenance Tracker for full data</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">MTD</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Planned vs Emergency</div><div class="kc-value">5 / 2</div><div class="kc-sub">This month</div></div>
-    <div class="kc"><div class="kc-label">Avg Planned Cost</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Avg Emergency</div><div class="kc-value" style="color:var(--red)"><span class="cur" data-nok="0">—</span></div></div>
+    <div class="kc"><div class="kc-label">MTD</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Planned vs Emergency</div><div class="kc-value">—</div><div class="kc-sub">This month</div></div>
+    <div class="kc"><div class="kc-label">Avg Planned Cost</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Avg Emergency</div><div class="kc-value" style="color:var(--red)">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Maintenance Line Items</div></div>
     <div class="tbl-wrap"><table>
@@ -3816,10 +3816,10 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 <div class="page" id="page-cost-fixed"><div class="page-header"><div class="ph-left"><div class="ph-title">Fixed Overheads</div></div></div><div class="card" style="max-width:500px"><div class="card-header"><div class="card-title">Daily Fixed Cost Breakdown</div></div><div class="pl-row"><span style="color:var(--t2)">Fleet lease total (daily)</span><span><span class="cur" data-nok="0">—</span></span></div><div class="pl-row"><span style="color:var(--t2)">Fleet insurance (daily)</span><span><span class="cur" data-nok="0">—</span></span></div><div class="pl-row"><span style="color:var(--t2)">Office / admin</span><span><span class="cur" data-nok="0">—</span></span></div><div class="pl-row"><span style="color:var(--t2)">Software / tools</span><span><span class="cur" data-nok="0">—</span></span></div><div class="pl-row"><span style="color:var(--t2)">Accountant (amortized)</span><span><span class="cur" data-nok="0">—</span></span></div><div class="pl-row pl-total"><span>Total fixed</span><span><span class="cur" data-nok="0">—</span>/day</span></div></div></div>
 <div class="page" id="page-cost-penalties"><div class="page-header"><div class="ph-left"><div class="ph-title">Fines & Penalties</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">MTD Total</div><div class="kc-value" style="color:var(--amber)"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Open Tickets</div><div class="kc-value">3</div></div>
-    <div class="kc"><div class="kc-label">Driver Liable</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Fleet Absorbed</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
+    <div class="kc"><div class="kc-label">MTD Total</div><div class="kc-value" style="color:var(--amber)">—</div></div>
+    <div class="kc"><div class="kc-label">Open Tickets</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Driver Liable</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Fleet Absorbed</div><div class="kc-value">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Recent Fines &amp; Toll Penalties</div></div>
     <div class="tbl-wrap"><table>
@@ -3830,10 +3830,10 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 </div>
 <div class="page" id="page-payments"><div class="page-header"><div class="ph-left"><div class="ph-title">Payments & Settlements</div><div class="ph-sub">Platform settlement tracking and payment reconciliation</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Pending Settlement</div><div class="kc-value" style="color:var(--amber)"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Settled MTD</div><div class="kc-value" style="color:var(--green)"><span class="cur" data-nok="0">—</span></div></div>
+    <div class="kc"><div class="kc-label">Pending Settlement</div><div class="kc-value" style="color:var(--amber)">—</div></div>
+    <div class="kc"><div class="kc-label">Settled MTD</div><div class="kc-value" style="color:var(--green)">—</div></div>
     <div class="kc"><div class="kc-label">Next Payout</div><div class="kc-value">Mon 15 Apr</div></div>
-    <div class="kc"><div class="kc-label">Disputes Open</div><div class="kc-value" style="color:var(--red)">1</div></div>
+    <div class="kc"><div class="kc-label">Disputes Open</div><div class="kc-value" style="color:var(--red)">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Platform Settlement Status</div></div>
     <div class="tbl-wrap"><table>
@@ -3844,10 +3844,10 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 </div>
 <div class="page" id="page-invoicing"><div class="page-header"><div class="ph-left"><div class="ph-title">Invoicing & VAT</div><div class="ph-sub">B2B invoicing, corporate account billing, and VAT management</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Open Invoices</div><div class="kc-value">6</div></div>
-    <div class="kc"><div class="kc-label">Outstanding</div><div class="kc-value" style="color:var(--amber)"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Overdue</div><div class="kc-value" style="color:var(--red)"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">VAT collected MTD</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">12% passenger transport</div></div>
+    <div class="kc"><div class="kc-label">Open Invoices</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Outstanding</div><div class="kc-value" style="color:var(--amber)">—</div></div>
+    <div class="kc"><div class="kc-label">Overdue</div><div class="kc-value" style="color:var(--red)">—</div></div>
+    <div class="kc"><div class="kc-label">VAT collected MTD</div><div class="kc-value">—</div><div class="kc-sub"></div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Recent Invoices</div></div>
     <div class="tbl-wrap"><table>
@@ -3861,7 +3861,7 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
     <div class="kc"><div class="kc-label">Top Peak</div><div class="kc-value">17:00–18:00</div><div class="kc-sub"><span class="cur" data-nok="0">—</span></div></div>
     <div class="kc"><div class="kc-label">Second Peak</div><div class="kc-value">08:00–09:00</div><div class="kc-sub"><span class="cur" data-nok="0">—</span></div></div>
     <div class="kc"><div class="kc-label">Quietest</div><div class="kc-value" style="color:var(--red)">03:00–04:00</div></div>
-    <div class="kc"><div class="kc-label">Peak Rev Share</div><div class="kc-value">38%</div><div class="kc-sub">3-hour rush captures</div></div>
+    <div class="kc"><div class="kc-label">Peak Rev Share</div><div class="kc-value">—</div><div class="kc-sub"></div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Revenue by Hour — Today</div></div><div class="ch" style="height:260px"><canvas id="c-peak-hours"></canvas></div></div>
   <script>
@@ -3874,10 +3874,10 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 </div>
 <div class="page" id="page-revenue-analysis"><div class="page-header"><div class="ph-left"><div class="ph-title">Revenue Breakdown</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Bolt Share</div><div class="kc-value">58%</div><div class="kc-sub"><span class="cur" data-nok="0">—</span> MTD</div></div>
-    <div class="kc"><div class="kc-label">Uber Share</div><div class="kc-value">42%</div><div class="kc-sub"><span class="cur" data-nok="0">—</span> MTD</div></div>
-    <div class="kc"><div class="kc-label">B2B Share</div><div class="kc-value">11%</div><div class="kc-sub">Corporate accounts</div></div>
-    <div class="kc"><div class="kc-label">Avg Fare</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
+    <div class="kc"><div class="kc-label">Bolt Share</div><div class="kc-value">—</div><div class="kc-sub"><span class="cur" data-nok="0">—</span> MTD</div></div>
+    <div class="kc"><div class="kc-label">Uber Share</div><div class="kc-value">—</div><div class="kc-sub"><span class="cur" data-nok="0">—</span> MTD</div></div>
+    <div class="kc"><div class="kc-label">B2B Share</div><div class="kc-value">—</div><div class="kc-sub">Corporate accounts</div></div>
+    <div class="kc"><div class="kc-label">Avg Fare</div><div class="kc-value">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Revenue by Source — Last 6 Weeks</div></div><div class="ch" style="height:260px"><canvas id="c-rev-breakdown"></canvas></div></div>
   <script>
@@ -3892,9 +3892,9 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 </div>
 <div class="page" id="page-forecasting"><div class="page-header"><div class="ph-left"><div class="ph-title">Forecasting & Trends</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">April Forecast</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">+4.6% vs March</div></div>
-    <div class="kc"><div class="kc-label">Q2 Forecast</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Confidence</div><div class="kc-value" style="color:var(--green)">82%</div><div class="kc-sub">±6% band</div></div>
+    <div class="kc"><div class="kc-label">April Forecast</div><div class="kc-value">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Q2 Forecast</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Confidence</div><div class="kc-value" style="color:var(--green)">—</div><div class="kc-sub"></div></div>
     <div class="kc"><div class="kc-label">Model</div><div class="kc-value">ARIMA+seasonal</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Actual vs Forecast — Monthly Gross</div></div><div class="ch" style="height:260px"><canvas id="c-forecast"></canvas></div></div>
@@ -3910,12 +3910,12 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 </div>
 <div class="page" id="page-safety"><div class="page-header"><div class="ph-left"><div class="ph-title">Driver Safety Scores</div><div class="ph-sub">See Vehicles → Telematics for driving behaviour data</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Fleet Avg Safety</div><div class="kc-value" style="color:var(--green)">87.2</div><div class="kc-sub">/ 100</div></div>
+    <div class="kc"><div class="kc-label">Fleet Avg Safety</div><div class="kc-value" style="color:var(--green)">—</div><div class="kc-sub">/ 100</div></div>
     <div class="kc"><div class="kc-label">Top Scorer</div><div class="kc-value" data-kpi="topScorer">—</div><div class="kc-sub" data-kpi="topScorerPts">—</div></div>
-    <div class="kc"><div class="kc-label">Needs Coaching</div><div class="kc-value" style="color:var(--red)">2</div><div class="kc-sub">Below 75</div></div>
-    <div class="kc"><div class="kc-label">Phone-use Incidents</div><div class="kc-value" style="color:var(--amber)">14</div><div class="kc-sub">Last 30 days</div></div>
+    <div class="kc"><div class="kc-label">Needs Coaching</div><div class="kc-value" style="color:var(--red)">—</div><div class="kc-sub">Below 75</div></div>
+    <div class="kc"><div class="kc-label">Phone-use Incidents</div><div class="kc-value" style="color:var(--amber)">—</div><div class="kc-sub">Last 30 days</div></div>
   </div>
-  <div class="card"><div class="card-header"><div class="card-title">Driver Safety Scorecards</div><div class="card-sub">Rolling 30-day window — scores based on telematics + in-cab monitoring</div></div>
+  <div class="card"><div class="card-header"><div class="card-title">Driver Safety Scorecards</div><div class="card-sub"></div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Rank</th><th>Driver</th><th>Car ID</th><th>Speed score</th><th>Hard braking</th><th>Hard accel</th><th>Phone use</th><th>Overall</th></tr></thead>
       <tbody><tr><td colspan="8" class="text-muted text-center" style="padding:var(--s5);font-size:12.5px">No data yet — upload a CSV via System → Data Import.</td></tr></tbody>
@@ -3923,7 +3923,7 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
   </div>
 </div>
 <div class="page" id="page-audits"><div class="page-header"><div class="ph-left"><div class="ph-title">Audit Logs</div><div class="ph-sub">Full system audit trail — all user actions, data changes, and alert history</div></div></div>
-  <div class="card"><div class="card-header"><div class="card-title">Recent Audit Events</div><div class="card-sub">Last 24 hours — immutable log, retained 7 years</div></div>
+  <div class="card"><div class="card-header"><div class="card-title">Recent Audit Events</div><div class="card-sub"></div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Timestamp</th><th>User</th><th>Action</th><th>Target</th><th>Result</th></tr></thead>
       <tbody><tr><td colspan="5" class="text-muted text-center" style="padding:var(--s5);font-size:12.5px">Activity log empty — entries appear here as actions are taken (imports, role changes, exports, dispatch overrides).</td></tr></tbody>
@@ -3932,25 +3932,25 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 </div>
 <div class="page" id="page-customer-accounts"><div class="page-header"><div class="ph-left"><div class="ph-title">Corporate Accounts</div><div class="ph-sub">B2B clients, contract terms, and monthly billing</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Active Accounts</div><div class="kc-value">10</div><div class="kc-sub">2 in renewal</div></div>
-    <div class="kc"><div class="kc-label">Monthly B2B Revenue</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">MTD across all clients</div></div>
+    <div class="kc"><div class="kc-label">Active Accounts</div><div class="kc-value">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Monthly B2B Revenue</div><div class="kc-value">—</div><div class="kc-sub">MTD across all clients</div></div>
     <div class="kc"><div class="kc-label">Top Client</div><div class="kc-value">Equinor</div><div class="kc-sub"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Contracts Ending &lt; 60d</div><div class="kc-value" style="color:var(--amber)">2</div></div>
+    <div class="kc"><div class="kc-label">Contracts Ending &lt; 60d</div><div class="kc-value" style="color:var(--amber)">—</div></div>
   </div>
-  <div class="card"><div class="card-header"><div class="card-title">Corporate Client Ledger</div><div class="card-sub">All active B2B contracts — monthly spend and renewal dates</div></div>
+  <div class="card"><div class="card-header"><div class="card-title">Corporate Client Ledger</div><div class="card-sub"></div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Company</th><th>Contact email</th><th>Monthly trips</th><th>MTD revenue</th><th>Contract end</th><th>Status</th></tr></thead>
       <tbody>
-        <tr><td>Equinor</td><td>travel@equinor.com</td><td>182</td><td><span class="cur" data-nok="0">—</span></td><td>2027-02-28</td><td><span class="badge b-green">Active</span></td></tr>
-        <tr><td>Statkraft</td><td>fleet@statkraft.no</td><td>141</td><td><span class="cur" data-nok="0">—</span></td><td>2026-11-30</td><td><span class="badge b-green">Active</span></td></tr>
-        <tr><td>DNB</td><td>reise@dnb.no</td><td>128</td><td><span class="cur" data-nok="0">—</span></td><td>2026-09-30</td><td><span class="badge b-green">Active</span></td></tr>
-        <tr><td>Telenor</td><td>transport@telenor.com</td><td>96</td><td><span class="cur" data-nok="0">—</span></td><td>2026-12-31</td><td><span class="badge b-green">Active</span></td></tr>
-        <tr><td>Norsk Hydro</td><td>travel@hydro.com</td><td>88</td><td><span class="cur" data-nok="0">—</span></td><td>2026-06-15</td><td><span class="badge b-amber">Renewing</span></td></tr>
-        <tr><td>Yara</td><td>admin@yara.com</td><td>74</td><td><span class="cur" data-nok="0">—</span></td><td>2027-04-30</td><td><span class="badge b-green">Active</span></td></tr>
-        <tr><td>Aker Solutions</td><td>fleet@akersolutions.com</td><td>62</td><td><span class="cur" data-nok="0">—</span></td><td>2026-08-31</td><td><span class="badge b-green">Active</span></td></tr>
-        <tr><td>Schibsted</td><td>office@schibsted.com</td><td>44</td><td><span class="cur" data-nok="0">—</span></td><td>2026-10-31</td><td><span class="badge b-green">Active</span></td></tr>
-        <tr><td>Norsk Tipping</td><td>drift@norsk-tipping.no</td><td>28</td><td><span class="cur" data-nok="0">—</span></td><td>2026-05-31</td><td><span class="badge b-amber">Renewing</span></td></tr>
-        <tr><td>Norges Bank</td><td>admin@norges-bank.no</td><td>12</td><td><span class="cur" data-nok="0">—</span></td><td>2027-01-31</td><td><span class="badge b-blue">Pilot</span></td></tr>
+        <tr><td>Equinor</td><td>travel@equinor.com</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td>—</td><td><span class="badge b-green">Active</span></td></tr>
+        <tr><td>Statkraft</td><td>fleet@statkraft.no</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td>—</td><td><span class="badge b-green">Active</span></td></tr>
+        <tr><td>DNB</td><td>reise@dnb.no</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td>—</td><td><span class="badge b-green">Active</span></td></tr>
+        <tr><td>Telenor</td><td>transport@telenor.com</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td>—</td><td><span class="badge b-green">Active</span></td></tr>
+        <tr><td>Norsk Hydro</td><td>travel@hydro.com</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td>—</td><td><span class="badge b-amber">Renewing</span></td></tr>
+        <tr><td>Yara</td><td>admin@yara.com</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td>—</td><td><span class="badge b-green">Active</span></td></tr>
+        <tr><td>Aker Solutions</td><td>fleet@akersolutions.com</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td>—</td><td><span class="badge b-green">Active</span></td></tr>
+        <tr><td>Schibsted</td><td>office@schibsted.com</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td>—</td><td><span class="badge b-green">Active</span></td></tr>
+        <tr><td>Norsk Tipping</td><td>drift@norsk-tipping.no</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td>—</td><td><span class="badge b-amber">Renewing</span></td></tr>
+        <tr><td>Norges Bank</td><td>admin@norges-bank.no</td><td>—</td><td><span class="cur" data-nok="0">—</span></td><td>—</td><td><span class="badge b-blue">Pilot</span></td></tr>
       </tbody>
     </table></div>
   </div>
@@ -3965,7 +3965,7 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
       <select style="background:var(--bg3);border:1px solid var(--b2);border-radius:6px;color:var(--t1);padding:7px 10px;font-size:13px"><option>All statuses</option><option>Completed</option><option>Cancelled</option><option>Disputed</option></select>
     </div>
   </div>
-  <div class="card"><div class="card-header"><div class="card-title">Trip Records</div><div class="card-sub">Most recent first — 25 of 4 812 records in range</div></div>
+  <div class="card"><div class="card-header"><div class="card-title">Trip Records</div><div class="card-sub"></div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Trip ID</th><th>Date</th><th>Driver</th><th>Car</th><th>Pickup</th><th>Dropoff</th><th>Dist</th><th>Dur</th><th>Fare</th><th>Rating</th><th>Status</th></tr></thead>
       <tbody><tr><td colspan="11" class="text-muted text-center" style="padding:var(--s5);font-size:12.5px">No data yet — upload a CSV via System → Data Import.</td></tr></tbody>
@@ -3974,12 +3974,12 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 </div>
 <div class="page" id="page-trip-cancellations"><div class="page-header"><div class="ph-left"><div class="ph-title">Cancellations & No-shows</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Cancellations Today</div><div class="kc-value" style="color:var(--amber)">18</div><div class="kc-sub">of 412 trips</div></div>
-    <div class="kc"><div class="kc-label">Cancel Rate</div><div class="kc-value">4.4%</div><div class="kc-sub">Target &lt; 5%</div></div>
-    <div class="kc"><div class="kc-label">Top Reason</div><div class="kc-value">Rider no-show</div><div class="kc-sub">7 cases</div></div>
-    <div class="kc"><div class="kc-label">No-shows</div><div class="kc-value" style="color:var(--red)">7</div><div class="kc-sub">Penalties applied</div></div>
+    <div class="kc"><div class="kc-label">Cancellations Today</div><div class="kc-value" style="color:var(--amber)">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Cancel Rate</div><div class="kc-value">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Top Reason</div><div class="kc-value">Rider no-show</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">No-shows</div><div class="kc-value" style="color:var(--red)">—</div><div class="kc-sub">Penalties applied</div></div>
   </div>
-  <div class="card"><div class="card-header"><div class="card-title">Today's Cancellations</div><div class="card-sub">All cancellation and no-show events for 13 Apr 2026</div></div>
+  <div class="card"><div class="card-header"><div class="card-title">Today's Cancellations</div><div class="card-sub"></div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Trip ID</th><th>Time</th><th>Driver</th><th>Car</th><th>Cancelled by</th><th>Reason</th><th>Penalty</th></tr></thead>
       <tbody><tr><td colspan="7" class="text-muted text-center" style="padding:var(--s5);font-size:12.5px">No data yet — upload a CSV via System → Data Import.</td></tr></tbody>
@@ -3988,10 +3988,10 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 </div>
 <div class="page" id="page-trip-disputes"><div class="page-header"><div class="ph-left"><div class="ph-title">Trip Disputes & Claims</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Open Disputes</div><div class="kc-value" style="color:var(--amber)">6</div><div class="kc-sub">Awaiting review</div></div>
-    <div class="kc"><div class="kc-label">Avg Resolution Time</div><div class="kc-value">2.8 days</div><div class="kc-sub">Rolling 30 days</div></div>
-    <div class="kc"><div class="kc-label">Total Disputed</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">Currently open</div></div>
-    <div class="kc"><div class="kc-label">Resolved MTD</div><div class="kc-value" style="color:var(--green)">19</div><div class="kc-sub">14 in favour of driver</div></div>
+    <div class="kc"><div class="kc-label">Open Disputes</div><div class="kc-value" style="color:var(--amber)">—</div><div class="kc-sub">Awaiting review</div></div>
+    <div class="kc"><div class="kc-label">Avg Resolution Time</div><div class="kc-value">—</div><div class="kc-sub">Rolling 30 days</div></div>
+    <div class="kc"><div class="kc-label">Total Disputed</div><div class="kc-value">—</div><div class="kc-sub">Currently open</div></div>
+    <div class="kc"><div class="kc-label">Resolved MTD</div><div class="kc-value" style="color:var(--green)">—</div><div class="kc-sub"></div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Dispute Case Queue</div><div class="card-sub">Open + recently closed — sorted by urgency</div></div>
     <div class="tbl-wrap"><table>
@@ -4009,12 +4009,12 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
     </div>
   </div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Receipts Issued Today</div><div class="kc-value">394</div><div class="kc-sub">of 412 trips</div></div>
-    <div class="kc"><div class="kc-label">Total Billed MTD</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">Gross, incl. VAT</div></div>
-    <div class="kc"><div class="kc-label">Reprints Requested</div><div class="kc-value" style="color:var(--amber)">21</div><div class="kc-sub">Rolling 30 days</div></div>
-    <div class="kc"><div class="kc-label">Email Bounce Rate</div><div class="kc-value" style="color:var(--red)">1.8%</div><div class="kc-sub">Target &lt; 2%</div></div>
+    <div class="kc"><div class="kc-label">Receipts Issued Today</div><div class="kc-value">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Total Billed MTD</div><div class="kc-value">—</div><div class="kc-sub">Gross, incl. VAT</div></div>
+    <div class="kc"><div class="kc-label">Reprints Requested</div><div class="kc-value" style="color:var(--amber)">—</div><div class="kc-sub">Rolling 30 days</div></div>
+    <div class="kc"><div class="kc-label">Email Bounce Rate</div><div class="kc-value" style="color:var(--red)">—</div><div class="kc-sub"></div></div>
   </div>
-  <div class="card"><div class="card-header"><div class="card-title">Recent Receipts</div><div class="card-sub">Last 15 issued</div></div>
+  <div class="card"><div class="card-header"><div class="card-title">Recent Receipts</div><div class="card-sub"></div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Receipt #</th><th>Trip ID</th><th>Date</th><th>Driver</th><th>Amount</th><th>Payment</th><th>Rider email</th><th>Status</th></tr></thead>
       <tbody><tr><td colspan="8" class="text-muted text-center" style="padding:var(--s5);font-size:12.5px">No data yet — upload a CSV via System → Data Import.</td></tr></tbody>
@@ -4027,10 +4027,10 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 <div class="page" id="page-vehicle-eukontroll">
   <div class="page-header"><div class="ph-left"><div class="ph-title">EU-kontroll &amp; Tyres</div><div class="ph-sub">Periodisk kjøretøykontroll (PKK) cycle + winter/summer tyre rotation</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Due in 30d</div><div class="kc-value" style="color:var(--amber)">2</div><div class="kc-sub">EU-kontroll</div></div>
-    <div class="kc"><div class="kc-label">Overdue</div><div class="kc-value" style="color:var(--red)">0</div></div>
-    <div class="kc"><div class="kc-label">Winter tyres</div><div class="kc-value">9</div><div class="kc-sub">of 14 vehicles</div></div>
-    <div class="kc"><div class="kc-label">Summer tyres</div><div class="kc-value">5</div></div>
+    <div class="kc"><div class="kc-label">Due in 30d</div><div class="kc-value" style="color:var(--amber)">—</div><div class="kc-sub">EU-kontroll</div></div>
+    <div class="kc"><div class="kc-label">Overdue</div><div class="kc-value" style="color:var(--red)">—</div></div>
+    <div class="kc"><div class="kc-label">Winter tyres</div><div class="kc-value">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">Summer tyres</div><div class="kc-value">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Vehicle compliance — EU-kontroll &amp; tyres</div><div class="card-sub">Source: <code>Vehicle.euKontrollNext</code> + <code>Vehicle.tyreSeason</code></div></div>
     <div class="tbl-wrap"><table>
@@ -4048,11 +4048,11 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 <div class="page" id="page-cost-charging">
   <div class="page-header"><div class="ph-left"><div class="ph-title">EV Charging</div><div class="ph-sub">Per-event tracking from Tesla Fleet API, NIO Power and Smartcar — billed at <strong>3 NOK/kWh</strong> internal rate</div></div><div class="ph-right"><button class="tb-btn primary" onclick="exportNearestTable(this,'charging')">⬇ Export</button></div></div>
   <div class="kpi-grid g5">
-    <div class="kc"><div class="kc-label">kWh today</div><div class="kc-value" id="ch-kwh-today">432.6</div><div class="kc-sub">across 9 EVs</div></div>
-    <div class="kc"><div class="kc-label">Cost today</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">@ 3 kr/kWh</div></div>
-    <div class="kc"><div class="kc-label">Sessions today</div><div class="kc-value">22</div></div>
-    <div class="kc"><div class="kc-label">From Tesla API</div><div class="kc-value" style="color:var(--red)">11</div></div>
-    <div class="kc"><div class="kc-label">From NIO API</div><div class="kc-value" style="color:var(--blue2)">6</div></div>
+    <div class="kc"><div class="kc-label">kWh today</div><div class="kc-value" id="ch-kwh-today">—</div><div class="kc-sub">across 9 EVs</div></div>
+    <div class="kc"><div class="kc-label">Cost today</div><div class="kc-value">—</div><div class="kc-sub">@ 3 kr/kWh</div></div>
+    <div class="kc"><div class="kc-label">Sessions today</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">From Tesla API</div><div class="kc-value" style="color:var(--red)">—</div></div>
+    <div class="kc"><div class="kc-label">From NIO API</div><div class="kc-value" style="color:var(--blue2)">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Charging sessions — last 14 days</div><div class="card-sub">Idempotent on (source, externalId)</div></div>
     <div class="tbl-wrap"><table>
@@ -4067,9 +4067,9 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
   <div class="page-header"><div class="ph-left"><div class="ph-title">NIO Battery Swap</div><div class="ph-sub">Power Swap Station (PSS) events — NIO ET5 / ET7 / ES6 only · ~3-5 min full pack swap</div></div></div>
   <div class="kpi-grid g4">
     <div class="kc"><div class="kc-label">Swaps this month</div><div class="kc-value" data-kpi="vehiclesTotal2">—</div></div>
-    <div class="kc"><div class="kc-label">Total cost MTD</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Avg per swap</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">NIO vehicles</div><div class="kc-value">3</div><div class="kc-sub">eligible</div></div>
+    <div class="kc"><div class="kc-label">Total cost MTD</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Avg per swap</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">NIO vehicles</div><div class="kc-value">—</div><div class="kc-sub">eligible</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Battery swap log</div></div>
     <div class="tbl-wrap"><table>
@@ -4083,10 +4083,10 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 <div class="page" id="page-cost-wash">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Car Wash</div><div class="ph-sub">Per-event wash log — vendor or in-house bay, charged to the vehicle's P&L</div></div><div class="ph-right"><button class="tb-btn primary" onclick="Toast.info('Add wash event — uses POST /api/wash')">+ Log Wash</button></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Washes this week</div><div class="kc-value">38</div></div>
-    <div class="kc"><div class="kc-label">Cost this week</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Avg per wash</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Cars never washed (7d)</div><div class="kc-value" style="color:var(--amber)">2</div></div>
+    <div class="kc"><div class="kc-label">Washes this week</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Cost this week</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Avg per wash</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Cars never washed (7d)</div><div class="kc-value" style="color:var(--amber)">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Wash events</div></div>
     <div class="tbl-wrap"><table>
@@ -4100,10 +4100,10 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 <div class="page" id="page-cost-repairs">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Repairs &amp; Fault Allocation</div><div class="ph-sub">Incident-driven repairs — fault attribution decides who pays</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Driver-at-fault YTD</div><div class="kc-value" style="color:var(--red)">7</div><div class="kc-sub"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Other insurance</div><div class="kc-value" style="color:var(--blue2)">4</div><div class="kc-sub">recovered via claim</div></div>
-    <div class="kc"><div class="kc-label">Fleet absorbed</div><div class="kc-value" style="color:var(--amber)">9</div><div class="kc-sub"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Open</div><div class="kc-value">3</div></div>
+    <div class="kc"><div class="kc-label">Driver-at-fault YTD</div><div class="kc-value" style="color:var(--red)">—</div><div class="kc-sub"><span class="cur" data-nok="0">—</span></div></div>
+    <div class="kc"><div class="kc-label">Other insurance</div><div class="kc-value" style="color:var(--blue2)">—</div><div class="kc-sub">recovered via claim</div></div>
+    <div class="kc"><div class="kc-label">Fleet absorbed</div><div class="kc-value" style="color:var(--amber)">—</div><div class="kc-sub"><span class="cur" data-nok="0">—</span></div></div>
+    <div class="kc"><div class="kc-label">Open</div><div class="kc-value">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Repair log</div><div class="card-sub">Source: <code>Repair</code> table · faultCategory ∈ DRIVER · OTHER_INSURANCE · FLEET · MANUFACTURER · UNKNOWN</div></div>
     <div class="tbl-wrap"><table>
@@ -4117,9 +4117,9 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 <div class="page" id="page-cost-depreciation">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Depreciation</div><div class="ph-sub">Norwegian saldogruppe c — cars depreciate at 24% declining-balance per year</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Book value (NBV)</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Charge MTD</div><div class="kc-value" style="color:var(--red)"><span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Charge YTD</div><div class="kc-value" style="color:var(--red)"><span class="cur" data-nok="0">—</span></div></div>
+    <div class="kc"><div class="kc-label">Book value (NBV)</div><div class="kc-value">—</div></div>
+    <div class="kc"><div class="kc-label">Charge MTD</div><div class="kc-value" style="color:var(--red)">—</div></div>
+    <div class="kc"><div class="kc-label">Charge YTD</div><div class="kc-value" style="color:var(--red)">—</div></div>
     <div class="kc"><div class="kc-label">Method</div><div class="kc-value" style="font-size:14px">Declining 24%</div><div class="kc-sub">+ STRAIGHT_LINE for IFRS</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Depreciation entries — current month</div></div>
@@ -4134,10 +4134,10 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
 <div class="page" id="page-trip-extra-km">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Extra Km (non-trip distance)</div><div class="ph-sub">Bolt &amp; Uber API + Norgestaxi daily CSV + odometer-delta reconciliation</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Extra km today</div><div class="kc-value">412 km</div><div class="kc-sub">deadhead + reposition</div></div>
-    <div class="kc"><div class="kc-label">% of total km</div><div class="kc-value">17.4%</div><div class="kc-sub">target &lt; 20%</div></div>
-    <div class="kc"><div class="kc-label">From Bolt API</div><div class="kc-value" style="color:var(--purple)">186</div></div>
-    <div class="kc"><div class="kc-label">From CSV (Norgestaxi)</div><div class="kc-value" style="color:var(--teal)">94</div></div>
+    <div class="kc"><div class="kc-label">Extra km today</div><div class="kc-value">—</div><div class="kc-sub">deadhead + reposition</div></div>
+    <div class="kc"><div class="kc-label">% of total km</div><div class="kc-value">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-label">From Bolt API</div><div class="kc-value" style="color:var(--purple)">—</div></div>
+    <div class="kc"><div class="kc-label">From CSV (Norgestaxi)</div><div class="kc-value" style="color:var(--teal)">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Extra km log — last 7 days</div><div class="card-sub">Sources: BOLT · UBER · CSV_TAXI · ODOMETER_DELTA · MANUAL</div></div>
     <div class="tbl-wrap"><table>
@@ -4159,11 +4159,11 @@ Current performance   = <span class="cur" data-nok="0">—</span> → 6.7% above
     <button class="tb-btn" data-gran="YEARLY"    onclick="setTaxGran(this)">Yearly</button>
   </div>
   <div class="kpi-grid g5">
-    <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">VAT collected (12%)</div><div class="kc-value" id="tx-vat"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">taxi services — lav sats</div></div>
-    <div class="kc"><div class="kc-accent" style="background:var(--blue)"></div><div class="kc-label">VAT deductible</div><div class="kc-value" id="tx-vatd"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">input MVA</div></div>
-    <div class="kc"><div class="kc-accent" style="background:var(--amber)"></div><div class="kc-label">Income tax withheld</div><div class="kc-value" id="tx-with"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">forskuddstrekk (PAYE)</div></div>
-    <div class="kc"><div class="kc-accent" style="background:var(--purple)"></div><div class="kc-label">Employer NI</div><div class="kc-value" id="tx-ni"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">arbeidsgiveravgift 14.1%</div></div>
-    <div class="kc"><div class="kc-accent" style="background:var(--red)"></div><div class="kc-label">Net to state</div><div class="kc-value" id="tx-net" style="color:var(--amber)"><span class="cur" data-nok="0">—</span></div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--green)"></div><div class="kc-label">VAT collected (12%)</div><div class="kc-value" id="tx-vat">—</div><div class="kc-sub">taxi services — lav sats</div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--blue)"></div><div class="kc-label">VAT deductible</div><div class="kc-value" id="tx-vatd">—</div><div class="kc-sub">input MVA</div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--amber)"></div><div class="kc-label">Income tax withheld</div><div class="kc-value" id="tx-with">—</div><div class="kc-sub">forskuddstrekk (PAYE)</div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--purple)"></div><div class="kc-label">Employer NI</div><div class="kc-value" id="tx-ni">—</div><div class="kc-sub"></div></div>
+    <div class="kc"><div class="kc-accent" style="background:var(--red)"></div><div class="kc-label">Net to state</div><div class="kc-value" id="tx-net" style="color:var(--amber)">—</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Tax entries — <span id="tx-period-label">DAILY</span></div><div class="card-sub">Indexed query <code>(granularity, periodStart)</code></div></div>
     <div class="tbl-wrap"><table>

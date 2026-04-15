@@ -54,16 +54,14 @@
 
 const FleetAuth = (() => {
 
-  // ── Demo user database (replace with real API calls) ──────────────
+  // ── Demo login accounts ─────────────────────────────────────────
+  // Three generic role-test accounts. Names and avatars are neutral so
+  // the UI never fakes a real driver. Real driver / employee logins
+  // come from /api/users once the owner uploads the users CSV.
   const DEMO_USERS = [
-    // One login account per role — simplified for easier testing.
-    // Additional drivers exist as fleet data (public/fleet-data.js) but
-    // don't have login accounts by default. Create more via admin
-    // Users & Permissions page as needed.
-    { id:'admin-1', email:'admin@fleettrack.no',    password:'Admin2024!',    name:'Fleet Admin',          role:'admin',    avatar:'FA', permissions:['all'] },
-    { id:'emp-1',   email:'employee@fleettrack.no', password:'Employee2024!', name:'Dispatch Officer',     role:'employee', avatar:'DO',
-      permissions:['view:drivers','view:trips','view:zones','manage:dispatch','view:alerts'] },
-    { id:'drv-1',   email:'driver@fleettrack.no',   password:'Driver2024!',   name:'Olsztynski Mariusz Zbigniew', role:'driver', avatar:'OM', carId:'TR2518', brand:'NIO ET5', shift:'AM' },
+    { id:'admin-1', email:'admin@fleettrack.no',    password:'Admin2024!',    name:'Fleet Admin',      role:'admin',    avatar:'FA', permissions:['all'] },
+    { id:'emp-1',   email:'employee@fleettrack.no', password:'Employee2024!', name:'Dispatch Officer', role:'employee', avatar:'DO', permissions:['view:drivers','view:trips','view:zones','manage:dispatch','view:alerts'] },
+    { id:'drv-1',   email:'driver@fleettrack.no',   password:'Driver2024!',   name:'Demo Driver',      role:'driver',   avatar:'DD' },
   ];
 
   // ── Session management ─────────────────────────────────────────────
