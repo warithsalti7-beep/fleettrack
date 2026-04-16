@@ -45,6 +45,20 @@ export function AdminTopbar({
             {sidebarOpen ? "×" : "☰"}
           </button>
         )}
+        {/* Brand lockup — visible on mobile where the sidebar is hidden */}
+        <div className="flex md:hidden items-center gap-2">
+          <div
+            aria-hidden
+            className="size-7 rounded-md flex items-center justify-center text-[10px] font-mono font-bold text-white"
+            style={{
+              background: "linear-gradient(135deg,var(--brand-3),var(--brand))",
+              boxShadow: "0 2px 8px rgba(59,127,245,0.25)",
+            }}
+          >
+            FT
+          </div>
+          <span className="font-semibold text-sm text-fg">FleetTrack</span>
+        </div>
         <a
           href="/dashboard"
           className="hidden md:inline-flex items-center gap-1.5 text-xs text-subtle hover:text-muted transition-colors"
