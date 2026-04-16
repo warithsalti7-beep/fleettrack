@@ -12,24 +12,41 @@
 (function(){
   if (!window.FleetState) return;
 
+  // Helpers. Each returns "—" when the underlying KPI is 0 or missing,
+  // so empty-state reads as "no data" not "zero performance".
+  const dash = (v, fmt) => (Number.isFinite(v) && v !== 0) ? fmt(v) : '—';
+  const pct1 = (n) => n.toFixed(1) + '%';
+  const one  = (n) => n.toFixed(1);
+  const int0 = (n) => String(Math.round(n));
+
   // Plain-text tiles. Each value is a formatter from state -> string.
   const TEXT_FORMATTERS = {
-    revenueToday:   (s) => String(Math.round(s.kpis.revenueToday)),
-    netRevenue:     (s) => String(Math.round(s.kpis.netRevenue)),
-    netProfit:      (s) => String(Math.round(s.kpis.netProfit)),
-    marginPct:      (s) => (s.kpis.marginPct || 0).toFixed(1) + '%',
-    breakEven:      (s) => String(Math.round(s.kpis.breakEven)),
-    tripsToday:     (s) => String(s.kpis.tripsToday),
+    // Counts + money (zero allowed, shown as numeric)
+    revenueToday:   (s) => int0(s.kpis.revenueToday || 0),
+    netRevenue:     (s) => int0(s.kpis.netRevenue || 0),
+    netProfit:      (s) => int0(s.kpis.netProfit || 0),
+    marginPct:      (s) => pct1(s.kpis.marginPct || 0),
+    breakEven:      (s) => int0(s.kpis.breakEven || 0),
+    tripsToday:     (s) => String(s.kpis.tripsToday || 0),
     avgTripFare:    (s) => (s.kpis.avgTripFare || 0).toFixed(2),
-    driversTotal:   (s) => String(s.kpis.driversTotal),
-    driversActive:  (s) => String(s.kpis.driversActive),
-    vehiclesTotal:  (s) => String(s.kpis.vehiclesTotal),
-    vehiclesOnRoad: (s) => String(s.kpis.vehiclesOnRoad),
-    vehiclesShop:   (s) => String(s.kpis.vehiclesShop),
-    vehiclesIdle:   (s) => String(s.kpis.vehiclesIdle),
-    // Composite / formatted displays
-    driversActiveRatio:  (s) => s.kpis.driversActive + ' / ' + s.kpis.driversTotal,
-    vehiclesOnRoadRatio: (s) => s.kpis.vehiclesOnRoad + ' / ' + s.kpis.vehiclesTotal,
+    driversTotal:   (s) => String(s.kpis.driversTotal || 0),
+    driversActive:  (s) => String(s.kpis.driversActive || 0),
+    vehiclesTotal:  (s) => String(s.kpis.vehiclesTotal || 0),
+    vehiclesOnRoad: (s) => String(s.kpis.vehiclesOnRoad || 0),
+    vehiclesShop:   (s) => String(s.kpis.vehiclesShop || 0),
+    vehiclesIdle:   (s) => String(s.kpis.vehiclesIdle || 0),
+    // Composite displays
+    driversActiveRatio:  (s) => (s.kpis.driversActive || 0) + ' / ' + (s.kpis.driversTotal || 0),
+    vehiclesOnRoadRatio: (s) => (s.kpis.vehiclesOnRoad || 0) + ' / ' + (s.kpis.vehiclesTotal || 0),
+    // Performance KPIs — dash when zero so empty fleets don't show fake 0%
+    acceptanceRate:       (s) => dash(s.kpis.acceptanceRate, pct1),
+    cancellationRate:     (s) => dash(s.kpis.cancellationRate, pct1),
+    tripsPerHour:         (s) => dash(s.kpis.tripsPerHour, one),
+    utilizationPct:       (s) => dash(s.kpis.utilizationPct, pct1),
+    idlePct:              (s) => dash(s.kpis.idlePct, pct1),
+    timeBetweenTripsMin:  (s) => dash(s.kpis.timeBetweenTripsMin, (n) => one(n) + ' min'),
+    avgTripDistanceKm:    (s) => dash(s.kpis.avgTripDistanceKm, (n) => one(n) + ' km'),
+    peakCoverage:         (s) => s.kpis.peakCoverage || '—',
   };
 
   // Currency tiles — the target value is a NOK amount which FleetCurrency
@@ -40,17 +57,16 @@
     netProfit:      (s) => s.kpis.netProfit,
     breakEven:      (s) => s.kpis.breakEven,
     avgTripFare:    (s) => s.kpis.avgTripFare,
+    revenuePerHour: (s) => s.kpis.revenuePerHour,
   };
 
   function render(state){
-    // Text tiles
     document.querySelectorAll('[data-kpi]').forEach(el => {
       const name = el.getAttribute('data-kpi');
       const fn = TEXT_FORMATTERS[name];
       if (fn) el.textContent = fn(state);
     });
 
-    // Currency tiles. Update data-nok so FleetCurrency.rerender picks it up.
     let curChanged = 0;
     document.querySelectorAll('[data-kpi-cur]').forEach(el => {
       const name = el.getAttribute('data-kpi-cur');

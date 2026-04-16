@@ -102,6 +102,28 @@ button { font-family: var(--font); }
   box-shadow: 0 0 0 1px var(--blueborder), var(--shadow-sm);
 }
 .logo-text { overflow: hidden; }
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.logo-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1a4db8, #3b7ff5);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(59,127,245,0.30), inset 0 1px 0 rgba(255,255,255,0.15);
+  flex-shrink: 0;
+}
 .logo-name {
   font-family: var(--mono);
   font-size: 15px;
@@ -1069,9 +1091,12 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
 ═══════════════════════════════ -->
 <aside class="sidebar">
   <div class="logo-area">
-    <div class="logo-name">FleetTrack</div>
+    <div class="logo-row">
+      <div class="logo-mark" aria-hidden="true">FT</div>
+      <div class="logo-name">FleetTrack</div>
+    </div>
     <div class="logo-tag">FLEET MANAGEMENT SYSTEM</div>
-    <div class="fleet-badge"><span class="live-dot"></span>19 Drivers · Live</div>
+    <div class="fleet-badge"><span class="live-dot"></span><span data-kpi="driversTotal">—</span> Drivers · Live</div>
   </div>
 
   <div class="nav-scroll">
@@ -1340,10 +1365,10 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
     <div class="kc"><div class="kc-accent" style="background:var(--teal)"></div><div class="kc-label">Margin</div><div class="kc-value" data-kpi="marginPct">—</div><div class="kc-sub">Net / gross</div></div>
   </div>
   <div class="kpi-grid g6">
-    <div class="kc"><div class="kc-label">Acceptance Rate</div><div class="kc-value">83.5%</div><div class="kc-bar"><div class="kc-bar-fill" style="width:83.5%;background:var(--green)"></div></div><div class="kc-sub">Target: >80%</div></div>
-    <div class="kc"><div class="kc-label">Cancellation Rate</div><div class="kc-value">6.2%</div><div class="kc-delta up">↑ Below 10% limit</div><div class="kc-sub">Safe zone</div></div>
-    <div class="kc"><div class="kc-label">Avg Idle Time</div><div class="kc-value">24.1%</div><div class="kc-bar"><div class="kc-bar-fill" style="width:24.1%;background:var(--green)"></div></div><div class="kc-sub">Target: <30%</div></div>
-    <div class="kc"><div class="kc-label">Trips/Active Hr</div><div class="kc-value">2.1</div><div class="kc-delta neu">Target: 2.5</div><div class="kc-sub">Below optimal</div></div>
+    <div class="kc"><div class="kc-label">Acceptance Rate</div><div class="kc-value"><span data-kpi="acceptanceRate">—</span></div><div class="kc-sub">Target: >80%</div></div>
+    <div class="kc"><div class="kc-label">Cancellation Rate</div><div class="kc-value"><span data-kpi="cancellationRate">—</span></div><div class="kc-sub">Target: <10%</div></div>
+    <div class="kc"><div class="kc-label">Avg Idle Time</div><div class="kc-value"><span data-kpi="idlePct">—</span></div><div class="kc-sub">Target: <30%</div></div>
+    <div class="kc"><div class="kc-label">Trips/Active Hr</div><div class="kc-value"><span data-kpi="tripsPerHour">—</span></div><div class="kc-sub">Target: >2.5</div></div>
     <div class="kc"><div class="kc-label">Cost Per Trip</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-sub">Revenue/trip: <span class="cur" data-nok="0">—</span></div></div>
     <div class="kc"><div class="kc-label">Platform Split</div><div class="kc-value">58/42</div><div class="split-bar"><div class="sb-seg" style="width:58%;background:rgba(139,92,246,0.4);color:#c4b5fd">Bolt</div><div class="sb-seg" style="width:42%;background:rgba(59,130,246,0.4);color:#93c5fd">Uber</div></div></div>
   </div>
@@ -1438,7 +1463,7 @@ hr.div { border: none; border-top: 1px solid var(--b1); margin: var(--s4) 0; }
 Each component normalized 0–100. Cancel_score = MAX(0, 100 − cancel_rate% × 5)
 Tier: Top ≥80 · Average 60–79 · Low <60</div>
   </div>
-  <div class="card"><div class="card-header"><div class="card-title">All 19 Drivers — Ranked</div></div>
+  <div class="card"><div class="card-header"><div class="card-title">All <span data-kpi="driversTotal">—</span> Drivers — Ranked</div></div>
     <div class="tbl-wrap"><table id="rpt-driver-performance">
       <thead><tr><th>#</th><th>Driver</th><th>Car ID</th><th>Shift</th><th>Revenue</th><th>Rev/Hr</th><th>Trips/Hr</th><th>Accept%</th><th>Cancel%</th><th>Idle%</th><th>Util%</th><th>Score</th><th>Tier</th><th>Trend</th></tr></thead>
       <tbody id="perf-tbody"></tbody>
@@ -1469,7 +1494,7 @@ Tier: Top ≥80 · Average 60–79 · Low <60</div>
     <div class="kc"><div class="kc-label">Confirmed Present</div><div class="kc-value" style="color:var(--green)">16</div></div>
     <div class="kc"><div class="kc-label">No-Shows</div><div class="kc-value" style="color:var(--red)">1</div></div>
     <div class="kc"><div class="kc-label">Avg Shift Length</div><div class="kc-value">9.2h</div></div>
-    <div class="kc"><div class="kc-label">Peak Coverage (07–09)</div><div class="kc-value" style="color:var(--green)">14/19</div></div>
+    <div class="kc"><div class="kc-label">Peak Coverage (07–09)</div><div class="kc-value"><span data-kpi="peakCoverage">—</span></div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Today's Shift Schedule</div></div>
     <div class="tbl-wrap"><table>
@@ -1756,21 +1781,21 @@ Rule: 1 emergency repair = value of 3 planned services + 1–2 lost revenue days
 <div class="page" id="page-efficiency">
   <div class="page-header"><div class="ph-left"><div class="ph-title">Efficiency & KPIs</div><div class="ph-sub">What every metric means and what to do when it's wrong</div></div></div>
   <div class="kpi-grid g4">
-    <div class="kc"><div class="kc-label">Revenue/Hour</div><div class="kc-value"><span class="cur" data-nok="0">—</span></div><div class="kc-delta up">↑ Target: <span class="cur" data-nok="0">—</span></div></div>
-    <div class="kc"><div class="kc-label">Trips/Hour</div><div class="kc-value">2.1</div><div class="kc-delta neu">Target: 2.5</div></div>
-    <div class="kc"><div class="kc-label">Idle Time</div><div class="kc-value">24.1%</div><div class="kc-delta up">↑ <30% target</div></div>
-    <div class="kc"><div class="kc-label">Time Between Trips</div><div class="kc-value">8.4 min</div><div class="kc-delta up">↑ <10 min target</div></div>
+    <div class="kc"><div class="kc-label">Revenue/Hour</div><div class="kc-value"><span class="cur" data-kpi-cur="revenuePerHour" data-nok="0">—</span></div><div class="kc-sub">Target: 250 kr</div></div>
+    <div class="kc"><div class="kc-label">Trips/Hour</div><div class="kc-value"><span data-kpi="tripsPerHour">—</span></div><div class="kc-sub">Target: 2.5</div></div>
+    <div class="kc"><div class="kc-label">Idle Time</div><div class="kc-value"><span data-kpi="idlePct">—</span></div><div class="kc-sub">Target: <30%</div></div>
+    <div class="kc"><div class="kc-label">Time Between Trips</div><div class="kc-value"><span data-kpi="timeBetweenTripsMin">—</span></div><div class="kc-sub">Target: <10 min</div></div>
   </div>
   <div class="card"><div class="card-header"><div class="card-title">Metric Reference — Operational Decision Guide</div></div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>Metric</th><th>Formula</th><th>Value</th><th>Target</th><th>If Below → Action</th><th>If Above → Action</th></tr></thead>
+      <thead><tr><th>Metric</th><th>Formula</th><th>Current</th><th>Target</th><th>If Below → Action</th><th>If Above → Action</th></tr></thead>
       <tbody>
-        <tr><td><strong>Revenue/hr</strong></td><td style="font-family:var(--mono);font-size:11px">Revenue/active_hrs</td><td><span class="cur" data-nok="0">—</span></td><td><span class="cur" data-nok="0">—</span></td><td>Reposition to busy zone; check vehicle</td><td>Sustain; monitor acceptance rate</td></tr>
-        <tr><td><strong>Trips/hr</strong></td><td style="font-family:var(--mono);font-size:11px">Completed/active_hrs</td><td>2.1</td><td>2.5</td><td>Low-demand zone or rejecting trips</td><td>Check quality — rush = cancellations</td></tr>
-        <tr><td><strong>Idle time%</strong></td><td style="font-family:var(--mono);font-size:11px">idle_min/shift_min</td><td>24.1%</td><td><30%</td><td>Normal; <18% = peak performance</td><td>>40% = reposition urgently</td></tr>
-        <tr><td><strong>Utilization%</strong></td><td style="font-family:var(--mono);font-size:11px">busy/(busy+idle)</td><td>68.4%</td><td>>70%</td><td><60%: schedule vs demand mismatch</td><td>>85%: fatigue risk; check breaks</td></tr>
-        <tr><td><strong>Time between trips</strong></td><td style="font-family:var(--mono);font-size:11px">AVG(next_start−end)</td><td>8.4 min</td><td><10 min</td><td>>15 min: repositioning gap</td><td><3 min: verify data accuracy</td></tr>
-        <tr><td><strong>Avg trip distance</strong></td><td style="font-family:var(--mono);font-size:11px">SUM(km)/trips</td><td>14.2 km</td><td>12–18 km</td><td>Short = high idle; check platform filters</td><td>Long = fewer trips; check surge pricing</td></tr>
+        <tr><td><strong>Revenue/hr</strong></td><td style="font-family:var(--mono);font-size:11px">SUM(fare)/SUM(online_hrs)</td><td><span class="cur" data-kpi-cur="revenuePerHour" data-nok="0">—</span></td><td>250 kr</td><td>Reposition to busy zone; check vehicle</td><td>Sustain; monitor acceptance rate</td></tr>
+        <tr><td><strong>Trips/hr</strong></td><td style="font-family:var(--mono);font-size:11px">COUNT(completed)/SUM(online_hrs)</td><td><span data-kpi="tripsPerHour">—</span></td><td>2.5</td><td>Low-demand zone or rejecting trips</td><td>Check quality — rush = cancellations</td></tr>
+        <tr><td><strong>Idle time %</strong></td><td style="font-family:var(--mono);font-size:11px">idle_min/shift_min</td><td><span data-kpi="idlePct">—</span></td><td>&lt;30%</td><td>Normal; &lt;18% = peak performance</td><td>&gt;40% = reposition urgently</td></tr>
+        <tr><td><strong>Utilization %</strong></td><td style="font-family:var(--mono);font-size:11px">busy/(busy+idle)</td><td><span data-kpi="utilizationPct">—</span></td><td>&gt;70%</td><td>&lt;60%: schedule vs demand mismatch</td><td>&gt;85%: fatigue risk; check breaks</td></tr>
+        <tr><td><strong>Time between trips</strong></td><td style="font-family:var(--mono);font-size:11px">AVG(next_start − prev_end)</td><td><span data-kpi="timeBetweenTripsMin">—</span></td><td>&lt;10 min</td><td>&gt;15 min: repositioning gap</td><td>&lt;3 min: verify data accuracy</td></tr>
+        <tr><td><strong>Avg trip distance</strong></td><td style="font-family:var(--mono);font-size:11px">SUM(distance)/COUNT(trips)</td><td><span data-kpi="avgTripDistanceKm">—</span></td><td>12–18 km</td><td>Short = high idle; check platform filters</td><td>Long = fewer trips; check surge pricing</td></tr>
       </tbody>
     </table></div>
   </div>
