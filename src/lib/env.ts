@@ -17,7 +17,11 @@ type OptionalKey =
   | "OPENAI_API_KEY"
   | "ANTHROPIC_API_KEY"
   | "RESEND_API_KEY"
-  | "SENTRY_DSN";
+  | "SENTRY_DSN"
+  | "TELEGRAM_BOT_TOKEN"
+  | "TELEGRAM_WEBHOOK_SECRET"
+  | "TELEGRAM_ADMIN_CHAT_IDS"
+  | "AGENT_SECRET";
 
 const REQUIRED: RequiredKey[] = ["DATABASE_URL"];
 const OPTIONAL: OptionalKey[] = [
@@ -27,6 +31,10 @@ const OPTIONAL: OptionalKey[] = [
   "ANTHROPIC_API_KEY",
   "RESEND_API_KEY",
   "SENTRY_DSN",
+  "TELEGRAM_BOT_TOKEN",
+  "TELEGRAM_WEBHOOK_SECRET",
+  "TELEGRAM_ADMIN_CHAT_IDS",
+  "AGENT_SECRET",
 ];
 
 type Env = Record<RequiredKey, string> & Partial<Record<OptionalKey, string>>;

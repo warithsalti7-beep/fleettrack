@@ -12,5 +12,10 @@
         { "key": "X-XSS-Protection", "value": "1; mode=block" }
       ]
     }
+  ],
+  "crons": [
+    { "path": "/api/agent/brief", "schedule": "0 5 * * *" },
+    { "path": "/api/agent/anomaly", "schedule": "0 * * * *" },
+    { "path": "/api/agent/digest", "schedule": "0 6 * * 1" }
   ]
 }

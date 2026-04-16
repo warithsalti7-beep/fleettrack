@@ -189,3 +189,63 @@ model AuditLog {
   @@index([createdAt])
   @@index([actorId])
 }
+
+/// One row per turn in an AI conversation. Keyed on principal (user id
+/// OR telegram chat id) so opening a "new chat" on any device still
+/// pulls history via loadRecentMessages(principal).
+model AiMessage {
+  id         String   @id @default(cuid())
+  principal  String   // "user:<id>" | "tg:<chatId>"
+  channel    String   // "web" | "telegram" | "agent"
+  role       String   // "user" | "assistant" | "tool"
+  content    String   // rendered text (tool results stored as JSON string)
+  toolName   String?
+  toolInput  Json?
+  toolOutput Json?
+  createdAt  DateTime @default(now())
+
+  @@index([principal, createdAt])
+}
+
+/// Distilled long-term facts the assistant writes about a principal.
+/// Loaded into every system prompt so memory persists across sessions,
+/// devices, and channels. One row per fact — upserted by `key`.
+model AiMemory {
+  id        String   @id @default(cuid())
+  principal String
+  key       String   // "preferred_units", "focus_vehicle", "reporting_cadence"
+  value     String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([principal, key])
+  @@index([principal])
+}
+
+/// Write actions the assistant proposes are parked here until the user
+/// confirms in the next turn. Expires after 10 min.
+model PendingAction {
+  id         String   @id @default(cuid())
+  principal  String
+  tool       String   // e.g. "schedule_maintenance"
+  input      Json
+  summary    String   // human-readable preview
+  status     String   @default("pending") // pending | confirmed | cancelled | expired
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+
+  @@index([principal, status])
+}
+
+/// Links a Telegram chat to a FleetTrack user. Admins-only use for now.
+model TelegramLink {
+  id         String   @id @default(cuid())
+  chatId     String   @unique   // Telegram chat.id as string
+  userId     String?            // FleetTrack User.id (nullable until /link is completed)
+  username   String?
+  role       String   @default("admin") // admin | developer
+  linkedAt   DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+
+  @@index([userId])
+}
