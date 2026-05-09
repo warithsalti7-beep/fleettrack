@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
+<title>FleetTrack — Sign in</title>
+<link rel="stylesheet" href="./design-system.css">
+<link rel="stylesheet" href="./ft-shell.css">
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   Login — redesigned to match the /admin React surface.
+   Tokens come from design-system.css so light/dark theme carries.
+══════════════════════════════════════════════════════════════════ */
+
+html, body { height: 100%; }
+body {
+  display: grid;
+  place-items: center;
+  padding: var(--s4);
+  background: var(--bg);
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 0%,   rgba(59,127,245,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 100%, rgba(20,184,166,0.08) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="light"] body::before {
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 0%,   rgba(37,99,235,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 100%, rgba(20,184,166,0.05) 0%, transparent 60%);
+}
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Brand row */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 auto var(--s7);
+}
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1a4db8, #3b7ff5);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 10px rgba(59,127,245,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.brand-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--t1);
+  letter-spacing: -0.01em;
+}
+
+/* Card */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  padding: 32px;
+}
+.card h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--t1);
+  letter-spacing: -0.01em;
+}
+.card .sub {
+  margin-top: 6px;
+  font-size: 13.5px;
+  color: var(--t2);
+  line-height: 1.5;
+}
+
+/* Form */
+form.login {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--t2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  font-family: var(--mono);
+}
+.field .input-wrap {
+  position: relative;
+}
+.field input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  font-size: 14px;
+  color: var(--t1);
+  background: var(--bg);
+  border: 1px solid var(--b2);
+  border-radius: 8px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  font-family: var(--font);
+  box-sizing: border-box;
+}
+.field input::placeholder { color: var(--t4); }
+.field input:hover  { border-color: var(--b3); }
+.field input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(59,127,245,0.2);
+}
+.field .show-pw {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 30px;
+  padding: 0 10px;
+  background: transparent;
+  color: var(--t3);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: background 150ms ease, color 150ms ease;
+}
+.field .show-pw:hover { background: var(--bg3); color: var(--t1); }
+.field input[type="password"], .field input.has-toggle { padding-right: 64px; }
+
+.signin-btn {
+  height: 44px;
+  border: 1px solid var(--blue);
+  background: var(--blue);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 150ms ease, border-color 150ms ease, transform 100ms ease, box-shadow 150ms ease;
+  box-shadow: 0 2px 8px rgba(59,127,245,0.25);
+  margin-top: 4px;
+}
+.signin-btn:hover:not(:disabled) { background: var(--blue2); border-color: var(--blue2); box-shadow: 0 4px 12px rgba(59,127,245,0.3); }
+.signin-btn:active:not(:disabled) { transform: translateY(0.5px); }
+.signin-btn:disabled { opacity: 0.7; cursor: not-allowed; box-shadow: none; }
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Error banner */
+.banner {
+  display: none;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid var(--redborder);
+  background: var(--redbg);
+  color: var(--red);
+}
+.banner.visible { display: block; }
+
+/* Inline field error */
+.field-error {
+  margin-top: 6px;
+  display: none;
+  font-size: 12px;
+  color: var(--red);
+}
+.field-error.visible { display: block; }
+
+/* Footer */
+.foot {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--t3);
+  font-family: var(--mono);
+  letter-spacing: 0.03em;
+}
+.foot a { color: var(--t2); text-decoration: none; }
+.foot a:hover { color: var(--blue2); }
+
+/* Mobile */
+@media (max-width: 480px) {
+  .card { padding: 24px 20px; border-radius: 12px; }
+  .field input { font-size: 16px; /* no iOS zoom-on-focus */ }
+}
+
+/* Theme toggle visual parity — legacy Toast container present */
+</style>
+</head>
+<body>
+
+<main class="wrap">
+  <div class="brand" aria-hidden="true">
+    <div class="brand-mark">FT</div>
+    <div class="brand-name">FleetTrack</div>
+  </div>
+
+  <section class="card" aria-labelledby="login-title">
+    <h1 id="login-title">Sign in</h1>
+    <p class="sub">Welcome back. Enter your credentials to continue.</p>
+
+    <div class="banner" id="error-banner" role="alert"></div>
+
+    <form class="login" id="login-form" novalidate onsubmit="handleLogin(event)">
+      <div class="field">
+        <label for="email">Email</label>
+        <div class="input-wrap">
+          <input id="email" name="email" type="email" placeholder="you@fleettrack.no" autocomplete="email" required spellcheck="false">
+        </div>
+        <div class="field-error" id="email-error">Please enter a valid email address.</div>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input-wrap">
+          <input id="password" name="password" type="password" class="has-toggle" placeholder="••••••••" autocomplete="current-password" required>
+          <button type="button" class="show-pw" onclick="togglePw()" aria-label="Toggle password visibility">Show</button>
+        </div>
+        <div class="field-error" id="pw-error">Password is required.</div>
+      </div>
+
+      <button type="submit" class="signin-btn" id="login-btn">Sign in</button>
+    </form>
+  </section>
+
+  <div class="foot">
+    <a href="mailto:admin@fleettrack.no">Contact admin</a>
+    <span>·</span>
+    <span id="ft-build-id">—</span>
+    <span>·</span>
+    <span id="ft-year">2026</span>
+  </div>
+</main>
+
+<script src="./auth.js"></script>
+<script>
+// Destination per role after successful sign-in.
+const ROLE_DEST = {
+  admin:    '/dashboard',
+  employee: '/dashboard',
+  driver:   '/driver',
+};
+
+function togglePw() {
+  const inp = document.getElementById('password');
+  const btn = document.querySelector('.show-pw');
+  const hidden = inp.type === 'password';
+  inp.type = hidden ? 'text' : 'password';
+  if (btn) btn.textContent = hidden ? 'Hide' : 'Show';
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn      = document.getElementById('login-btn');
+  const banner   = document.getElementById('error-banner');
+
+  banner.classList.remove('visible');
+  document.getElementById('email-error').classList.remove('visible');
+  document.getElementById('pw-error').classList.remove('visible');
+
+  if (!email || !email.includes('@')) {
+    document.getElementById('email-error').classList.add('visible');
+    document.getElementById('email').focus();
+    return;
+  }
+  if (!password) {
+    document.getElementById('pw-error').classList.add('visible');
+    document.getElementById('password').focus();
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Signing in…';
+
+  const result = await FleetAuth.login(email, password);
+
+  if (!result.ok) {
+    btn.disabled = false;
+    btn.textContent = 'Sign in';
+    banner.textContent = result.error || 'Invalid email or password.';
+    banner.classList.add('visible');
+    return;
+  }
+
+  const dest = ROLE_DEST[result.session.role] || '/dashboard';
+  btn.innerHTML = '✓ Redirecting…';
+  window.location.href = dest;
+}
+
+// Theme toggle auto-injected by auth.js's FleetTheme helper.
+if (typeof FleetTheme !== 'undefined') FleetTheme.injectToggle();
+
+// Footer build id + year.
+(function fillFooter(){
+  try { document.getElementById('ft-year').textContent = String(new Date().getFullYear()); } catch(e){}
+  fetch('/api/health', { credentials: 'same-origin' })
+    .then(r => r.ok ? r.json() : null)
+    .then(j => { if (j && j.sha) { const el = document.getElementById('ft-build-id'); if (el) el.textContent = 'build ' + String(j.sha).slice(0,7); } })
+    .catch(() => {});
+})();
+
+// Show "unauthorized" from upstream pages.
+const urlParams = new URLSearchParams(window.location.search);
+const errorParam = urlParams.get('error');
+if (errorParam === 'unauthorized') {
+  try { localStorage.removeItem('ft_session'); } catch(e){}
+  const banner = document.getElementById('error-banner');
+  banner.textContent = 'You do not have permission to access that page. Please sign in again.';
+  banner.classList.add('visible');
+}
+
+// Loop breaker — clears auth if /login ↔ /dashboard ping-pongs.
+(function loopGuard(){
+  const NOW = Date.now();
+  const KEY = 'ft_login_visits';
+  let visits = [];
+  try { visits = JSON.parse(sessionStorage.getItem(KEY) || '[]'); } catch(e){}
+  visits = visits.filter(t => NOW - t < 5000);
+  visits.push(NOW);
+  try { sessionStorage.setItem(KEY, JSON.stringify(visits)); } catch(e){}
+  if (visits.length >= 3) {
+    try {
+      localStorage.removeItem('ft_session');
+      localStorage.removeItem('ft_preview_as');
+    } catch(e){}
+    const banner = document.getElementById('error-banner');
+    banner.textContent = 'We detected a redirect loop and cleared your session to break it. Please sign in again.';
+    banner.classList.add('visible');
+    try { sessionStorage.removeItem(KEY); } catch(e){}
+    return;
+  }
+
+  if (errorParam !== 'unauthorized') {
+    const existing = FleetAuth.getSession();
+    if (existing) {
+      const dest = ROLE_DEST[existing.role] || '/dashboard';
+      const ref = document.referrer || '';
+      const comingFromDest = ref && dest && ref.indexOf(dest) > -1;
+      if (dest && !comingFromDest) {
+        window.location.href = dest;
+      } else if (comingFromDest) {
+        const banner = document.getElementById('error-banner');
+        banner.textContent = 'Your session was rejected by the previous page. Please sign in again.';
+        banner.classList.add('visible');
+        try { localStorage.removeItem('ft_session'); } catch(e){}
+      }
+    }
+  }
+})();
+</script>
+</body>
+</html>
